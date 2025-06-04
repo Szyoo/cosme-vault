@@ -2,7 +2,7 @@
   <div class="flex-1 flex flex-col justify-start items-center px-4 pb-4 h-[calc(100vh-48px)]">
     <h5 class="my-2 text-lg font-semibold">运行状态</h5>
     <div class="flex-1 w-full max-w-xs bg-gray-100 rounded-lg p-4 overflow-y-auto">
-      <div class="w-full h-full overflow-y-auto">
+      <div ref="logList" class="w-full h-full overflow-y-auto">
         <div class="grid grid-cols-[auto_auto_1fr] gap-1 w-full">
           <template v-for="entry in logs" :key="entry.datetime">
             <div class="px-1 text-left whitespace-pre-line text-xs text-gray-500">{{ entry.datetime.split(' ')[0] }}</div>
