@@ -1,44 +1,65 @@
 <template>
-    <div class="h-full flex flex-col min-h-0">
-        <h5 class="my-2 text-lg font-semibold">当前奖品</h5>
-        <div class="p-4 max-w-xs w-full">
-            <div class="bg-white rounded-lg shadow p-2 flex flex-col items-center">
-                <img :src="prizeImage || 'https://via.placeholder.com/150'" class="w-32 h-32 object-cover rounded mb-2" />
-                <div class="text-base font-bold mb-1">{{ prizeTitle || '奖品信息待加载...' }}</div>
-                <div class="text-sm text-gray-500">{{ prizeDescription || '奖品详情待加载...' }}</div>
-            </div>
-        </div>
-        <div class="relative flex flex-col justify-end flex-grow px-8 max-w-xs w-full overflow-y-auto">
-            <div class="overflow-y-auto max-h-full">
-                <div v-if="prizeOptions && prizeOptions.length">
-                    <div v-for="option in prizeOptions" :key="option.id" class="flex items-center text-left my-2">
-                        <input
-                            type="radio"
-                            :id="'option-' + option.id"
-                            :value="option.id"
-                            v-model="selectedOption"
-                            class="form-radio text-purple-600"
-                        />
-                        <label :for="'option-' + option.id" class="ml-2 text-sm whitespace-pre-line">{{ option.text }}</label>
-                    </div>
+    <div class="h-full flex flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
+        <h5 class="text-lg font-semibold text-center w-full my-2">当前奖品</h5>
+        <div class="flex-1 flex flex-col justify-end items-center min-h-0">
+            <div class="w-full max-w-xs flex flex-col gap-4 mb-2 items-center">
+                <!-- 奖品图片展示 -->
+                <div
+                    class="w-full aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden">
+                    <template v-if="prizeImage">
+                        <img :src="prizeImage" class="w-full h-full object-cover rounded-2xl transition" />
+                    </template>
+                    <template v-else>
+                        <img src="/image_empty.svg" class="w-24 h-24 object-contain opacity-60" alt="占位图标" />
+                    </template>
                 </div>
-                <div v-else>
-                    <div class="flex items-center my-2">
-                        <input type="radio" disabled class="form-radio" />
-                        <div class="ml-4 flex-grow h-6 bg-gray-300 rounded"></div>
-                    </div>
-                    <div class="flex items-center my-2">
-                        <input type="radio" disabled class="form-radio" />
-                        <div class="ml-4 flex-grow h-6 bg-gray-300 rounded"></div>
-                    </div>
+                <!-- 奖品标题展示 -->
+                <div class="w-full text-base font-bold mx-2 text-center">
+                    <template v-if="prizeTitle">{{ prizeTitle }}</template>
+                    <template v-else>
+                        <div class="w-full h-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </template>
+                </div>
+                <!-- 奖品描述展示 -->
+                <div class="w-full text-base font-bold mx-2 text-center">
+                    <template v-if="prizeDescription">{{ prizeDescription }}</template>
+                    <template v-else>
+                        <div class="w-full h-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                        <div class="w-full h-5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse mt-4"></div>
+                    </template>
                 </div>
             </div>
-            <button
-                :disabled="!selectedOption"
-                class="mt-4 py-2 px-6 rounded bg-gray-500 text-white font-semibold shadow hover:bg-gray-600 transition disabled:opacity-50"
-                @click="confirmOption"
-            >确认</button>
-            <div v-if="!optionsAvailable || !running" class="absolute top-2 right-2 bottom-2 left-2 bg-gray-200 bg-opacity-30 rounded-lg z-10"></div>
+            <div class="flex-1 min-h-0 flex flex-col w-full justify-end">
+                <div class="flex-1 min-h-0 overflow-y-auto flex flex-col mt-4">
+                    <div v-if="prizeOptions && prizeOptions.length">
+                        <div v-for="option in prizeOptions" :key="option.id" class="w-full">
+                            <label class="flex items-center w-full cursor-pointer gap-2 py-1">
+                                <input type="radio" :id="'option-' + option.id" :value="option.id"
+                                    v-model="selectedOption"
+                                    class="xt-check xt-radio rounded-full bg-gray-200 border border-transparent transition checked:bg-primary-500"
+                                    name="prize-options" />
+                                <span class="text-sm whitespace-pre-line flex-1">{{ option.text }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div v-else class="flex flex-col gap-2">
+                        <div v-for="n in 5" :key="n" class="w-full">
+                            <label class="inline-flex items-baseline w-full gap-2 py-1">
+                                <input type="radio" disabled
+                                    class="top-[1px] xt-check xt-radio rounded-full bg-gray-200 border border-transparent transition"
+                                    name="prize-options-placeholder" />
+                                <span :class="[
+                                    'inline-block bg-gray-200 dark:bg-gray-700 rounded animate-pulse',
+                                    n === 1 ? 'w-20 h-4' : 'w-16 h-4'
+                                ]"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button :disabled="!selectedOption"
+                    class="mt-4 xt-button rounded-2xl bg-gray-500 text-white font-semibold shadow hover:bg-gray-600 transition disabled:opacity-50 py-2 px-6"
+                    @click="confirmOption">确认</button>
+            </div>
         </div>
     </div>
 </template>
@@ -58,14 +79,7 @@ export default {
             prizeImage: null,
             prizeTitle: null,
             prizeDescription: null,
-            prizeOptions: [
-                // { id: 1, text: '商品A: 这是一个比较长的商品名称，用于测试排版效果abcd\n123' },
-                // { id: 2, text: '商品B' },
-                // { id: 3, text: '商品C' },
-                // { id: 4, text: '商品D' },
-                // { id: 5, text: '商品D' },
-                // { id: 6, text: '商品D' },
-            ],
+            prizeOptions: [],
             optionsAvailable: false
         };
     },
@@ -75,14 +89,12 @@ export default {
     methods: {
         initWebSocket() {
             this.socket = new WebSocket('ws://localhost:8000/ws');
-
             this.socket.onmessage = (event) => {
                 let data = JSON.parse(event.data);
                 if (data.type === 'prizeInfo') {
                     this.prizeImage = data.payload.image;
                     this.prizeTitle = data.payload.title;
                     this.prizeDescription = data.payload.description;
-                    // 清除旧的选项
                     this.prizeOptions = [];
                     this.optionsAvailable = false;
                 } else if (data.type === 'options') {
@@ -90,11 +102,9 @@ export default {
                     this.optionsAvailable = this.running && this.prizeOptions.length > 0;
                 }
             };
-
             this.socket.onclose = (event) => {
                 console.log('WebSocket closed:', event);
             };
-
             this.socket.onerror = (error) => {
                 console.error('WebSocket Error:', error);
             };
