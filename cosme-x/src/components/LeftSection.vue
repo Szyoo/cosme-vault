@@ -2,10 +2,10 @@
     <div class="h-full flex flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
         <h5 class="text-lg font-semibold text-center w-full my-2">当前奖品</h5>
         <div class="flex-1 flex flex-col justify-end items-center min-h-0">
-            <div class="w-full max-w-xs flex flex-col gap-4 mb-2 items-center">
+            <div class="w-full flex flex-col gap-4 items-center">
                 <!-- 奖品图片展示 -->
                 <div
-                    class="w-full aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden">
+                    class="w-full max-w-36 aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden animate-pulse">
                     <template v-if="prizeImage">
                         <img :src="prizeImage" class="w-full h-full object-cover rounded-2xl transition" />
                     </template>
@@ -29,8 +29,9 @@
                     </template>
                 </div>
             </div>
-            <div class="flex-1 min-h-0 flex flex-col w-full justify-end">
-                <div class="flex-1 min-h-0 overflow-y-auto flex flex-col mt-4">
+            <!-- 奖品选项列表 -->
+            <div class="flex-1 min-h-0 flex flex-col w-full">
+                <div class="flex-1 min-h-0 flex flex-col mt-4 justify-end">
                     <div v-if="prizeOptions && prizeOptions.length">
                         <div v-for="option in prizeOptions" :key="option.id" class="w-full">
                             <label class="flex items-center w-full cursor-pointer gap-2 py-1">
@@ -42,15 +43,14 @@
                             </label>
                         </div>
                     </div>
-                    <div v-else class="flex flex-col gap-2">
-                        <div v-for="n in 5" :key="n" class="w-full">
+                    <div v-else class="flex flex-col gap-2 overflow-y-auto">
+                        <div v-for="n in 10" :key="n" class="w-full">
                             <label class="inline-flex items-baseline w-full gap-2 py-1">
                                 <input type="radio" disabled
                                     class="top-[1px] xt-check xt-radio rounded-full bg-gray-200 border border-transparent transition"
                                     name="prize-options-placeholder" />
                                 <span :class="[
-                                    'inline-block bg-gray-200 dark:bg-gray-700 rounded animate-pulse',
-                                    n === 1 ? 'w-20 h-4' : 'w-16 h-4'
+                                    'inline-block bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full h-4'
                                 ]"></span>
                             </label>
                         </div>

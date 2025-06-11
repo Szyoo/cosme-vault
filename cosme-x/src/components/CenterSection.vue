@@ -1,21 +1,25 @@
 <template>
-    <div class="flex flex-col items-center w-full h-full">
-        <div class="my-2 text-2xl font-semibold">WELCOME TO</div>
+    <div class="h-full flex items-center flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
+        <div class="my-2 text-2xl font-semibold">WELCOME</div>
         <div class="my-4 text-base text-center text-gray-600">
-            As an @COSME™'s Presents Draw Scripts<br>Hoping to Bring U Beauty and Luck
+            COSME Vault is a tool designed to help you participate in @COSME™ lottery events easily and enhance your winning experience!
         </div>
         <div class="relative inline-block p-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
-            <!-- 用svg替换q-icon，适配所有环境 -->
+            <!-- 更美观的齿轮SVG -->
             <svg :class="['settings-icon', { 'rotate-gear': rotating, 'reverse-rotate-gear': reverseRotating }]"
-                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M11.25 2.25c.966 0 1.75.784 1.75 1.75v.5a7.5 7.5 0 013.5 1.5l.354-.354a1.75 1.75 0 112.475 2.475l-.354.354a7.5 7.5 0 011.5 3.5h.5a1.75 1.75 0 110 3.5h-.5a7.5 7.5 0 01-1.5 3.5l.354.354a1.75 1.75 0 11-2.475 2.475l-.354-.354a7.5 7.5 0 01-3.5 1.5v.5a1.75 1.75 0 11-3.5 0v-.5a7.5 7.5 0 01-3.5-1.5l-.354.354a1.75 1.75 0 11-2.475-2.475l.354-.354a7.5 7.5 0 01-1.5-3.5h-.5a1.75 1.75 0 110-3.5h.5a7.5 7.5 0 011.5-3.5l-.354-.354a1.75 1.75 0 112.475-2.475l.354.354a7.5 7.5 0 013.5-1.5v-.5c0-.966.784-1.75 1.75-1.75z" />
-                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"
+                fill="none" class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
+                <g>
+                    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="3" fill="#fff"/>
+                    <path d="M24 6V2M24 46v-4M42 24h4M2 24h4M36.95 11.05l2.83-2.83M8.22 39.78l2.83-2.83M36.95 36.95l2.83 2.83M8.22 8.22l2.83 2.83"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M24 10a14 14 0 1 1 0 28a14 14 0 0 1 0-28z"
+                        stroke="currentColor" stroke-width="2" fill="none"/>
+                </g>
             </svg>
         </div>
-        <div class="flex flex-col justify-end flex-grow px-8 pb-4 w-full max-w-md">
+        <div class="flex flex-col justify-end flex-grow w-full max-w-md">
             <button
                 class="my-4 py-2 px-6 rounded bg-purple-600 text-white font-semibold shadow hover:bg-purple-700 transition"
                 v-if="!running" @click="startDraw">开始</button>
