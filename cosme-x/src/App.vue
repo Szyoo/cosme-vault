@@ -8,7 +8,7 @@
             <div class="flex justify-between items-center h-16">
               <!-- 左侧 Logo -->
               <div class="text-3xl font-extrabold rainbow-text animate-rainbow-wave tracking-wide">
-                COSME X
+                COSME VAULT
               </div>
               <!-- 右侧 Tab 按钮组 -->
               <div>
@@ -47,15 +47,15 @@
         <div class="flex-1 min-h-0 flex flex-col bg-white dark:bg-gray-900">
           <!-- Draw 面板 -->
           <div
-            class="xt-card p-6 sm:p-8 text-sm text-gray-900 dark:text-gray-100 xt-links-default bg-transparent shadow-none off:hidden out:pointer-events-none transition opacity-0 scale-95 in:opacity-100 in:scale-100 out:scale-105 h-full"
+            class="xt-card px-6 sm:px-8 text-sm text-gray-900 dark:text-gray-100 xt-links-default bg-transparent shadow-none off:hidden out:pointer-events-none transition opacity-0 scale-95 in:opacity-100 in:scale-100 out:scale-105 h-full"
             data-xt-toggle-target data-xt-hash-target="draw">
-            <DrawView class="h-full" />
+            <DrawView class="h-full max-w-3xl" />
           </div>
           <!-- Records 面板 -->
           <div
             class="xt-card p-6 sm:p-8 text-sm text-gray-900 dark:text-gray-100 xt-links-default bg-transparent shadow-none off:hidden out:pointer-events-none transition opacity-0 scale-95 in:opacity-100 in:scale-100 out:scale-105 h-full"
             data-xt-toggle-target data-xt-hash-target="records">
-            <RecordsView class="h-full" />
+            <RecordsView class="h-full max-w-3xl" />
           </div>
           <!-- Settings 面板 -->
           <div
