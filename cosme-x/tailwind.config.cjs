@@ -2,12 +2,10 @@
 module.exports = {
   presets: [
     require('tailwindcss/defaultConfig'),
-    require('xtendui/tailwind.preset'),
   ],
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
-    "./node_modules/xtendui/src/*.mjs",
   ],
   theme: {
     extend: {
@@ -23,11 +21,6 @@ module.exports = {
       },
       animation: {
         "rainbow-wave": "rainbow-wave 4s linear infinite",
-      },
-      xtendui: {
-        animation: {
-          "rainbow-wave": "rainbow-wave 4s linear infinite",
-        },
       },
     },
   },
