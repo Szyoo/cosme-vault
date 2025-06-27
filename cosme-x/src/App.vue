@@ -34,7 +34,10 @@
                         Draw
                       </button>
                       <!-- Records 按钮 -->
-                      <button
+              <div
+                class="px-6 sm:px-8 m-4 text-sm text-gray-900 dark:text-gray-100 flex-1"
+                style="height: calc(100vh - 64px - 2rem)"
+                v-show="activeTab === 'draw'">
                         class="flex-auto py-2 px-3 text-13 rounded-2xl font-medium leading-snug tracking-wider uppercase transition"
                         :class="activeTab === 'records' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'"
                         @click.prevent="activeTab = 'records'">
