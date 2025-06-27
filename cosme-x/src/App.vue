@@ -1,6 +1,7 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
-    <div class="flex-1 flex flex-col">
+  <AuroraBackground>
+    <div class="flex flex-col h-screen bg-transparent">
+      <div class="flex-1 flex flex-col">
     <div class="flex flex-col flex-1">
         <!-- 导航卡片 -->
         <nav class="bg-white dark:bg-gray-800 shadow-md">
@@ -63,6 +64,7 @@
       </div>
     </div>
   </div>
+  </AuroraBackground>
 </template>
 
 <script setup>
