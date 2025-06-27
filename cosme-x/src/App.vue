@@ -21,12 +21,9 @@
                   COSME VAULT
                 </div>
                 <!-- 右侧 Tab 按钮组 -->
-                <div class="mr-4 bg-gray-500/40 p-4 my-auto rounded">
-                  <MorphingTabs
-                    :tabs="['抽奖', '记录', '设置']"
-                    :active-tab="activeTab"
-                    @update:active-tab="activeTab = $event"
-                  />
+                <div class="h-[54px] px-2 mr-4 bg-gray-500/40 my-auto rounded-xl flex items-center justify-center">
+                  <MorphingTabs :tabs="['抽奖', '记录', '设置']" :active-tab="activeTab"
+                    @update:active-tab="activeTab = $event" />
                 </div>
               </div>
             </div>
