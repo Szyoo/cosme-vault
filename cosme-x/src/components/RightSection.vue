@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 flex flex-col justify-start items-center px-4 pb-4 h-[calc(100vh-48px)]">
+  <div class="flex flex-col items-center h-full max-h-full backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
     <h5 class="my-2 text-lg font-semibold">运行状态</h5>
     <div class="flex-1 w-full max-w-xs bg-transparent rounded-lg p-4 overflow-y-auto">
       <div class="w-full h-full overflow-y-auto">
