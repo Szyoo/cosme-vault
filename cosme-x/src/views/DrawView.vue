@@ -1,9 +1,11 @@
 <template>
-    <div class="flex flex-row h-full flex-1 min-h-0 gap-4">
-        <left-section class="flex-1 min-w-[16rem] h-full max-h-full" :running="running"></left-section>
-        <center-section class="flex-1 min-w-[16rem] h-full max-h-full" :running="running"
+    <div
+        class="flex flex-row flex-1 min-h-0 gap-4 h-full"
+        style="max-height: calc(100vh - 64px - 2rem);">
+        <left-section class="flex-1 min-w-[16rem] h-full" :running="running"></left-section>
+        <center-section class="flex-1 min-w-[16rem] h-full" :running="running"
             @update:running="running = $event"></center-section>
-        <right-section class="flex-1 min-w-[16rem] h-full max-h-full" :running="running"></right-section>
+        <right-section class="flex-1 min-w-[16rem] h-full" :running="running"></right-section>
     </div>
 </template>
 
