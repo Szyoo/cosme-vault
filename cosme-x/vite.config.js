@@ -10,10 +10,9 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    babel({
-      babelHelpers: 'bundled',
-      exclude: /node_modules/,
-      include: [/node_modules\/xtendui/],
-    }),
+      babel({
+        babelHelpers: 'bundled',
+        exclude: /node_modules/,
+      }),
   ],
 })
