@@ -60,7 +60,7 @@
             <div class="flex-1 min-h-0 flex flex-col bg-transparent dark:bg-transparent">
               <!-- Draw 面板 -->
               <div class="px-6 sm:px-8 text-sm text-gray-900 dark:text-gray-100 flex-1" v-show="activeTab === 'draw'">
-                <DrawView class="h-full max-w-3xl" />
+                <DrawView class="h-full w-full" />
               </div>
               <!-- Records 面板 -->
               <div class="p-6 sm:p-8 text-sm text-gray-900 dark:text-gray-100 flex-1" v-show="activeTab === 'records'">

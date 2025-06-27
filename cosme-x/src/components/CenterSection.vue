@@ -1,5 +1,5 @@
 <template>
-    <div class="h-full flex items-center flex-col min-h-0 bg-transparent dark:bg-transparent rounded-2xl shadow p-4">
+    <div class="h-full max-h-full flex items-center flex-col min-h-0 backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
         <div class="my-2 text-2xl font-semibold">WELCOME</div>
         <div class="my-4 text-base text-center text-gray-600">
             COSME Vault is a tool designed to help you participate in @COSME™ lottery events easily and enhance your winning experience!
