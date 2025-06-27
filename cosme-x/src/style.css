@@ -49,6 +49,15 @@
 }
 
 @theme inline {
+  --animate-aurora: aurora 60s linear infinite;
+  @keyframes aurora {
+    from {
+      background-position: 50% 50%, 50% 50%;
+    }
+    to {
+      background-position: 350% 50%, 350% 50%;
+    }
+  }
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -92,6 +101,17 @@ html.dark {
 }
 html.light {
   color-scheme: light;
+}
+
+main {
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .rainbow-text {
