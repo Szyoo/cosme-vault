@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row h-full flex-1 min-h-0 gap-4 p-4">
+    <div class="flex flex-row h-full flex-1 min-h-0 gap-4">
         <left-section class="flex-1 min-w-[16rem] h-full max-h-full" :running="running"></left-section>
         <center-section class="flex-1 min-w-[16rem] h-full max-h-full" :running="running"
             @update:running="running = $event"></center-section>
