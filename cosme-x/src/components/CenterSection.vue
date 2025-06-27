@@ -4,6 +4,10 @@
         <div class="my-4 text-base text-center text-gray-600">
             COSME Vault is a tool designed to help you participate in @COSME™ lottery events easily and enhance your winning experience!
         </div>
+        <!-- TailwindCSS 测试元素 -->
+        <div class="my-4 p-4 rounded-lg bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-center font-bold shadow-lg">
+            TailwindCSS 已生效
+        </div>
         <div class="relative inline-block p-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
             <!-- 更美观的齿轮SVG -->

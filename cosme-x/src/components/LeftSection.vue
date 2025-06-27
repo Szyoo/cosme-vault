@@ -35,10 +35,10 @@
                     <div v-if="prizeOptions && prizeOptions.length">
                         <div v-for="option in prizeOptions" :key="option.id" class="w-full">
                             <label class="flex items-center w-full cursor-pointer gap-2 py-1">
-                                <input type="radio" :id="'option-' + option.id" :value="option.id"
-                                    v-model="selectedOption"
-                                    class="xt-check xt-radio rounded-full bg-gray-200 border border-transparent transition checked:bg-primary-500"
-                                    name="prize-options" />
+                                  <input type="radio" :id="'option-' + option.id" :value="option.id"
+                                      v-model="selectedOption"
+                                      class="rounded-full text-blue-500 focus:ring-blue-500"
+                                      name="prize-options" />
                                 <span class="text-sm whitespace-pre-line flex-1">{{ option.text }}</span>
                             </label>
                         </div>
@@ -46,9 +46,9 @@
                     <div v-else class="flex flex-col gap-2 overflow-y-auto">
                         <div v-for="n in 10" :key="n" class="w-full">
                             <label class="inline-flex items-baseline w-full gap-2 py-1">
-                                <input type="radio" disabled
-                                    class="top-[1px] xt-check xt-radio rounded-full bg-gray-200 border border-transparent transition"
-                                    name="prize-options-placeholder" />
+                                  <input type="radio" disabled
+                                      class="top-[1px] rounded-full"
+                                      name="prize-options-placeholder" />
                                 <span :class="[
                                     'inline-block bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full h-4'
                                 ]"></span>
@@ -57,7 +57,7 @@
                     </div>
                 </div>
                 <button :disabled="!selectedOption"
-                    class="mt-4 xt-button rounded-2xl bg-gray-500 text-white font-semibold shadow hover:bg-gray-600 transition disabled:opacity-50 py-2 px-6"
+                    class="mt-4 rounded-2xl bg-gray-500 text-white font-semibold shadow hover:bg-gray-600 transition disabled:opacity-50 py-2 px-6"
                     @click="confirmOption">确认</button>
             </div>
         </div>
