@@ -113,31 +113,3 @@ html, body, #app {
   margin: 0;
   padding: 0;
 }
-
-.rainbow-text {
-  background-image: linear-gradient(
-    45deg,
-    /* 第一个完整的彩虹周期 R...R */ #f56565,
-    /* red-500 */ #ed8936,
-    /* orange-500 */ #ecc94b,
-    /* yellow-500 */ #48bb78,
-    /* green-500 */ #4299e1,
-    /* blue-500 */ #667eea,
-    /* indigo-500 */ #9f7aea,
-    /* purple-500 */ #f56565,
-
-    /* red-500 (第一个周期的结束红，与下一个周期的起始红相同) */ /* 第二个完整的彩虹周期 R...R，紧跟在第一个之后 */ #ed8936,
-    /* orange-500 */ #ecc94b,
-    /* yellow-500 */ #48bb78,
-    /* green-500 */ #4299e1,
-    /* blue-500 */ #667eea,
-    /* indigo-500 */ #9f7aea,
-    /* purple-500 */ #f56565 /* red-500 (第二个周期的结束红) */
-  );
-  background-size: 260% 260%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-  display: inline-block;
-}
