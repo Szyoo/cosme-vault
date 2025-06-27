@@ -72,6 +72,7 @@ import { ref, onMounted } from 'vue'
 import DrawView from './views/DrawView.vue'
 import RecordsView from './views/RecordsView.vue'
 import SettingsView from './views/SettingsView.vue'
+import AuroraBackground from './components/AuroraBackground.vue'
 import { api } from './api.js'
 
 const activeTab = ref('draw')
