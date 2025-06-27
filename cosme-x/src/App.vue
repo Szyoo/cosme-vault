@@ -14,12 +14,15 @@
         <div class="flex flex-col flex-1">
           <!-- 导航卡片 -->
           <nav class="shadow-md">
-            <div class="container mx-auto">
-              <div class="flex justify-between items-center h-16">
+            <div class="w-full">
+              <div class="flex justify-between items-center h-16 ml-4">
                 <!-- 左侧 Logo -->
-                <div class="text-3xl font-extrabold tracking-wide">
-                  COSME VAULT
-                </div>
+                <SparklesText
+                  text="COSME VAULT"
+                  :colors="{ first: '#9E7AFF', second: '#FE8BBB' }"
+                  :sparkles-count="7"
+                  class="!text-4xl text-gray-500/60"
+                />
                 <!-- 右侧 Tab 按钮组 -->
                 <div class="h-[54px] px-2 mr-4 bg-gray-500/40 my-auto rounded-xl flex items-center justify-center">
                   <MorphingTabs :tabs="['抽奖', '记录', '设置']" :active-tab="activeTab"
@@ -59,6 +62,7 @@ import { api } from './api.js'
 import { Motion } from "motion-v";
 import AuroraBackground from './components/AuroraBackground.vue'
 import MorphingTabs from './components/MorphingTabs.vue'
+import SparklesText from './components/SparklesText.vue'
 
 const activeTab = ref('抽奖');
 
