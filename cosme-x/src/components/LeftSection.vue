@@ -1,5 +1,5 @@
 <template>
-    <div class="h-full flex flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
+    <div class="h-full flex flex-col min-h-0 bg-transparent dark:bg-transparent rounded-2xl shadow p-4">
         <h5 class="text-lg font-semibold text-center w-full my-2">当前奖品</h5>
         <div class="flex-1 flex flex-col justify-end items-center min-h-0">
             <div class="w-full flex flex-col gap-4 items-center">

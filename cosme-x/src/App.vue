@@ -23,7 +23,7 @@
                   <!-- 右侧 Tab 按钮组 -->
                   <div>
                     <div
-                      class="p-1.5 rounded-2xl text-gray-900 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm backdrop-saturate-50">
+                      class="p-1.5 rounded-2xl text-gray-900 bg-transparent backdrop-filter backdrop-blur-sm backdrop-saturate-50">
                       <nav aria-label="Navigation" class="flex flex-row space-x-4">
                         <!-- Draw 按钮（默认激活 on）-->
                         <button
@@ -57,7 +57,7 @@
             </nav>
 
             <!-- 面板区 -->
-            <div class="flex-1 min-h-0 flex flex-col bg-white dark:bg-gray-900">
+            <div class="flex-1 min-h-0 flex flex-col bg-transparent dark:bg-transparent">
               <!-- Draw 面板 -->
               <div class="px-6 sm:px-8 text-sm text-gray-900 dark:text-gray-100 flex-1" v-show="activeTab === 'draw'">
                 <DrawView class="h-full max-w-3xl" />
