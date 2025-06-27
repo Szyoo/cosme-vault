@@ -1,35 +1,44 @@
 <template>
-    <div class="h-full flex items-center flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
+    <div
+        class="h-full max-h-full flex items-center flex-col min-h-0 backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
         <div class="my-2 text-2xl font-semibold">WELCOME</div>
         <div class="my-4 text-base text-center text-gray-600">
-            COSME Vault is a tool designed to help you participate in @COSME™ lottery events easily and enhance your winning experience!
+            COSME Vault is a tool designed to help you participate in @COSME™ lottery events easily and enhance your
+            winning experience!
         </div>
         <!-- TailwindCSS 测试元素 -->
-        <div class="my-4 p-4 rounded-lg bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-center font-bold shadow-lg">
+        <div
+            class="my-4 p-4 rounded-lg bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-center font-bold shadow-lg">
             TailwindCSS 已生效
         </div>
         <div class="relative inline-block p-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
             <!-- 更美观的齿轮SVG -->
             <svg :class="['settings-icon', { 'rotate-gear': rotating, 'reverse-rotate-gear': reverseRotating }]"
-                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"
-                fill="none" class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
+                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"
+                class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
                 <g>
-                    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="3" fill="#fff"/>
-                    <path d="M24 6V2M24 46v-4M42 24h4M2 24h4M36.95 11.05l2.83-2.83M8.22 39.78l2.83-2.83M36.95 36.95l2.83 2.83M8.22 8.22l2.83 2.83"
-                        stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M24 10a14 14 0 1 1 0 28a14 14 0 0 1 0-28z"
-                        stroke="currentColor" stroke-width="2" fill="none"/>
+                    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="3" fill="#fff" />
+                    <path
+                        d="M24 6V2M24 46v-4M42 24h4M2 24h4M36.95 11.05l2.83-2.83M8.22 39.78l2.83-2.83M36.95 36.95l2.83 2.83M8.22 8.22l2.83 2.83"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                    <path d="M24 10a14 14 0 1 1 0 28a14 14 0 0 1 0-28z" stroke="currentColor" stroke-width="2"
+                        fill="none" />
                 </g>
             </svg>
         </div>
         <div class="flex flex-col justify-end flex-grow w-full max-w-md">
-            <button
-                class="my-4 py-2 px-6 rounded bg-purple-600 text-white font-semibold shadow hover:bg-purple-700 transition"
-                v-if="!running" @click="startDraw">开始</button>
-            <button
-                class="my-4 py-2 px-6 rounded bg-red-500 text-white font-semibold shadow hover:bg-red-600 transition"
-                v-else @click="stopDraw">停止</button>
+            <RippleButton
+                :class="[
+                'text-white',
+                running
+                    ? 'bg-gradient-to-r from-red-300 via-red-400 to-pink-500'
+                    : 'bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400'
+                ]"
+                @click="running ? stopDraw() : startDraw()"
+            >
+                {{ running ? '停止' : '开始' }}
+            </RippleButton>
             <div class="info">
                 <p class="my-1">Chrome 版本: {{ chromeVersion }}</p>
                 <p class="my-1">ChromeDriver 版本: {{ chromeDriverVersion }}</p>
@@ -39,8 +48,11 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import RippleButton from './RippleButton.vue'
+</script>
 
+<script>
 export default {
     props: {
         running: {
@@ -106,7 +118,6 @@ export default {
     }
 };
 </script>
-
 <style>
 @keyframes gradient {
     0% {
