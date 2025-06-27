@@ -21,39 +21,12 @@
                   COSME VAULT
                 </div>
                 <!-- 右侧 Tab 按钮组 -->
-                <div>
-                  <div
-                    class="p-1.5 rounded-2xl text-gray-900 bg-transparent backdrop-filter backdrop-blur-sm backdrop-saturate-50">
-                    <nav aria-label="Navigation" class="flex flex-row space-x-4">
-                      <!-- Draw 按钮（默认激活 on）-->
-                      <button
-                        class="flex-auto py-2 px-3 text-13 rounded-2xl font-medium leading-snug tracking-wider uppercase transition"
-                        :class="activeTab === 'draw' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'"
-                        @click.prevent="activeTab = 'draw'">
-                        <img src="/draw_icon.svg" class="text-base opacity-50 mr-2" alt="Draw Icon" />
-                        Draw
-                      </button>
-                      <!-- Records 按钮 -->
-              <div
-                class="px-6 sm:px-8 m-4 text-sm text-gray-900 dark:text-gray-100 flex-1"
-                style="height: calc(100vh - 64px - 2rem)"
-                v-show="activeTab === 'draw'">
-                        class="flex-auto py-2 px-3 text-13 rounded-2xl font-medium leading-snug tracking-wider uppercase transition"
-                        :class="activeTab === 'records' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'"
-                        @click.prevent="activeTab = 'records'">
-                        <img src="/history_icon.svg" class="text-base opacity-50 mr-2" alt="History Icon" />
-                        Records
-                      </button>
-                      <!-- Settings 按钮 -->
-                      <button
-                        class="flex-auto py-2 px-3 text-13 rounded-2xl font-medium leading-snug tracking-wider uppercase transition"
-                        :class="activeTab === 'settings' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'"
-                        @click.prevent="activeTab = 'settings'">
-                        <img src="/settings_icon.svg" class="text-base opacity-50 mr-2" alt="Settings Icon" />
-                        Settings
-                      </button>
-                    </nav>
-                  </div>
+                <div class="mr-4">
+                  <MorphingTabs
+                    :tabs="['抽奖', '记录', '设置']"
+                    :active-tab="activeTab"
+                    @update:active-tab="activeTab = $event"
+                  />
                 </div>
               </div>
             </div>
@@ -88,6 +61,7 @@ import SettingsView from './views/SettingsView.vue'
 import { api } from './api.js'
 import { Motion } from "motion-v";
 import AuroraBackground from './components/AuroraBackground.vue'
+import MorphingTabs from './components/MorphingTabs.vue'
 
 const activeTab = ref('draw')
 
