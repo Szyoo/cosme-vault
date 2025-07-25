@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center h-full max-h-full backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
     <h5 class="my-2 text-lg font-semibold">运行状态</h5>
-    <div class="flex-1 w-full max-w-xs bg-transparent rounded-lg p-4 overflow-y-auto">
+    <div class="flex-1 w-full max-w-xs bg-white/50 dark:bg-gray-900/50 rounded-2xl p-4 overflow-y-auto">
       <div class="w-full h-full overflow-y-auto">
         <div class="grid grid-cols-[auto_auto_1fr] gap-1 w-full">
           <template v-for="entry in logs" :key="entry.datetime">
@@ -26,27 +26,26 @@ export default {
     },
     data() {
         return {
-            logs: [],
-            // logs: [
-            //     { datetime: "08-11 09:00:00", text: "开始运行" },
-            //     { datetime: "08-11 09:01:00", text: "开始检测" },
-            //     { datetime: "08-11 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
-            //     { datetime: "08-11 10:00:00", text: "开始抽取1" },
-            //     { datetime: "08-11 10:03:00", text: "开始1" },
-            //     { datetime: "08-11 10:05:00", text: "开始2" },
-            //     { datetime: "08-12 09:00:00", text: "开始运行" },
-            //     { datetime: "08-12 09:01:00", text: "开始检测" },
-            //     { datetime: "08-12 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
-            //     { datetime: "08-12 10:00:00", text: "开始抽取1" },
-            //     { datetime: "08-12 10:03:00", text: "开始1" },
-            //     { datetime: "08-12 10:05:00", text: "开始2" },
-            //     { datetime: "08-13 09:00:00", text: "开始运行" },
-            //     { datetime: "08-13 09:01:00", text: "开始检测" },
-            //     { datetime: "08-13 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
-            //     { datetime: "08-13 10:00:00", text: "开始抽取1" },
-            //     { datetime: "08-13 10:03:00", text: "开始1" },
-            //     { datetime: "08-13 10:05:00", text: "开始2" },
-            // ],
+            logs: [
+                { datetime: "08-11 09:00:00", text: "开始运行" },
+                { datetime: "08-11 09:01:00", text: "开始检测" },
+                { datetime: "08-11 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
+                { datetime: "08-11 10:00:00", text: "开始抽取1" },
+                { datetime: "08-11 10:03:00", text: "开始1" },
+                { datetime: "08-11 10:05:00", text: "开始2" },
+                { datetime: "08-12 09:00:00", text: "开始运行" },
+                { datetime: "08-12 09:01:00", text: "开始检测" },
+                { datetime: "08-12 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
+                { datetime: "08-12 10:00:00", text: "开始抽取1" },
+                { datetime: "08-12 10:03:00", text: "开始1" },
+                { datetime: "08-12 10:05:00", text: "开始2" },
+                { datetime: "08-13 09:00:00", text: "开始运行" },
+                { datetime: "08-13 09:01:00", text: "开始检测" },
+                { datetime: "08-13 09:02:00", text: "检测到X个\n1.xxx\n2.xxx" },
+                { datetime: "08-13 10:00:00", text: "开始抽取1" },
+                { datetime: "08-13 10:03:00", text: "开始1" },
+                { datetime: "08-13 10:05:00", text: "开始2" },
+            ],
             socket: null,
         };
     },
