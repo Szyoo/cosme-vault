@@ -90,6 +90,8 @@ export default {
             }, 1000);
         },
         goToSettings() {
+            // Inform parent components to switch to the settings tab
+            this.$emit('update:active-tab', '设置');
             if (this.$router) {
                 this.$router.push({ name: 'settings' });
             }
