@@ -11,20 +11,14 @@
             class="my-4 p-4 rounded-lg bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-center font-bold shadow-lg">
             TailwindCSS 已生效
         </div>
-        <div class="relative inline-block p-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
+        <div class="relative inline-block p-1 my-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
             <!-- 更美观的齿轮SVG -->
             <svg :class="['settings-icon', { 'rotate-gear': rotating, 'reverse-rotate-gear': reverseRotating }]"
-                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"
+                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                 class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
-                <g>
-                    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="3" fill="#fff" />
-                    <path
-                        d="M24 6V2M24 46v-4M42 24h4M2 24h4M36.95 11.05l2.83-2.83M8.22 39.78l2.83-2.83M36.95 36.95l2.83 2.83M8.22 8.22l2.83 2.83"
-                        stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                    <path d="M24 10a14 14 0 1 1 0 28a14 14 0 0 1 0-28z" stroke="currentColor" stroke-width="2"
-                        fill="none" />
-                </g>
+                <path fill="currentColor"
+                    d="M19.43 12.98c.04-.32.07-.66.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a8.77 8.77 0 0 0-1.72-1.02l-.38-2.57a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.5l-.38 2.57a8.77 8.77 0 0 0-1.73 1.03l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.97s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1a8.77 8.77 0 0 0 1.73 1.03l.38 2.57a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5l.38-2.57a8.77 8.77 0 0 0 1.72-1.03l2.49 1c.23.09.5 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" />
             </svg>
         </div>
         <div class="flex flex-col justify-end flex-grow w-full max-w-md">
@@ -96,6 +90,8 @@ export default {
             }, 1000);
         },
         goToSettings() {
+            // Inform parent components to switch to the settings tab
+            this.$emit('update:active-tab', '设置');
             if (this.$router) {
                 this.$router.push({ name: 'settings' });
             }
