@@ -11,19 +11,17 @@
             class="my-4 p-4 rounded-lg bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-center font-bold shadow-lg">
             TailwindCSS 已生效
         </div>
-        <div class="relative inline-block p-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
+        <div class="relative inline-block p-1 my-1 cursor-pointer" @mouseover="hoverGear" @mouseleave="leaveGear">
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
             <!-- 更美观的齿轮SVG -->
             <svg :class="['settings-icon', { 'rotate-gear': rotating, 'reverse-rotate-gear': reverseRotating }]"
                 @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"
                 class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
-                <g>
-                    <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="3" fill="#fff" />
+                <g stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
                     <path
-                        d="M24 6V2M24 46v-4M42 24h4M2 24h4M36.95 11.05l2.83-2.83M8.22 39.78l2.83-2.83M36.95 36.95l2.83 2.83M8.22 8.22l2.83 2.83"
-                        stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                    <path d="M24 10a14 14 0 1 1 0 28a14 14 0 0 1 0-28z" stroke="currentColor" stroke-width="2"
-                        fill="none" />
+                        d="M36.7 24c0-.6 0-1.2-.1-1.8l4.2-3.3-2.2-3.8-5 1.6a15 15 0 0 0-3.6-2.1L28.8 10h-4.6l-1 4.4a15 15 0 0 0-3.6 2.1l-5-1.6-2.2 3.8 4.2 3.3c-.1.6-.1 1.2-.1 1.8s0 1.2.1 1.8l-4.2 3.3 2.2 3.8 5-1.6a15 15 0 0 0 3.6 2.1l1 4.4h4.6l1-4.4a15 15 0 0 0 3.6-2.1l5 1.6 2.2-3.8-4.2-3.3c.1-.6.1-1.2.1-1.8z"
+                        fill="#fff" />
+                    <circle cx="24" cy="24" r="6" fill="none" />
                 </g>
             </svg>
         </div>
