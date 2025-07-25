@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center h-full max-h-full backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
     <h5 class="my-2 text-lg font-semibold">运行状态</h5>
-    <div class="flex-1 w-full max-w-xs bg-transparent rounded-lg p-4 overflow-y-auto">
+    <div class="flex-1 w-full max-w-xs bg-white/50 dark:bg-gray-900/50 rounded-2xl p-4 overflow-y-auto">
       <div class="w-full h-full overflow-y-auto">
         <div class="grid grid-cols-[auto_auto_1fr] gap-1 w-full">
           <template v-for="entry in logs" :key="entry.datetime">
