@@ -36,7 +36,7 @@
           <div class="m-4 flex-1 min-h-0 flex flex-col bg-transparent dark:bg-transparent">
             <!-- Draw 面板 -->
             <div v-show="activeTab === '抽奖'">
-              <DrawView class="h-full w-full" />
+              <DrawView class="h-full w-full" @update:active-tab="activeTab = $event" />
             </div>
             <!-- Records 面板 -->
             <div v-show="activeTab === '记录'">
