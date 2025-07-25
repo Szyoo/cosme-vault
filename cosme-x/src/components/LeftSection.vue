@@ -1,5 +1,5 @@
 <template>
-    <div class="h-full flex flex-col min-h-0 bg-white dark:bg-gray-900 rounded-2xl shadow p-4">
+    <div class="h-full max-h-full flex flex-col min-h-0 backdrop-blur-lg bg-white/30 dark:bg-gray-900/30 rounded-2xl shadow p-4">
         <h5 class="text-lg font-semibold text-center w-full my-2">当前奖品</h5>
         <div class="flex-1 flex flex-col justify-end items-center min-h-0">
             <div class="w-full flex flex-col gap-4 items-center">
@@ -31,8 +31,8 @@
             </div>
             <!-- 奖品选项列表 -->
             <div class="flex-1 min-h-0 flex flex-col w-full">
-                <div class="flex-1 min-h-0 flex flex-col mt-4 justify-end">
-                    <div v-if="prizeOptions && prizeOptions.length">
+                <div class="flex-1 min-h-0 flex flex-col mt-4">
+                    <div v-if="prizeOptions && prizeOptions.length" class="flex-1 overflow-y-auto">
                         <div v-for="option in prizeOptions" :key="option.id" class="w-full">
                             <label class="flex items-center w-full cursor-pointer gap-2 py-1">
                                   <input type="radio" :id="'option-' + option.id" :value="option.id"
@@ -43,7 +43,7 @@
                             </label>
                         </div>
                     </div>
-                    <div v-else class="flex flex-col gap-2 overflow-y-auto">
+                    <div v-else class="flex flex-col gap-2 overflow-y-auto flex-1">
                         <div v-for="n in 10" :key="n" class="w-full">
                             <label class="inline-flex items-baseline w-full gap-2 py-1">
                                   <input type="radio" disabled
