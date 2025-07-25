@@ -15,14 +15,10 @@
             <div class="absolute inset-0 bg-gray-100 rounded z-[-1]" v-if="showBackground"></div>
             <!-- 更美观的齿轮SVG -->
             <svg :class="['settings-icon', { 'rotate-gear': rotating, 'reverse-rotate-gear': reverseRotating }]"
-                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"
+                @click="goToSettings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                 class="text-gray-500 w-12 h-12 mx-auto" style="cursor:pointer;">
-                <g stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-                    <path
-                        d="M36.7 24c0-.6 0-1.2-.1-1.8l4.2-3.3-2.2-3.8-5 1.6a15 15 0 0 0-3.6-2.1L28.8 10h-4.6l-1 4.4a15 15 0 0 0-3.6 2.1l-5-1.6-2.2 3.8 4.2 3.3c-.1.6-.1 1.2-.1 1.8s0 1.2.1 1.8l-4.2 3.3 2.2 3.8 5-1.6a15 15 0 0 0 3.6 2.1l1 4.4h4.6l1-4.4a15 15 0 0 0 3.6-2.1l5 1.6 2.2-3.8-4.2-3.3c.1-.6.1-1.2.1-1.8z"
-                        fill="#fff" />
-                    <circle cx="24" cy="24" r="6" fill="none" />
-                </g>
+                <path fill="currentColor"
+                    d="M19.43 12.98c.04-.32.07-.66.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a8.77 8.77 0 0 0-1.72-1.02l-.38-2.57a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.5l-.38 2.57a8.77 8.77 0 0 0-1.73 1.03l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.97s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1a8.77 8.77 0 0 0 1.73 1.03l.38 2.57a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5l.38-2.57a8.77 8.77 0 0 0 1.72-1.03l2.49 1c.23.09.5 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" />
             </svg>
         </div>
         <div class="flex flex-col justify-end flex-grow w-full max-w-md">
