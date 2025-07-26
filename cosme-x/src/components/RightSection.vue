@@ -65,7 +65,7 @@ export default {
     methods: {
         initWebSocket() {
             if (!this.socket) {
-                this.socket = new WebSocket('ws://localhost:8000/ws');
+                this.socket = new WebSocket('ws://localhost:8888/ws');
 
                 this.socket.addEventListener('open', (event) => {
                     console.log('WebSocket connection opened:', event);

@@ -88,7 +88,7 @@ export default {
     },
     methods: {
         initWebSocket() {
-            this.socket = new WebSocket('ws://localhost:8000/ws');
+            this.socket = new WebSocket('ws://localhost:8888/ws');
             this.socket.onmessage = (event) => {
                 let data = JSON.parse(event.data);
                 if (data.type === 'prizeInfo') {
