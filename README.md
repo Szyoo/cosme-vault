@@ -3,7 +3,7 @@
 该仓库包含桌面应用前后端代码，目录结构如下：
 
 - `cosme-x/`：Vue 3 + Electron 前端项目。
-- `cosme-y/`：FastAPI 后端项目（代码位于 cosme-y/app），监听 8888 端口。
+- `app/`：FastAPI 后端项目，监听 8888 端口。
 
 ## 启动前端
 
@@ -16,7 +16,8 @@ npm run dev:all
 ## 启动后端
 
 ```bash
-cd cosme-y
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8888
 ```
