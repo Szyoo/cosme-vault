@@ -154,6 +154,7 @@ export const ScanResult = z.object({
   kind: z.literal("scan"),
   presents: z.array(Present),
 });
+export type ScanResult = z.infer<typeof ScanResult>;
 
 export const DrawResult = z.object({
   kind: z.literal("draw"),
@@ -161,6 +162,7 @@ export const DrawResult = z.object({
   /** status 为 needsChoice 时必填：待用户选择的内容 */
   pendingChoices: z.array(PendingChoice).default([]),
 });
+export type DrawResult = z.infer<typeof DrawResult>;
 
 /** inspect 回传的单个可交互元素 */
 export const InspectedElement = z.object({
@@ -170,10 +172,13 @@ export const InspectedElement = z.object({
   selector: z.string(), // 建议选择器
 });
 
+export type InspectedElement = z.infer<typeof InspectedElement>;
+
 export const InspectResult = z.object({
   kind: z.literal("inspect"),
   elements: z.array(InspectedElement),
 });
+export type InspectResult = z.infer<typeof InspectResult>;
 
 export const JobOutcome = z.discriminatedUnion("kind", [ScanResult, DrawResult, InspectResult]);
 export type JobOutcome = z.infer<typeof JobOutcome>;

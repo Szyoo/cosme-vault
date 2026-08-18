@@ -15,6 +15,8 @@
     "web": "npm run dev --workspace apps/web",
     "runner": "npm run dev --workspace apps/runner",
     "probe": "npm run probe --workspace apps/runner",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "recon": "npm run recon --workspace apps/runner --",
+    "login": "npm run login --workspace apps/runner --"
   }
 }

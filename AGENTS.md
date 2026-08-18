@@ -78,6 +78,7 @@ apps/
 ## 已知现状与待办
 
 - **runner 的 scan/draw/inspect 是带类型的骨架**（`apps/runner/src/index.ts` 里 `throw 未实现`）。真实页面操作待把初版 Java 业务逻辑（`Draw.java` 状态机、`Fill.java` 填表、登录检测）移植进来，配合 `@cosme/core` 的关键词库。
+- **选择器校验工具已就绪**：`npm run recon -- <url> [--form]` 列出页面全部可交互元素与建议选择器（只读、不提交表单，对账号零风险）；需登录态的页面先跑 `npm run login`。登录相关选择器已实测填入，`PRESENT` 与 `SURVEY` 仍是 TODO(recon)，待建立会话后继续。
 - **`packages/core/selectors.ts` 的 URL 已实测确认（2026-08-18，从 VPS）**：奖品列表真正的两个来源是 `/brandcollection/present/`（未登录可见）与 `/brandfanclub/present`（必须登录），2023 年记的 `/present/` 只是导航页；奖品详情形如 `/brandcollection/present/detail/present_id/<ID>`（用正则提 ID 比认 class 稳）；登录走集中式 `isauth` 网关而非独立表单页；页面编码是 **Shift_JIS**。**表单与按钮类选择器仍全是 TODO(inspect)**——匿名 curl 只能看到未登录视图，需登录后用 inspect 任务校验。
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
 - **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。
@@ -97,7 +98,25 @@ apps/
 - `serverRuntimeConfig` / `publicRuntimeConfig` 已移除，用环境变量。
 - 仍然有效（已实测）：`export const dynamic = 'force-dynamic'`、Route Handler 的 `GET/POST(req: Request)` 签名、`next.config.mjs` 的 `transpilePackages` 与 `serverExternalPackages`。
 
-## IP 探测结论（2026-08-18）
+## ⚠️ 登录受 reCAPTCHA Enterprise 保护（2026-08-19 实测，重大约束）
+
+`npm run recon` 实测登录页得到的结论，与 2023 初版完全不同：
+
+- 登录已迁到**独立 OAuth/OIDC 授权服务器** `auth.cosme.net`（`response_type=code&scope=openid...`），不再是 www 站内的简单表单。
+- 表单含隐藏域 **`input[name="recaptchaEnterpriseToken"]`** ——即 reCAPTCHA Enterprise，无可见挑战，属**分数制隐形风控**；另有 `_csrf` 令牌。
+- 实测到的真实选择器：`#loginId`、`#password`、`input[type="submit"]`；并有默认勾选的「次回から自動でログイン」。
+
+**因此本项目不做自动填密码登录。** 脚本化提交等于试图绕过机器人检测，违反站点条款且极易导致账号被标记——这条不是技术选择，是红线。
+
+**采用方案**：`npm run login` 打开可见窗口由**人工**登录一次，会话随持久化 profile 保留，自动化复用之；`npm run login -- --check` 检查会话有效性，失效时经 Bark 通知人工重新登录。这与作者 ledger-helper 处理网银二次验证的做法一致。
+
+会话有效性判断有个坑：**不能只看是否被重定向到授权服务器**——实测 brandfanclub 页未登录时照样返回 200、只渲染未登录版本，那样判断会一律误报为已登录。可靠依据是页面上还有没有 `a[href*="/isauth/login/"]` 登录入口。
+
+### 对部署位的影响（推翻此前结论）
+
+前一日的 curl 探测只验证了**未登录页面**的 IP 信誉，得出「VPS 可行」的初步结论。现在看，**真正的关口是登录**：reCAPTCHA Enterprise 会给无头浏览器 + 数据中心 IP 打低分，且「人工登录一次」这个前提在无头 VPS 上很别扭（要 VNC 或远程调试才能操作窗口）。**因此天平明显偏向 Mac mini 部署**（住宅 IP + 可见窗口人工登录 + 会话长期保留）。pull 模型让这个切换只是改配置，不动代码。
+
+## IP 探测结论（2026-08-18，仅限未登录页面）
 
 从 VPS（Vultr 东京，数据中心 IP）对 @cosme 做只读 curl 探测：首页与两个奖品列表页**全部 HTTP 200**，返回完整真实内容，**无验证码 / Cloudflare 挑战 / 拦截页特征**。初步结论：**@cosme 未对该数据中心 IP 做黑名单拦截，VPS 无头部署可行**。
 
