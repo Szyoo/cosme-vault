@@ -113,3 +113,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ── monorepo v6 ──────────────────────────────
+# 依赖
+node_modules/
+# 本地环境变量与凭证
+.env
+.env.local
+# 数据库与运行数据
+data/
+*.db
+*.db-*
+# Next.js
+apps/web/.next/
+apps/web/out/
+# Playwright 运行产物（trace / 截图 / 快照）
+apps/runner/artifacts/
+apps/runner/profile/
+# 构建产物
+dist/
+*.tsbuildinfo

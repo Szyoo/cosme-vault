@@ -1,0 +1,33 @@
+{
+  "name": "@cosme/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "mkdir -p data && drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@cosme/contract": "*",
+    "@cosme/core": "*",
+    "@szyyw/design": "github:Szyoo/szyyw-design#v0.6.1",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.2",
+    "next": "^16.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^7.0.2"
+  }
+}
