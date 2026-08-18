@@ -38,6 +38,51 @@ export const DrawStatus = z.enum([
 export type DrawStatus = z.infer<typeof DrawStatus>;
 
 /* ────────────────────────────────────────────────────────────
+ * cosme 账号凭证与个人资料
+ * 加密后存 accounts.credentials_enc；明文只在两处出现：
+ * 用户录入的那一次请求，以及 runner 执行任务时按需拉取的内存中。
+ * ──────────────────────────────────────────────────────────── */
+
+/**
+ * 抽奖表单需要填的个人资料。
+ * 字段取自初版 Java Fill.fillName（姓名/年龄/职业）——那里是硬编码的真实信息，
+ * 这次改为按账号配置。
+ */
+export const AccountProfile = z.object({
+  /** 表单「名前」栏 */
+  name: z.string(),
+  /** 表单「年齢」栏 */
+  age: z.string(),
+  /** 表单职业下拉（初版值如 "自営業/自由業"，注意站点存在全角斜杠与中点两种写法） */
+  job: z.string(),
+});
+export type AccountProfile = z.infer<typeof AccountProfile>;
+
+/** 完整凭证（登录信息 + 个人资料） */
+export const AccountCredentials = z.object({
+  email: z.string(),
+  password: z.string(),
+  profile: AccountProfile,
+});
+export type AccountCredentials = z.infer<typeof AccountCredentials>;
+
+/** 凭证配置状态：只告诉前端「哪些字段已填」，绝不回显值 */
+export const CredentialStatus = z.object({
+  configured: z.boolean(),
+  filledFields: z.array(z.string()),
+});
+export type CredentialStatus = z.infer<typeof CredentialStatus>;
+
+/** 账号列表项（不含任何机密） */
+export const AccountSummary = z.object({
+  id: z.string(),
+  label: z.string(),
+  enabled: z.boolean(),
+  credentials: CredentialStatus,
+});
+export type AccountSummary = z.infer<typeof AccountSummary>;
+
+/* ────────────────────────────────────────────────────────────
  * 任务（web → runner）
  * runner 用 pull 模型主动拉取；这里定义任务的形状。
  * ──────────────────────────────────────────────────────────── */
