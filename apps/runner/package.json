@@ -1,0 +1,21 @@
+{
+  "name": "@cosme/runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --watch src/index.ts",
+    "start": "node --env-file-if-exists=../../.env src/index.ts",
+    "probe": "node --env-file-if-exists=../../.env src/probe.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cosme/contract": "*",
+    "@cosme/core": "*",
+    "playwright": "^1.62.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}

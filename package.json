@@ -1,0 +1,20 @@
+{
+  "name": "cosme-vault",
+  "private": true,
+  "version": "6.0.0",
+  "description": "@COSME 抽奖辅助工具：Web 控制面（VPS）+ Playwright 执行器（runner）",
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "web": "npm run dev --workspace apps/web",
+    "runner": "npm run dev --workspace apps/runner",
+    "probe": "npm run probe --workspace apps/runner",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

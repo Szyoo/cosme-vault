@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    // 全仓 import 一律带 .ts 后缀：runner 靠 Node 26 原生 type-stripping 直接跑源码，
+    // web 靠 Next 的 transpilePackages 消费源码——两端都不产出编译件，故只做类型检查。
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}
