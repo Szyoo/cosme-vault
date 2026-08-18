@@ -90,6 +90,7 @@ apps/
 
 `next dev` 会自动生成 `apps/web/AGENTS.md` / `CLAUDE.md`，警告「这不是你认识的 Next.js」。写 web 代码前先读 `apps/web/node_modules/next/dist/docs/`（注意 monorepo 下从仓库根看不到 `next` 包）。已核对的要点：
 
+- **环境变量的加载位置是个坑**：`next dev` 只读**自身目录**（`apps/web/`）下的 `.env`，读不到仓库根的。本仓库把 `.env` 放在根（runner 用 `--env-file-if-exists=../../.env` 读它），因此 `apps/web/.env` 是一个指向 `../../.env` 的**软链接**，两端共用同一份、不抄两遍密钥。软链接被 gitignore 忽略，**新克隆仓库后必须手动重建**：`ln -sfn ../../.env apps/web/.env`。生产 Docker 里环境变量由 compose 注入，不涉及此问题。
 - **`middleware.ts` 已改名 `proxy.ts`**，导出的函数名也从 `middleware` 改为 `proxy`；`proxy` 只支持 nodejs 运行时。**做管理员登录鉴权时必须用 `proxy.ts`。**
 - **`cookies()` / `headers()` / `params` / `searchParams` 必须 `await`**，同步访问在 16 里已彻底移除。
 - `next lint` 已移除，`next build` 不再跑 lint；要 lint 用 Biome 或直接调 ESLint。
@@ -111,6 +112,10 @@ apps/
 ```bash
 # 安装（仓库根，workspaces 一次装全）
 npm install
+
+# 配置环境变量（照 .env.example 建根 .env），并建软链接让 Next 也能读到
+cp .env.example .env    # 然后填 ADMIN_PASSWORD，用 openssl rand -hex 32 生成各密钥
+ln -sfn ../../.env apps/web/.env
 
 # IP 探针：决定 runner 部署位（先跑这个）
 RUNNER_HEADLESS=false npm run probe   # 有头对照

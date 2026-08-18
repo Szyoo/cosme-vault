@@ -26,6 +26,10 @@ docs/vendor/bark    Bark 官方 API 文档
 ```bash
 npm install          # 仓库根，workspaces 一次装全
 
+# 配置环境变量：填好根 .env，并建软链接（Next 只读自身目录下的 .env）
+cp .env.example .env
+ln -sfn ../../.env apps/web/.env
+
 # 先跑 IP 探针，决定 runner 部署位
 npm run probe
 
