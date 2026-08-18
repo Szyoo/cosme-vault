@@ -80,7 +80,9 @@ apps/
 - **runner 的 scan/draw/inspect 是带类型的骨架**（`apps/runner/src/index.ts` 里 `throw 未实现`）。真实页面操作待把初版 Java 业务逻辑（`Draw.java` 状态机、`Fill.java` 填表、登录检测）移植进来，配合 `@cosme/core` 的关键词库。
 - **`packages/core/selectors.ts` 的 URL 已实测确认（2026-08-18，从 VPS）**：奖品列表真正的两个来源是 `/brandcollection/present/`（未登录可见）与 `/brandfanclub/present`（必须登录），2023 年记的 `/present/` 只是导航页；奖品详情形如 `/brandcollection/present/detail/present_id/<ID>`（用正则提 ID 比认 class 稳）；登录走集中式 `isauth` 网关而非独立表单页；页面编码是 **Shift_JIS**。**表单与按钮类选择器仍全是 TODO(inspect)**——匿名 curl 只能看到未登录视图，需登录后用 inspect 任务校验。
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
-- **账号/奖品/记录/设置页面、奖品选择页仍待建**（登录页 `src/app/login/page.tsx` 已有最简版，视觉待统一到 @szyyw/design）。凭证**录入 UI** 待做——加解密层已就绪。
+- **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。
+- **runner 取凭证走独立端点** `/api/runner/credentials?accountId=`（Bearer RUNNER_TOKEN）。**刻意不把凭证塞进任务载荷**——那会把明文写进 jobs 表并留在历史里。
+- **奖品页 / 记录页 / 奖品选择页（Bark 深链接目标）仍待建**；登录页与设置页为最简版，视觉待统一到 @szyyw/design。
 - **DB 迁移**用 `drizzle-kit generate/migrate`，迁移文件进 `apps/web/drizzle/`（首版 `0000_sticky_kate_bishop.sql` 已生成并跑通）。drizzle-kit 直连 DB 不经 `src/db/index.ts`，故 `db:migrate` 脚本里带 `mkdir -p data`。
 - **部署 compose / Dockerfile**：runner 的 Dockerfile 已备；web 的 Dockerfile 与 vps compose 待补（照抄 ledger 模式，容器不 publish 端口、只挂 Caddy ingress 网络）。
 

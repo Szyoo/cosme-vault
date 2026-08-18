@@ -20,11 +20,14 @@ export default function Home() {
           {hb ? `　位置：${hb.location}　当前任务：${hb.busyJobId ?? "空闲"}` : ""}
         </p>
       </section>
+      <nav style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
+        <a href="/settings">设置 / 账号管理</a>
+      </nav>
+
       <section style={{ marginTop: "2rem", opacity: 0.7 }}>
         <h2>待接入</h2>
         <ul>
-          <li>登录鉴权（管理员）</li>
-          <li>账号 / 奖品 / 记录 / 设置页面</li>
+          <li>奖品 / 记录页面</li>
           <li>奖品选择页（Bark 深链接目标）</li>
           <li>runner 的 scan / draw / inspect 业务逻辑移植</li>
         </ul>
