@@ -165,12 +165,6 @@ export const Artifacts = z.object({
 });
 export type Artifacts = z.infer<typeof Artifacts>;
 
-export const ScanResult = z.object({
-  kind: z.literal("scan"),
-  presents: z.array(Present),
-});
-export type ScanResult = z.infer<typeof ScanResult>;
-
 /**
  * 未知模式诊断包：`status = 'unknownPattern'` 时回传，供人工据此补写新 pattern。
  * 配合 artifacts 里的截图与 HTML 快照，基本不用再上站点复现。
@@ -187,6 +181,33 @@ export const PatternDiagnostics = z.object({
   bodyExcerpt: z.string().default(""),
 });
 export type PatternDiagnostics = z.infer<typeof PatternDiagnostics>;
+
+/**
+ * 单个奖品来源的扫描报告。
+ *
+ * 为什么需要它：两个来源结构不同（实测 brandcollection 有 present_id 卡片，
+ * brandfanclub 登录后仍无），若某来源解析出 0 个就静默返回空，会被误当成
+ * 「今天没有新奖品」。这里显式区分「确实没有」与「没认出来」，后者带诊断包。
+ */
+export const ScanSourceReport = z.object({
+  source: PresentSource,
+  /** 该来源解析出的奖品数 */
+  presentCount: z.number(),
+  /** 是否认得这个来源的版式（false = 解析器没认出来，需补实现） */
+  recognized: z.boolean(),
+  note: z.string().default(""),
+  /** recognized 为 false 时附现场，供人工补解析器 */
+  diagnostics: PatternDiagnostics.nullable().default(null),
+});
+export type ScanSourceReport = z.infer<typeof ScanSourceReport>;
+
+export const ScanResult = z.object({
+  kind: z.literal("scan"),
+  presents: z.array(Present),
+  /** 每个来源各自的结果，便于发现「某来源悄悄失效」 */
+  sourceReports: z.array(ScanSourceReport).default([]),
+});
+export type ScanResult = z.infer<typeof ScanResult>;
 
 export const DrawResult = z.object({
   kind: z.literal("draw"),
