@@ -62,23 +62,60 @@ export const LOGIN = {
 } as const;
 
 /**
- * 募集流程（详情页 → 个人信息确认 → 问卷填表 → 送信）。
- * 初版 Java 的按钮状态机逻辑可复用，但选择器需登录后实测。
+ * 募集流程（2026-08-19 登录态实测确认）。
+ *
+ * 实际链路：
+ *   1. 详情页的「応募する」**不是表单提交**，而是 `<a href="javascript:;" onclick="location.href='…'">`，
+ *      onclick 里直接带着问卷地址。因此**不必点它**——用 APPLY_LINK_PATTERN 从 onclick 提取 URL
+ *      再直接导航，比模拟点击稳得多。
+ *   2. 该地址形如 `/isauth/addinfo/<模板>/<URL编码的问卷地址>`，会转到 `/enquete/confirm`。
+ *   3. `/enquete/confirm`＝会员登记信息确认页，POST 后才进入真正的问卷题目页。
+ *   4. 问卷填完 → 送信 → 完成。
+ *
+ * ⚠️ 关键发现：确认页会**直接显示账号里已登记的姓名 / 住址 / 电话**，
+ * 不需要脚本填写。初版 Java `Fill.fillName` 那套「填名前/年齢」在此流程用不上，
+ * 除非个别问卷自己又问一遍。
  */
 export const PRESENT = {
-  applyButton: "", // 「募集する」按钮 TODO(recon)
-  personalInfoConfirmButton: "", // 个人信息确认 TODO(recon)
-  drewMarker: "", // 「已募集」判定 TODO(recon)
-  sendButton: "", // 填表页「送信」 TODO(recon)
+  /** 详情页上的「応募する」锚点（onclick 里藏着问卷地址） */
+  applyAnchor: 'a[onclick*="/enquete/"]',
+  /** 从 onclick 属性里提取问卷地址：捕获组 1 即目标 URL（注意是 URL 编码过的） */
+  applyOnclickPattern: /location\.href='([^']+)'/,
+  /** 问卷地址形态：/enquete/enq_id/<问卷ID>/a_key/<每奖品唯一令牌>/brand_id/<品牌ID> */
+  enquetePattern: /\/enquete\/enq_id\/(\d+)\/a_key\/([^/]+)\/brand_id\/(\d+)/,
 } as const;
 
-/** 问卷区块。初版为 form>table 深层嵌套（2023），需确认 2026 是否仍是表格布局。 */
+/**
+ * 个人信息确认页 `/enquete/confirm`（实测）。
+ * 表单：POST /enquete/confirm，字段 token(hidden) + addbrand(checkbox) + act=submit。
+ */
+export const CONFIRM = {
+  url: "https://www.cosme.net/enquete/confirm",
+  form: 'form[action*="/enquete/confirm"]',
+  tokenField: 'input[name="token"]',
+  /** 「<品牌>をフォローする」——**默认已勾选，且页面明示「応募にはブランドフォローが必要です」**，
+   *  即关注品牌是投递的前置条件，不可取消 */
+  addBrandCheckbox: 'input[name="addbrand"]',
+  submitButton: 'input[type="submit"]', // value 为「同意して次へ進む」
+  /** 标题含此串即说明停在确认页 */
+  titleMarker: "メンバー登録情報確認",
+} as const;
+
+/**
+ * 问卷题目页。
+ * TODO(recon)：需要 POST 过确认页才能看到，尚未侦察——那一步会真实关注品牌并推进投递，
+ * 需用户明确同意后再做。初版（2023）结构为 form>table 深层嵌套 + label>input，仅作参考。
+ */
 export const SURVEY = {
   questionSection: "", // TODO(recon)
-  questionText: "td.Q_Text01", // 初版值，待校验
-  optionLabel: "tr label", // 初版值，待校验
+  questionText: "td.Q_Text01", // 2023 初版值，待校验
+  optionLabel: "tr label", // 2023 初版值，待校验
   optionInput: "input:first-child",
+  sendButton: "", // 「送信」TODO(recon)
 } as const;
+
+/** 已投递判定 TODO(recon)：需完成一次投递后才能确认其页面特征 */
+export const DREW_MARKER = "" as const;
 
 /**
  * 页面编码：实测列表页为 **Shift_JIS**（`charset=Shift_JIS`）。
