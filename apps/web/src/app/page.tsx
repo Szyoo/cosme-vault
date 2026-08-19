@@ -2,7 +2,7 @@
  * 控制面首页：runner 状态 + 手动跑一轮 + 奖品与待处理项概览。
  * 视觉暂用最简样式，待统一到 @szyyw/design。
  */
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { getHeartbeat, isRunnerOnline } from "@/lib/runner-state.ts";
 import { RunButton } from "./run-button.tsx";
@@ -44,6 +44,21 @@ export default function Home() {
     return acc;
   }, {});
   const needsChoice = rows.filter((r) => r.status === "needsChoice");
+  const unknown = rows.filter((r) => r.status === "unknownPattern");
+  // 最近一次扫描里有没有「来源版式没认出来」
+  const lastScan = db
+    .select({ result: schema.jobs.result })
+    .from(schema.jobs)
+    .where(and(eq(schema.jobs.kind, "scan"), eq(schema.jobs.status, "done")))
+    .orderBy(desc(schema.jobs.createdAt))
+    .limit(1)
+    .get();
+  const unrecognizedSources = (() => {
+    if (!lastScan?.result) return 0;
+    const outcome = (JSON.parse(lastScan.result) as { outcome?: { sourceReports?: { recognized?: boolean }[] } }).outcome;
+    return (outcome?.sourceReports ?? []).filter((r) => r.recognized === false).length;
+  })();
+  const diagnosticsCount = unknown.length + unrecognizedSources;
 
   return (
     <main style={{ maxWidth: 860, margin: "2.5rem auto", padding: "0 1.5rem" }}>
@@ -74,6 +89,16 @@ export default function Home() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {diagnosticsCount > 0 && (
+        <section style={{ ...card, borderColor: "var(--warning, #d98a2b)" }}>
+          <h2 style={h2}>有 {diagnosticsCount} 处未识别的页面版式</h2>
+          <p style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+            runner 已安全中止并留下现场（没有瞎点）。到{" "}
+            <a href="/diagnostics">诊断页</a> 查看元素清单，据此补一个流程模式。
+          </p>
         </section>
       )}
 
@@ -135,7 +160,9 @@ export default function Home() {
         </ul>
       </section>
 
-      <nav style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
+      <nav style={{ marginTop: "2rem", display: "flex", gap: "1.25rem" }}>
+        <a href="/records">记录</a>
+        <a href="/diagnostics">诊断{diagnosticsCount > 0 ? `（${diagnosticsCount}）` : ""}</a>
         <a href="/settings">设置 / 账号管理</a>
       </nav>
     </main>
