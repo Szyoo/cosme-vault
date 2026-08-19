@@ -135,6 +135,14 @@ async function mainLoop(): Promise<void> {
       currentJobId = job.id;
       const report = await runJob(job);
       await reportJob(report);
+
+      // 合规底线：奖品之间要有人类速度的随机间隔。
+      // 放在这里而不是控制面，可保证无论任务怎么入队都不会连珠炮式投递。
+      if (job.kind === "draw") {
+        const gap = randomDelay(PACING.betweenPresentsMs);
+        console.log(`[runner] 距下一个奖品等待 ${Math.round(gap / 1000)} 秒（合规节奏）`);
+        await sleep(gap);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[runner] 轮询出错，退避重试：${message}`);
