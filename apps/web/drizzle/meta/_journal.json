@@ -15,6 +15,13 @@
       "when": 1787065658314,
       "tag": "0001_grey_midnight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787129007298,
+      "tag": "0002_dizzy_baron_zemo",
+      "breakpoints": true
     }
   ]
 }

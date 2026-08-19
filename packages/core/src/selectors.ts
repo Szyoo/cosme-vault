@@ -77,12 +77,19 @@ export const LOGIN = {
  * 除非个别问卷自己又问一遍。
  */
 export const PRESENT = {
-  /** 详情页上的「応募する」锚点（onclick 里藏着问卷地址） */
-  applyAnchor: 'a[onclick*="/enquete/"]',
-  /** 从 onclick 属性里提取问卷地址：捕获组 1 即目标 URL（注意是 URL 编码过的） */
+  /**
+   * 详情页上的「応募する」锚点。
+   *
+   * ⚠️ 踩过的坑：onclick 形如
+   *   `location.href='https://www.cosme.net/isauth/addinfo/<模板>/https%3A%2F%2F…%2Fenquete%2F…'`
+   * 内层问卷地址是**URL 编码**的（`%2Fenquete%2F`），所以**不能**用 `a[onclick*="/enquete/"]`
+   * 去匹配——那永远匹配不到。要认未编码的 `/isauth/addinfo/` 段。
+   */
+  applyAnchor: 'a[onclick*="isauth/addinfo"]',
+  /** 从 onclick 提取跳转地址：捕获组 1 即 addinfo 地址（其尾部内嵌 URL 编码的问卷地址） */
   applyOnclickPattern: /location\.href='([^']+)'/,
-  /** 问卷地址形态：/enquete/enq_id/<问卷ID>/a_key/<每奖品唯一令牌>/brand_id/<品牌ID> */
-  enquetePattern: /\/enquete\/enq_id\/(\d+)\/a_key\/([^/]+)\/brand_id\/(\d+)/,
+  /** 问卷地址形态（对 addinfo 地址 decodeURIComponent 后匹配） */
+  enquetePattern: /\/enquete\/enq_id\/(\d+)\/a_key\/([^/?]+)\/brand_id\/(\d+)/,
 } as const;
 
 /**
