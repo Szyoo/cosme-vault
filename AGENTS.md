@@ -90,7 +90,9 @@ apps/
 - **runner 取凭证走独立端点** `/api/runner/credentials?accountId=`（Bearer RUNNER_TOKEN）。**刻意不把凭证塞进任务载荷**——那会把明文写进 jobs 表并留在历史里。
 - **奖品页 / 记录页 / 奖品选择页（Bark 深链接目标）仍待建**；登录页与设置页为最简版，视觉待统一到 @szyyw/design。
 - **DB 迁移**用 `drizzle-kit generate/migrate`，迁移文件进 `apps/web/drizzle/`（首版 `0000_sticky_kate_bishop.sql` 已生成并跑通）。drizzle-kit 直连 DB 不经 `src/db/index.ts`，故 `db:migrate` 脚本里带 `mkdir -p data`。
-- **部署 compose / Dockerfile**：runner 的 Dockerfile 已备；web 的 Dockerfile 与 vps compose 待补（照抄 ledger 模式，容器不 publish 端口、只挂 Caddy ingress 网络）。
+- **部署已就绪**（见 [docs/deploy.md](docs/deploy.md)）：`apps/web/Dockerfile`（Next standalone，容器启动跑迁移）+ `deploy/vps/compose.yml`（不 publish 端口、只挂 Caddy `ingress`，含 cron sidecar 每 12 小时打 `/api/runs`）+ `apps/runner/install.sh`（Mac mini 的 launchd 常驻）。
+  - ⚠️ **monorepo 下 Next standalone 产物在 `apps/web/.next/standalone`**（不是仓库根的 `.next/`），入口是其内部的 `apps/web/server.js`。已实测确认，Dockerfile 的 COPY 路径按此写。
+  - ⚠️ **`useSearchParams()` 必须包在 `Suspense` 里**，否则 `next build` 直接失败（dev 模式不报）。登录页与选择页都已按此拆分。
 
 ## Next 16 硬性约束（实测确认，勿按旧记忆写）
 

@@ -1,10 +1,23 @@
 /** 登录页。样式先走 @szyyw/design 的玻璃组件层，正式视觉与其他页面一起做。 */
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+/**
+ * ⚠️ Next 16：`useSearchParams()` 在预渲染阶段必须包在 Suspense 边界内，
+ * 否则 `next build` 直接失败（missing-suspense-with-csr-bailout）。
+ * 故把用到它的部分拆成子组件，页面组件只负责包 Suspense。
+ */
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<main style={{ maxWidth: 360, margin: "6rem auto", padding: "0 1.5rem" }}>载入中…</main>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [username, setUsername] = useState("");

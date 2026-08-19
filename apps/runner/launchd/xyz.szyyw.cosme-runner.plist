@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>xyz.szyyw.cosme-runner</string>
+
+  <!-- Node 26 原生跑 TS，无构建步骤，直接指向源文件 -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>__NODE__</string>
+    <string>--env-file-if-exists=__REPO__/.env</string>
+    <string>__RUNNER_DIR__/src/index.ts</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__RUNNER_DIR__</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__RUNNER_DIR__/logs/runner.log</string>
+  <key>StandardErrorPath</key>
+  <string>__RUNNER_DIR__/logs/runner.error.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <!-- Mac mini 形态：住宅 IP + 真 Chrome。有头是为了必要时能人工接手登录 -->
+    <key>RUNNER_LOCATION</key>
+    <string>mac-mini</string>
+    <key>RUNNER_HEADLESS</key>
+    <string>true</string>
+    <key>PLAYWRIGHT_CHANNEL</key>
+    <string>chrome</string>
+  </dict>
+</dict>
+</plist>

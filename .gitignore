@@ -133,3 +133,6 @@ apps/runner/profile/
 # 构建产物
 dist/
 *.tsbuildinfo
+
+# runner 运行日志（launchd 输出）
+apps/runner/logs/

@@ -1,0 +1,72 @@
+# vultr-jp 部署：对外只经 Caddy（ingress 网络），刻意不写任何 ports:
+# Docker 的 iptables 会绕过 ufw，publish 端口 = 直接暴露公网，勿改。
+#
+# 注意 runner 不在这里：它跑在 Mac mini（launchd，见 apps/runner/README.md）。
+# 原因是 @COSME 登录受 reCAPTCHA Enterprise 保护，需住宅 IP + 可见窗口人工登录一次。
+# runner 是 pull 模型（主动出站长轮询），所以不需要任何入站端口或 tailnet。
+services:
+  cosme:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    container_name: cosme-vault
+    restart: unless-stopped
+    environment:
+      # 初始管理员（库里还没有账号时用于自动建号；之后在设置页改）
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SESSION_SECRET: ${SESSION_SECRET}
+      # cosme 账号凭证的加密主密钥；换掉会导致已存凭证无法解密（需重录）
+      CREDENTIAL_KEY: ${CREDENTIAL_KEY}
+      # runner 拉取任务的令牌，与 Mac mini 上的 RUNNER_TOKEN 一致
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      # 定时任务令牌；没配则 /api/runs 的 cron 通道一律拒绝
+      CRON_TOKEN: ${CRON_TOKEN:-}
+      DATABASE_PATH: /data/cosme.db
+      # Bark 推送（选择页深链接要用公网地址）
+      BARK_SERVER: ${BARK_SERVER:-}
+      BARK_DEVICE_KEY: ${BARK_DEVICE_KEY:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://cosme.szyyw.xyz}
+    volumes:
+      - cosme_data:/data
+    networks:
+      - ingress
+
+  # 定时触发：周期性打 /api/runs（扫描 → 自动派发投递）。
+  # 用 sleep 循环而非 crond：只有一个任务，错过一次下一轮补上即可。
+  cosme-cron:
+    image: alpine:3.23
+    container_name: cosme-vault-cron
+    restart: unless-stopped
+    depends_on:
+      - cosme
+    environment:
+      CRON_TOKEN: ${CRON_TOKEN:-}
+      # 每次循环间隔（秒）。默认 12 小时——合规底线要求低频，
+      # 别为了「多抢」把这个调小。
+      CRON_INTERVAL: ${CRON_INTERVAL:-43200}
+    command:
+      - sh
+      - -c
+      - |
+        apk add --no-cache curl >/dev/null 2>&1
+        sleep 30
+        while true; do
+          if [ -n "$$CRON_TOKEN" ]; then
+            curl -fsS -m 120 -X POST -H "Authorization: Bearer $$CRON_TOKEN" \
+              http://cosme:3000/api/runs || echo "cron 调用失败"
+          else
+            echo "未配 CRON_TOKEN，跳过"
+          fi
+          sleep "$$CRON_INTERVAL"
+        done
+    networks:
+      - ingress
+
+volumes:
+  cosme_data:
+
+networks:
+  ingress:
+    external: true
+    name: ingress_ingress
