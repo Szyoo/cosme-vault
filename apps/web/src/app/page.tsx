@@ -1,21 +1,24 @@
 /**
  * 控制面首页：runner 状态 + 手动跑一轮 + 奖品与待处理项概览。
- * 视觉暂用最简样式，待统一到 @szyyw/design。
+ * 样式一律用 @szyyw/design 的类（.glass / .stat-grid / .tbl / .pill / .term …），
+ * 不硬编码颜色——规范要求新颜色先进 tokens.css。
  */
 import { and, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { getHeartbeat, isRunnerOnline } from "@/lib/runner-state.ts";
 import { RunButton } from "./run-button.tsx";
+import { Nav } from "./nav.tsx";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "待投递",
-  drawn: "已投递",
-  needsChoice: "待选择",
-  skipped: "已跳过",
-  failed: "失败",
-  unknownPattern: "未知模式",
+/** 状态 → 展示文案与 pill 配色 */
+const STATUS: Record<string, { label: string; pill: string }> = {
+  pending: { label: "待投递", pill: "" },
+  drawn: { label: "已投递", pill: "green" },
+  needsChoice: { label: "待选择", pill: "violet" },
+  skipped: { label: "已跳过", pill: "" },
+  failed: { label: "失败", pill: "red" },
+  unknownPattern: { label: "未知模式", pill: "amber" },
 };
 
 export default function Home() {
@@ -36,8 +39,7 @@ export default function Home() {
     .leftJoin(schema.presents, eq(schema.presents.id, schema.accountPresents.presentId))
     .all();
 
-  const jobs = db.select().from(schema.jobs).orderBy(desc(schema.jobs.createdAt)).limit(8).all();
-  const logs = db.select().from(schema.runnerLogs).orderBy(desc(schema.runnerLogs.id)).limit(8).all();
+  const logs = db.select().from(schema.runnerLogs).orderBy(desc(schema.runnerLogs.id)).limit(12).all();
 
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
@@ -45,6 +47,7 @@ export default function Home() {
   }, {});
   const needsChoice = rows.filter((r) => r.status === "needsChoice");
   const unknown = rows.filter((r) => r.status === "unknownPattern");
+
   // 最近一次扫描里有没有「来源版式没认出来」
   const lastScan = db
     .select({ result: schema.jobs.result })
@@ -55,126 +58,138 @@ export default function Home() {
     .get();
   const unrecognizedSources = (() => {
     if (!lastScan?.result) return 0;
-    const outcome = (JSON.parse(lastScan.result) as { outcome?: { sourceReports?: { recognized?: boolean }[] } }).outcome;
+    const outcome = (JSON.parse(lastScan.result) as { outcome?: { sourceReports?: { recognized?: boolean }[] } })
+      .outcome;
     return (outcome?.sourceReports ?? []).filter((r) => r.recognized === false).length;
   })();
   const diagnosticsCount = unknown.length + unrecognizedSources;
 
   return (
-    <main style={{ maxWidth: 860, margin: "2.5rem auto", padding: "0 1.5rem" }}>
-      <h1>Cosme Vault</h1>
+    <main className="page">
+      <h1 className="page-title grad-text">Cosme Vault</h1>
+      <p className="page-sub">@COSME 抽奖辅助控制面</p>
 
-      <section style={card}>
-        <h2 style={h2}>Runner</h2>
-        <p>
-          {online ? "🟢 在线" : "⚪️ 离线"}
-          {hb ? `　位置：${hb.location}　当前任务：${hb.busyJobId ?? "空闲"}` : "　（尚未收到心跳）"}
-        </p>
-        <RunButton />
-        <p style={{ fontSize: "0.85rem", opacity: 0.65, marginTop: "0.5rem" }}>
-          跑一轮 = 给每个启用账号扫描奖品；扫完会自动派发投递任务，奖品之间按人类速度随机间隔。
+      <section className="glass spot section">
+        <div className="row spread">
+          <div>
+            <div className="section-name">Runner</div>
+            <p className="small">
+              {online ? "🟢 在线" : "⚪️ 离线"}
+              {hb ? ` · ${hb.location} · ${hb.busyJobId ? "执行中" : "空闲"}` : " · 尚未收到心跳"}
+            </p>
+          </div>
+          <RunButton />
+        </div>
+        <p className="tiny muted">
+          跑一轮 = 给每个启用账号扫描奖品；扫完自动派发投递，奖品之间按人类速度随机间隔。
         </p>
       </section>
 
+      <section className="stat-grid section">
+        <StatCard label="奖品" value={rows.length} sub="已扫描" />
+        <StatCard label="已投递" value={counts.drawn ?? 0} sub="本账号" />
+        <StatCard label="待投递" value={counts.pending ?? 0} sub="下一轮处理" />
+        <StatCard label="待选择" value={needsChoice.length} sub="需要你" />
+      </section>
+
       {needsChoice.length > 0 && (
-        <section style={{ ...card, borderColor: "var(--primary, #6b8afd)" }}>
-          <h2 style={h2}>需要你选择（{needsChoice.length}）</h2>
-          <ul>
+        <section className="glass section">
+          <div className="section-name">需要你选择</div>
+          <div className="stack">
             {needsChoice.map((r) => (
-              <li key={`${r.accountId}-${r.presentId}`} style={{ marginBottom: "0.4rem" }}>
-                <a href={`/choices/${r.presentId}?account=${r.accountId}`}>
-                  {r.brand ? `${r.brand} · ` : ""}
+              <a key={`${r.accountId}-${r.presentId}`} className="inner row spread" href={`/choices/${r.presentId}?account=${r.accountId}`}>
+                <span>
+                  {r.brand && <strong>{r.brand} · </strong>}
                   {r.name ?? r.presentId}
-                </a>
-              </li>
+                </span>
+                <span className="pill violet">去选择</span>
+              </a>
             ))}
-          </ul>
+          </div>
         </section>
       )}
 
       {diagnosticsCount > 0 && (
-        <section style={{ ...card, borderColor: "var(--warning, #d98a2b)" }}>
-          <h2 style={h2}>有 {diagnosticsCount} 处未识别的页面版式</h2>
-          <p style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-            runner 已安全中止并留下现场（没有瞎点）。到{" "}
-            <a href="/diagnostics">诊断页</a> 查看元素清单，据此补一个流程模式。
+        <section className="glass section">
+          <div className="section-name">有 {diagnosticsCount} 处未识别的页面版式</div>
+          <p className="small">
+            runner 已安全中止并留下现场（没有瞎点）。到 <a href="/diagnostics">诊断页</a> 查看元素清单，据此补一个流程模式。
           </p>
         </section>
       )}
 
-      <section style={card}>
-        <h2 style={h2}>奖品（{rows.length}）</h2>
-        <p style={{ fontSize: "0.9rem", opacity: 0.75 }}>
-          {Object.entries(counts)
-            .map(([k, v]) => `${STATUS_LABEL[k] ?? k} ${v}`)
-            .join("　·　") || "暂无数据，先跑一轮"}
-        </p>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-            <thead>
-              <tr>
-                <th style={th}>奖品</th>
-                <th style={th}>品牌</th>
-                <th style={th}>期间</th>
-                <th style={th}>状态</th>
-                <th style={th}>模式</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={`${r.accountId}-${r.presentId}`}>
-                  <td style={td}>{r.name ?? r.presentId}</td>
-                  <td style={td}>{r.brand ?? "—"}</td>
-                  <td style={td}>{r.period ?? "—"}</td>
-                  <td style={td}>{STATUS_LABEL[r.status] ?? r.status}</td>
-                  <td style={td}>{r.pattern ?? "—"}</td>
+      <section className="glass section">
+        <div className="section-name">奖品</div>
+        {rows.length === 0 ? (
+          <div className="empty">
+            <div>🎁</div>
+            <p>还没有奖品数据，点上面的「跑一轮」开始扫描。</p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>奖品</th>
+                  <th>品牌</th>
+                  <th>期间</th>
+                  <th>状态</th>
+                  <th>模式</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((r) => {
+                  const s = STATUS[r.status] ?? { label: r.status, pill: "" };
+                  return (
+                    <tr key={`${r.accountId}-${r.presentId}`}>
+                      <td className="clip" title={r.name ?? r.presentId}>
+                        {r.name ?? r.presentId}
+                      </td>
+                      <td>{r.brand ?? "—"}</td>
+                      <td className="num">{r.period ?? "—"}</td>
+                      <td>
+                        <span className={`pill ${s.pill}`}>{s.label}</span>
+                      </td>
+                      <td className="mono tiny">{r.pattern ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* 终端窗：设计规范第 9 节，日志刻意保持深色 */}
+      <section className="term section">
+        <div className="term-head">
+          <span className={`term-dot`} data-live={online ? "1" : "0"} />
+          <span className="term-title">运行日志</span>
+        </div>
+        <div className="term-body">
+          {logs.length === 0 && <div className="term-line debug">（暂无日志）</div>}
+          {logs
+            .slice()
+            .reverse()
+            .map((l) => (
+              <div key={l.id} className={`term-line ${l.level}`}>
+                <span className="term-time">{l.at.replace("T", " ").slice(5, 19)}</span> {l.text}
+              </div>
+            ))}
         </div>
       </section>
 
-      <section style={card}>
-        <h2 style={h2}>最近任务</h2>
-        <ul style={{ fontSize: "0.85rem", opacity: 0.85 }}>
-          {jobs.length === 0 && <li>暂无</li>}
-          {jobs.map((j) => (
-            <li key={j.id}>
-              {j.kind} · {j.status} · {j.trigger}
-              {j.error ? ` · ${j.error}` : ""}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section style={card}>
-        <h2 style={h2}>运行日志</h2>
-        <ul style={{ fontSize: "0.85rem", opacity: 0.85 }}>
-          {logs.length === 0 && <li>暂无</li>}
-          {logs.map((l) => (
-            <li key={l.id}>
-              [{l.level}] {l.text}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <nav style={{ marginTop: "2rem", display: "flex", gap: "1.25rem" }}>
-        <a href="/records">记录</a>
-        <a href="/diagnostics">诊断{diagnosticsCount > 0 ? `（${diagnosticsCount}）` : ""}</a>
-        <a href="/settings">设置 / 账号管理</a>
-      </nav>
+      <Nav diagnosticsCount={diagnosticsCount} />
     </main>
   );
 }
 
-const card: React.CSSProperties = {
-  marginTop: "1.5rem",
-  padding: "1.1rem 1.25rem",
-  border: "1px solid var(--border, #8884)",
-  borderRadius: 14,
-};
-const h2: React.CSSProperties = { fontSize: "1.05rem", marginBottom: "0.6rem" };
-const th: React.CSSProperties = { textAlign: "left", padding: "0.4rem 0.5rem", opacity: 0.7, fontWeight: 500 };
-const td: React.CSSProperties = { padding: "0.4rem 0.5rem", borderTop: "1px solid var(--border, #8883)" };
+function StatCard({ label, value, sub }: { label: string; value: number; sub: string }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value num">{value}</div>
+      <div className="stat-sub">{sub}</div>
+    </div>
+  );
+}

@@ -23,11 +23,11 @@ export function RunButton() {
   }
 
   return (
-    <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.75rem", alignItems: "center" }}>
-      <button type="button" onClick={run} disabled={busy} style={{ padding: "0.6rem 1.2rem", borderRadius: 10 }}>
+    <div className="row">
+      {msg && <span className="tiny muted">{msg}</span>}
+      <button type="button" className="btn" onClick={run} disabled={busy}>
         {busy ? "触发中…" : "跑一轮"}
       </button>
-      {msg && <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>{msg}</span>}
     </div>
   );
 }

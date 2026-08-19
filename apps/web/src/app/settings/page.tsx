@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
+import { Nav } from "../nav.tsx";
 
 export default function SettingsPage() {
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
@@ -60,28 +61,34 @@ export default function SettingsPage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "3rem auto", padding: "0 1.5rem" }}>
-      <h1>设置</h1>
+    <main className="page">
+      <h1 className="page-title">设置</h1>
 
-      <section style={{ marginTop: "2rem" }}>
-        <h2>cosme 账号</h2>
-        <p style={{ opacity: 0.7, fontSize: "0.9rem" }}>
+      <section className="section">
+        <div className="section-name">cosme 账号</div>
+        <p className="page-sub">
           抽奖批次会按顺序轮抽这里启用的账号。凭证经 AES-256-GCM 加密存储，页面不会回显已保存的值。
         </p>
 
-        <form onSubmit={addAccount} style={{ display: "flex", gap: "0.5rem", margin: "1rem 0" }}>
+        <form className="row section" onSubmit={addAccount}>
           <input
+            className="field"
             placeholder="账号备注名（如：主号）"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
             style={{ flex: 1 }}
           />
-          <button type="submit" disabled={busy || !newLabel.trim()}>
+          <button type="submit" className="btn" disabled={busy || !newLabel.trim()}>
             添加账号
           </button>
         </form>
 
-        {accounts.length === 0 && <p style={{ opacity: 0.6 }}>还没有账号，先添加一个。</p>}
+        {accounts.length === 0 && (
+          <div className="empty">
+            <div>👤</div>
+            <p>还没有账号，先添加一个。</p>
+          </div>
+        )}
 
         {accounts.map((a) => (
           <AccountCard
@@ -96,8 +103,10 @@ export default function SettingsPage() {
           />
         ))}
 
-        {message && <p style={{ marginTop: "1rem", opacity: 0.8 }}>{message}</p>}
+        {message && <p className="ok-text">{message}</p>}
       </section>
+
+      <Nav current="/settings" />
     </main>
   );
 }
@@ -141,36 +150,38 @@ function AccountCard({
 
   const c = account.credentials;
   return (
-    <div style={{ border: "1px solid var(--border, #8884)", borderRadius: 12, padding: "1rem", marginBottom: "0.75rem" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-        <strong style={{ flex: 1 }}>{account.label}</strong>
-        <span style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+    <div className="glass spot diag-card">
+      <div className="row spread">
+        <strong>{account.label}</strong>
+        <span className="small">
           {c.configured ? "🔑 凭证已配置" : "⚠️ 凭证未配置"}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
-        <button type="button" onClick={onToggle}>
+        <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
           {account.enabled ? "停用" : "启用"}
         </button>
-        <button type="button" onClick={() => setOpen((v) => !v)}>
+        <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
           {open ? "收起" : "填写凭证"}
         </button>
-        <button type="button" onClick={onDelete}>
+        <button type="button" className="btn-ghost danger btn-small" onClick={onDelete}>
           删除
         </button>
       </div>
 
       {open && (
-        <form onSubmit={save} style={{ display: "grid", gap: "0.5rem", marginTop: "1rem" }}>
-          <p style={{ fontSize: "0.85rem", opacity: 0.7, margin: 0 }}>
+        <form className="stack section" onSubmit={save}>
+          <p className="tiny muted">
             留空的字段保持原值不变。姓名 / 年龄 / 职业会被填进抽奖表单（对应日文栏位「名前」「年齢」「職業」）。
           </p>
           <input
+            className="field"
             placeholder="cosme 登录邮箱"
             autoComplete="off"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
           <input
+            className="field"
             type="password"
             placeholder="cosme 登录密码"
             autoComplete="new-password"
@@ -178,21 +189,24 @@ function AccountCard({
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           <input
+            className="field"
             placeholder="姓名（名前）"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <input
+            className="field"
             placeholder="年龄（年齢）"
             value={form.age}
             onChange={(e) => setForm({ ...form, age: e.target.value })}
           />
           <input
+            className="field"
             placeholder="职业（職業，如 自営業/自由業）"
             value={form.job}
             onChange={(e) => setForm({ ...form, job: e.target.value })}
           />
-          <button type="submit" disabled={saving}>
+          <button type="submit" className="btn" disabled={saving}>
             {saving ? "保存中…" : "保存凭证"}
           </button>
         </form>
