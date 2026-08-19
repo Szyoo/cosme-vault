@@ -8,7 +8,7 @@
  */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { PendingChoice } from "@cosme/contract";
 
@@ -18,7 +18,16 @@ interface Data {
   choices: PendingChoice[];
 }
 
+/** ⚠️ Next 16：useSearchParams() 必须在 Suspense 内，否则构建失败。 */
 export default function ChoicePage() {
+  return (
+    <Suspense fallback={<main style={wrap}>载入中…</main>}>
+      <ChoiceInner />
+    </Suspense>
+  );
+}
+
+function ChoiceInner() {
   const params = useParams<{ presentId: string }>();
   const search = useSearchParams();
   const router = useRouter();
