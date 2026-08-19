@@ -77,7 +77,9 @@ apps/
 
 ## 已知现状与待办
 
-- **draw 与 inspect 已实现并跑通一次真实投递（2026-08-19，奖品 12057）；scan 待实现。**
+- **scan / draw / inspect 三种任务均已实现，端到端跑通**（2026-08-19：真实投递奖品 12057；扫描解析出 3 个奖品并建立待抽记录；重扫幂等性已验证）。
+- **扫描的来源级反馈**：`ScanSourceReport` 区分「确实没有奖品」与「版式没认出来」，后者带诊断包——避免某来源悄悄失效被误当成「今天没新奖品」。实测 `brandFanClub` 即被正确标记为未识别（附 158 个元素的现场）。
+- **幂等性是硬要求**：重扫**绝不能**把已投递记录重置为 pending（`queue.ts` 里只对不存在的 account_presents 插入）。因为 @COSME 不标注「已应募」，这张表是防重复投递的唯一防线。
 - **流程模式注册表（重要架构）**：`apps/runner/src/cosme/patterns/`。@COSME 奖品分多类别、每类多模式、DOM 各不相同，故每个模式是一个实现 `FlowPattern` 的模块，自己回答「这一页是不是我认识的」。加新模式只需写一个文件 + 加进 `patterns/index.ts` 的 `PATTERNS` 数组（顺序即优先级）。
 - **未知模式反馈机制**：所有模式都不认领时**安全中止、绝不瞎点**，返回 `status: 'unknownPattern'` 并附 `PatternDiagnostics`（URL / 标题 / 全部可交互元素与建议选择器 / 正文摘要 / 各模式的拒绝原因），同时存截图与 HTML 快照，落库到 `account_presents.diagnostics`。据此补 pattern 基本不用再上站点复现。
 - **已实现的唯一模式 `is-enq-survey`**：确认页 → `is-enq.cosme.net` 的 PHP 问卷 → `input[name=send]` 送信。

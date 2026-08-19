@@ -2,7 +2,7 @@
  * runner 主循环（pull 模型）。
  *
  * 反复：心跳 → 长轮询领任务 → 分发执行 → 上报结果（失败/未知模式附现场快照）。
- * draw 与 inspect 已实现；scan（奖品扫描）待实现。
+ * scan / draw / inspect 均已实现。
  */
 import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
@@ -11,6 +11,8 @@ import { closeBrowser, newPage } from "./browser.ts";
 import { captureArtifacts } from "./artifacts.ts";
 import { drawOnce } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
+import { scanSources } from "./cosme/scan.ts";
+import { PACING, randomDelay } from "@cosme/core";
 
 let currentJobId: string | null = null;
 let stopping = false;
@@ -52,9 +54,27 @@ async function runJob(job: Job): Promise<JobReport> {
 
 /* ── 任务处理器（待移植初版业务逻辑，先返回明确的未实现结果） ── */
 
-async function handleScan(_job: ScanJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
-  // TODO(移植): 打开 selectors.LIST_URLS 的两个列表页，提取奖品 → ScanResult
-  throw new Error("scan 尚未实现：待移植奖品扫描逻辑");
+async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
+  const page = await newPage();
+  try {
+    const { presents, reports } = await scanSources(
+      page,
+      job.sources,
+      (text, level = "info") => pushLog({ jobId: job.id, at: nowIso(), level, text }),
+      () => new Promise((r) => setTimeout(r, randomDelay(PACING.betweenPresentsMs))),
+    );
+
+    // 有来源没认出版式 → 留现场，便于补解析器
+    const unrecognized = reports.some((r) => !r.recognized);
+    return {
+      ok: true,
+      outcome: { kind: "scan", presents, sourceReports: reports },
+      error: null,
+      artifacts: unrecognized ? await captureArtifacts(page, job.id) : null,
+    };
+  } finally {
+    await page.close().catch(() => undefined);
+  }
 }
 
 async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
