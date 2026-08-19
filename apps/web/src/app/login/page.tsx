@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
  */
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main style={{ maxWidth: 360, margin: "6rem auto", padding: "0 1.5rem" }}>载入中…</main>}>
+    <Suspense fallback={<main className="page">载入中…</main>}>
       <LoginForm />
     </Suspense>
   );
@@ -47,10 +47,11 @@ function LoginForm() {
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "6rem auto", padding: "0 1.5rem" }}>
-      <h1>Cosme Vault</h1>
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1.5rem" }}>
+    <main className="page narrow">
+      <h1 className="page-title grad-text">Cosme Vault</h1>
+      <form className="glass stack section" onSubmit={submit}>
         <input
+          className="field"
           name="username"
           placeholder="用户名"
           autoComplete="username"
@@ -59,6 +60,7 @@ function LoginForm() {
           required
         />
         <input
+          className="field"
           name="password"
           type="password"
           placeholder="密码"
@@ -67,8 +69,8 @@ function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {error && <p style={{ color: "var(--danger, crimson)" }}>{error}</p>}
-        <button type="submit" disabled={busy}>
+        {error && <p className="err-text">{error}</p>}
+        <button type="submit" className="btn" disabled={busy}>
           {busy ? "登录中…" : "登录"}
         </button>
       </form>

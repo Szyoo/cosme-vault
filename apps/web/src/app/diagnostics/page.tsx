@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { InspectedElement, PatternDiagnostics } from "@cosme/contract";
+import { Nav } from "../nav.tsx";
 
 interface UnknownPattern {
   presentId: string;
@@ -45,7 +46,7 @@ export default function DiagnosticsPage() {
 
   if (!data) {
     return (
-      <main style={wrap}>
+      <main className="page">
         <p>读取中…</p>
       </main>
     );
@@ -54,22 +55,23 @@ export default function DiagnosticsPage() {
   const total = data.unknownPatterns.length + data.unrecognizedSources.length;
 
   return (
-    <main style={wrap}>
-      <h1>诊断</h1>
-      <p style={{ opacity: 0.7, fontSize: "0.9rem" }}>
+    <main className="page">
+      <h1 className="page-title">诊断</h1>
+      <p className="page-sub">
         runner 遇到没见过的页面版式时会安全中止并回传现场（不会瞎点）。这里列出待处理的现场，
         据此在 <code>apps/runner/src/cosme/patterns/</code> 加一个新模式即可。
       </p>
 
       {total === 0 && (
-        <p style={{ marginTop: "2rem", opacity: 0.7 }}>
-          ✅ 目前没有未识别的页面 —— 所有遇到的版式都有对应实现。
-        </p>
+        <div className="empty">
+          <div>✅</div>
+          <p>目前没有未识别的页面 —— 所有遇到的版式都有对应实现。</p>
+        </div>
       )}
 
       {data.unrecognizedSources.length > 0 && (
-        <section style={{ marginTop: "2rem" }}>
-          <h2 style={h2}>列表来源未识别（{data.unrecognizedSources.length}）</h2>
+        <section className="section">
+          <div className="section-name">列表来源未识别（{data.unrecognizedSources.length}）</div>
           {data.unrecognizedSources.map((s) => (
             <Card key={s.source} title={`来源：${s.source}`} subtitle={s.note} at={s.at} diagnostics={s.diagnostics} />
           ))}
@@ -77,8 +79,8 @@ export default function DiagnosticsPage() {
       )}
 
       {data.unknownPatterns.length > 0 && (
-        <section style={{ marginTop: "2rem" }}>
-          <h2 style={h2}>投递流程未识别（{data.unknownPatterns.length}）</h2>
+        <section className="section">
+          <div className="section-name">投递流程未识别（{data.unknownPatterns.length}）</div>
           {data.unknownPatterns.map((u) => (
             <Card
               key={`${u.accountId}-${u.presentId}`}
@@ -91,10 +93,7 @@ export default function DiagnosticsPage() {
         </section>
       )}
 
-      <nav style={{ marginTop: "2.5rem", display: "flex", gap: "1rem" }}>
-        <a href="/">← 首页</a>
-        <a href="/records">记录</a>
-      </nav>
+      <Nav current="/diagnostics" />
     </main>
   );
 }
@@ -124,34 +123,34 @@ function Card({
   }
 
   return (
-    <div style={card}>
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "baseline", flexWrap: "wrap" }}>
-        <strong style={{ flex: 1 }}>{title}</strong>
-        {at && <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>{at}</span>}
+    <div className="glass spot diag-card">
+      <div className="row spread">
+        <strong>{title}</strong>
+        {at && <span className="tiny muted num">{at}</span>}
       </div>
-      {subtitle && <p style={{ fontSize: "0.85rem", opacity: 0.75, margin: "0.35rem 0 0" }}>{subtitle}</p>}
+      {subtitle && <p className="small muted">{subtitle}</p>}
 
       {!diagnostics && (
-        <p style={{ fontSize: "0.85rem", opacity: 0.6, marginTop: "0.5rem" }}>
+        <p className="small muted">
           （没有现场包 —— 可能是旧记录，或 runner 采集失败）
         </p>
       )}
 
       {diagnostics && (
         <>
-          <dl style={dl}>
-            <dt style={dt}>卡在</dt>
-            <dd style={dd}>
-              <code style={{ wordBreak: "break-all" }}>{diagnostics.url}</code>
+          <dl className="kv">
+            <dt>卡在</dt>
+            <dd>
+              <code className="mono tiny">{diagnostics.url}</code>
             </dd>
-            <dt style={dt}>标题</dt>
-            <dd style={dd}>{diagnostics.title || "—"}</dd>
+            <dt>标题</dt>
+            <dd>{diagnostics.title || "—"}</dd>
             {diagnostics.triedPatterns.length > 0 && (
               <>
-                <dt style={dt}>已试模式</dt>
-                <dd style={dd}>
+                <dt>已试模式</dt>
+                <dd>
                   {diagnostics.triedPatterns.map((t) => (
-                    <div key={t.name} style={{ fontSize: "0.85rem" }}>
+                    <div key={t.name} className="tiny">
                       <code>{t.name}</code> — {t.reason}
                     </div>
                   ))}
@@ -160,11 +159,11 @@ function Card({
             )}
           </dl>
 
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", flexWrap: "wrap" }}>
-            <button type="button" onClick={() => setOpen((v) => !v)}>
+          <div className="actions">
+            <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
               {open ? "收起" : `展开元素清单（${diagnostics.elements.length}）`}
             </button>
-            <button type="button" onClick={copyElements}>
+            <button type="button" className="btn-ghost btn-small" onClick={copyElements}>
               {copied ? "已复制 ✓" : "复制元素清单"}
             </button>
           </div>
@@ -172,9 +171,9 @@ function Card({
           {open && <ElementTable elements={diagnostics.elements} />}
 
           {diagnostics.bodyExcerpt && (
-            <details style={{ marginTop: "0.75rem" }}>
-              <summary style={{ cursor: "pointer", fontSize: "0.9rem" }}>正文摘要</summary>
-              <p style={{ fontSize: "0.8rem", opacity: 0.8, whiteSpace: "pre-wrap" }}>{diagnostics.bodyExcerpt}</p>
+            <details className="section">
+              <summary className="small">正文摘要</summary>
+              <p className="tiny muted" style={{ whiteSpace: "pre-wrap" }}>{diagnostics.bodyExcerpt}</p>
             </details>
           )}
         </>
@@ -185,23 +184,23 @@ function Card({
 
 function ElementTable({ elements }: { elements: InspectedElement[] }) {
   return (
-    <div style={{ overflowX: "auto", marginTop: "0.75rem" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+    <div className="table-wrap">
+      <table className="tbl">
         <thead>
           <tr>
-            <th style={th}>标签</th>
-            <th style={th}>类型</th>
-            <th style={th}>建议选择器</th>
-            <th style={th}>文本</th>
+            <th>标签</th>
+            <th>类型</th>
+            <th>建议选择器</th>
+            <th>文本</th>
           </tr>
         </thead>
         <tbody>
           {elements.map((e, i) => (
             <tr key={`${e.selector}-${i}`}>
-              <td style={td}>{e.tag}</td>
-              <td style={td}>{e.type ?? "—"}</td>
-              <td style={{ ...td, fontFamily: "monospace" }}>{e.selector}</td>
-              <td style={td}>{e.text.slice(0, 60)}</td>
+              <td>{e.tag}</td>
+              <td>{e.type ?? "—"}</td>
+              <td className="mono tiny">{e.selector}</td>
+              <td>{e.text.slice(0, 60)}</td>
             </tr>
           ))}
         </tbody>
@@ -210,16 +209,3 @@ function ElementTable({ elements }: { elements: InspectedElement[] }) {
   );
 }
 
-const wrap: React.CSSProperties = { maxWidth: 900, margin: "2.5rem auto", padding: "0 1.5rem" };
-const h2: React.CSSProperties = { fontSize: "1.05rem", marginBottom: "0.75rem" };
-const card: React.CSSProperties = {
-  padding: "1rem 1.15rem",
-  border: "1px solid var(--border, #8884)",
-  borderRadius: 14,
-  marginBottom: "0.85rem",
-};
-const dl: React.CSSProperties = { display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.3rem 0.9rem", marginTop: "0.6rem" };
-const dt: React.CSSProperties = { fontSize: "0.85rem", opacity: 0.6 };
-const dd: React.CSSProperties = { fontSize: "0.85rem", margin: 0 };
-const th: React.CSSProperties = { textAlign: "left", padding: "0.35rem 0.5rem", opacity: 0.65, fontWeight: 500 };
-const td: React.CSSProperties = { padding: "0.35rem 0.5rem", borderTop: "1px solid var(--border, #8883)", verticalAlign: "top" };

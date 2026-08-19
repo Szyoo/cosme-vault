@@ -1,0 +1,149 @@
+/* ============================================================
+   cosme-vault —— 应用专属样式
+   设计 token 与共享组件来自 @szyyw/design（tokens.css / components.css），
+   这里只放本应用的外壳与少量局部布局。
+   规则：禁止硬编码颜色——透明度派生用 color-mix，新颜色先进包里的 tokens。
+   ============================================================ */
+
+/* 页面容器。注意：包里的 .wrap 是 flex-wrap 工具类，不是页面容器，别混用。 */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 22px 18px 72px;
+}
+
+/* 窄页（登录、手机上的选择页） */
+.page.narrow {
+  max-width: 460px;
+  padding-top: 12vh;
+}
+
+/* .glass 只管外观（底色/边框/模糊），内边距由应用决定 */
+.glass,
+.stat-card {
+  padding: 16px 18px;
+}
+.stat-card {
+  /* stat-card 在包里已有 padding，这里只补玻璃质感 */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* 卡内嵌套块 */
+.inner {
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+/* 竖向堆叠 */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 横向一行，默认两端对齐留给 .spread */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.row.spread {
+  justify-content: space-between;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* 表格容器：窄屏横向滚动，避免整页横滚 */
+.table-wrap {
+  overflow-x: auto;
+}
+
+/* 选择页的选项卡：整块可点，命中区域够大（手机优先） */
+.opt {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--inner-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+.opt:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.opt.picked {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.opt input {
+  margin-top: 2px;
+  flex: none;
+}
+
+/* 诊断卡之间的间距 */
+.diag-card {
+  margin-bottom: 12px;
+}
+
+/* 右上角工具位要留出空间，否则会盖住标题右侧 */
+@media (min-width: 640px) {
+  .page {
+    padding-right: 96px;
+  }
+}
+
+/* 表格里的长文本列：限宽省略，完整内容留在 title 属性里。
+   奖品标题动辄 40+ 字，不限宽会把右侧的状态/模式列挤出可视区。 */
+.tbl .clip {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .tbl .clip {
+    max-width: 180px;
+  }
+}
+
+/* 键值对列表（诊断页用）。
+   注意别用包里的 .form-grid —— 它是 auto-fit minmax(180px,1fr) 的表单网格，
+   宽屏上会摊成四列，dt/dd 会错位。 */
+.kv {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 8px 14px;
+  margin: 12px 0 0;
+  align-items: start;
+}
+.kv dt {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.kv dd {
+  margin: 0;
+  font-size: 13px;
+  min-width: 0;
+  word-break: break-word;
+}
+@media (max-width: 520px) {
+  .kv {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+  }
+  .kv dd {
+    margin-bottom: 8px;
+  }
+}

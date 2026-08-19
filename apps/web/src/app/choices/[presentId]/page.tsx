@@ -21,7 +21,7 @@ interface Data {
 /** ⚠️ Next 16：useSearchParams() 必须在 Suspense 内，否则构建失败。 */
 export default function ChoicePage() {
   return (
-    <Suspense fallback={<main style={wrap}>载入中…</main>}>
+    <Suspense fallback={<main className="page">载入中…</main>}>
       <ChoiceInner />
     </Suspense>
   );
@@ -87,25 +87,25 @@ function ChoiceInner() {
 
   if (error && !data) {
     return (
-      <main style={wrap}>
-        <h1>选择奖品</h1>
-        <p style={{ color: "crimson" }}>{error}</p>
+      <main className="page narrow">
+        <h1 className="page-title">选择奖品</h1>
+        <p className="err-text">{error}</p>
       </main>
     );
   }
   if (!data) {
     return (
-      <main style={wrap}>
+      <main className="page narrow">
         <p>读取中…</p>
       </main>
     );
   }
   if (done) {
     return (
-      <main style={wrap}>
-        <h1>已提交</h1>
+      <main className="page narrow">
+        <h1 className="page-title">已提交</h1>
         <p>选择已保存，稍后会自动继续投递这个奖品。</p>
-        <button type="button" onClick={() => router.push("/")}>
+        <button type="button" className="btn" onClick={() => router.push("/")}>
           回首页
         </button>
       </main>
@@ -113,8 +113,8 @@ function ChoiceInner() {
   }
   if (data.status !== "needsChoice") {
     return (
-      <main style={wrap}>
-        <h1>无需选择</h1>
+      <main className="page narrow">
+        <h1 className="page-title">无需选择</h1>
         <p>
           该奖品当前状态是 <strong>{data.status}</strong>，可能已经处理过了。
         </p>
@@ -123,34 +123,23 @@ function ChoiceInner() {
   }
 
   return (
-    <main style={wrap}>
-      <h1>选择奖品</h1>
+    <main className="page narrow">
+      <h1 className="page-title">选择奖品</h1>
       {data.present && (
-        <p style={{ opacity: 0.8 }}>
+        <p className="page-sub">
           {data.present.brand && <strong>{data.present.brand} · </strong>}
           {data.present.name}
         </p>
       )}
 
       {data.choices.map((c) => (
-        <section key={c.questionId} style={{ marginTop: "1.5rem" }}>
-          <p style={{ fontWeight: 600 }}>{c.prompt || "请选择"}</p>
-          <div style={{ display: "grid", gap: "0.5rem" }}>
+        <section key={c.questionId} className="glass section">
+          <div className="section-name">{c.prompt || "请选择"}</div>
+          <div className="stack">
             {c.options.map((o) => {
               const picked = selections[c.questionId] === o.id;
               return (
-                <label
-                  key={o.id}
-                  style={{
-                    display: "flex",
-                    gap: "0.6rem",
-                    alignItems: "flex-start",
-                    padding: "0.85rem 1rem",
-                    border: `1px solid ${picked ? "var(--primary, #6b8afd)" : "var(--border, #8884)"}`,
-                    borderRadius: 12,
-                    cursor: "pointer",
-                  }}
-                >
+                <label key={o.id} className={`opt${picked ? " picked" : ""}`}>
                   <input
                     type="radio"
                     name={c.questionId}
@@ -166,13 +155,14 @@ function ChoiceInner() {
         </section>
       ))}
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="err-text">{error}</p>}
 
       <button
         type="button"
         onClick={submit}
         disabled={busy}
-        style={{ marginTop: "1.5rem", padding: "0.9rem 1.5rem", width: "100%", borderRadius: 12 }}
+        className="btn"
+        style={{ width: "100%", marginTop: 18 }}
       >
         {busy ? "提交中…" : "提交并继续投递"}
       </button>
@@ -180,4 +170,3 @@ function ChoiceInner() {
   );
 }
 
-const wrap: React.CSSProperties = { maxWidth: 560, margin: "2rem auto", padding: "0 1.25rem" };
