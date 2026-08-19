@@ -49,9 +49,14 @@ export const isEnqSurveyPattern: FlowPattern = {
       ]);
     }
 
+    // ⚠️ 确认页 POST 后有**客户端跳转**：点击后那一刻 URL 仍是 /enquete/confirm，
+    // 之后才跳到 is-enq。必须等 URL 真正落到问卷主机，否则会误判为失败（已踩过）。
     if (!page.url().includes(ENQ_HOST)) {
-      // 确认页提交后没到问卷，属于本模式内的异常
-      return { status: "failed" };
+      await page.waitForURL((u) => u.href.includes(ENQ_HOST), { timeout: 20_000 }).catch(() => undefined);
+    }
+    if (!page.url().includes(ENQ_HOST)) {
+      // 等不到问卷页：可能是这类奖品走了别的版式，交给未知模式流程去收集现场
+      return { status: "unknownPattern" };
     }
 
     // ── 2. 扫描问卷题目，判断是否有需要人工选择的题 ──
@@ -162,20 +167,29 @@ export const isEnqSurveyPattern: FlowPattern = {
 
     // ── 5. 送信 ──
     await ctx.pace();
-    const send = page.locator('input[name="send"]');
-    if ((await send.count()) === 0) return { status: "failed" };
+    // 送信按钮实测有两种：input[type=submit] 与 input[type=image]（图片按钮），
+    // 都带 name="send"，故按 name 定位而非按 type。
+    const send = page.locator('[name="send"]');
+    if ((await send.count()) === 0) return { status: "unknownPattern" };
     await ctx.log("送信");
     await Promise.all([page.waitForLoadState("domcontentloaded"), send.first().click()]);
     await page.waitForTimeout(2000);
 
     // ── 6. 判定结果 ──
     // ⚠️ 实测：@COSME **不在任何页面标注「已应募」**（详情页投递后仍显示「応募する」），
-    // 所以只能靠结果页文案判断，去重必须靠我们自己的 DB。
-    const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
-    if (/エラー|必須|入力してください/.test(body)) {
-      await ctx.log("送信被拒（疑似必填项缺失）", "error");
+    // 所以只能靠「有没有离开问卷表单」判断，去重必须靠我们自己的 DB。
+    //
+    // ⚠️ 不能用「正文是否含『必須』」判断失败——问卷正文本身就印着
+    // 「（ * は必須回答です。）」这句说明，那样会把成功也判成失败（已踩过）。
+    const stillOnForm = (await page.locator('[name="send"]').count()) > 0;
+    if (stillOnForm) {
+      // 仍停在问卷上，说明被退回；此时正文里的错误提示才有意义
+      const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
+      const reason = /エラー|入力してください|選択してください/.exec(body)?.[0] ?? "未知原因";
+      await ctx.log(`送信被退回（${reason}）`, "error");
       return { status: "failed" };
     }
+    await ctx.log("送信完成");
     return { status: "drawn" };
   },
 };

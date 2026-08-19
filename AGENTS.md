@@ -142,6 +142,21 @@ apps/
 - 列表卡片结构：`<li>` 内 `p.img > a > img`（图）、`dl > dt > a`（品牌）、`dl > dd > a`（标题+期间）；图片 URL 可由 ID 构造 `cache-cdn.cosme.net/media/monitor/<ID>/<ID>.png`。
 - ⚠️ **`brandfanclub/present` 登录后仍无任何 `present_id` 链接**——它是另一种结构（可能需加入具体品牌粉丝俱乐部）。这正是「多类别多模式」的活例子，待其单独实现或走未知模式反馈。
 
+## 批次编排与人工介入（已实现并实测）
+
+- **事件驱动，不做状态机**：「跑一轮」＝`POST /api/runs` 给每个启用账号入队 scan；scan 上报成功后 `applyReport` 自动派发该账号 pending 奖品的 draw（`lib/dispatch.ts`）。控制面不维护「批次进行到第几步」，崩溃重启不会留半吊子批次。
+- **合规节奏放在 runner 侧**：领完一个 draw 会等 `PACING.betweenPresentsMs` 再取下一个，这样无论任务怎么入队都不会连珠炮式投递。单轮派发上限 `PACING.maxPresentsPerRun`。
+- **人工选择闭环**：runner 返回 `needsChoice` → `/api/runner/report` 发 Bark（`url` 深链接到 `/choices/<presentId>?account=<id>`）→ 用户在手机上选 → `POST /api/choices/:presentId` 记录选择、状态回 pending、派发带 `resolvedChoices` 的新 draw → runner 重跑完成。重复提交返回 409。
+- **僵死任务回收**（`reclaimStaleJobs`，每次领任务时顺带执行）：running 超过 15 分钟视为 runner 崩溃，标记 failed。**刻意不自动重排 draw**——崩溃时无从查证那次投递是否已提交（@COSME 不标注「已应募」），自动重试等于可能重复投递，故交人工判断。宁可漏一次，不可重复投。
+
+### 实测踩过的坑（勿重蹈）
+
+- **确认页 POST 后有客户端跳转**：点击送出那一刻 `page.url()` 仍是 `/enquete/confirm`，之后才跳到 `is-enq`。立刻判断 URL 会误判为失败，必须 `waitForURL`。
+- **不能用「正文含『必須』」判断送信失败**：问卷正文本身就印着「（ * は必須回答です。）」这句说明。改为看「是否还停在问卷表单上」（`[name=send]` 是否仍存在）。
+- **送信按钮有两种**：`input[type=submit]` 与 `input[type=image]`（图片按钮），都带 `name="send"`，故按 name 定位而非 type。
+- **失败的 draw 也必须回写 `account_presents`**：原先 `applyReport` 见 `ok=false` 就提前 return，导致失败在界面上完全看不见、记录永远停在 pending。
+- **Chrome 单例锁**：runner 被强杀后 `profile/Singleton*` 残留，下次启动会**无限等待**（任务永远卡 running）。`browser.ts` 已加 30 秒启动超时 + 失败后清锁重试一次。
+
 ## 合规底线（不可逾越）
 
 自动化参与 @COSME 抽奖大概率违反其利用規約。红线：**单账号自用、低频、操作至少人类速度、随机延迟**（`@cosme/core` 的 `PACING`）。任何「提速」需求都以此为上限；不上激进指纹伪装（单账号低频，行为自然即最好伪装）。
