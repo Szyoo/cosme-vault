@@ -3,6 +3,7 @@
  * runner 主动出站调用 web 的 /api/runner/*，不开任何入站端口、不依赖 tailnet。
  */
 import {
+  AccountCredentials,
   NextJobResponse,
   type JobReport,
   type RunnerHeartbeat,
@@ -66,4 +67,18 @@ export async function sendHeartbeat(hb: RunnerHeartbeat): Promise<void> {
   } catch {
     // 心跳失败不影响任务
   }
+}
+
+/**
+ * 按需取某账号的解密凭证。
+ * 刻意走独立端点而非任务载荷——后者会把明文写进 jobs 表并留在历史里。
+ */
+export async function fetchCredentials(accountId: string): Promise<AccountCredentials> {
+  const res = await fetch(url(`/api/runner/credentials?accountId=${encodeURIComponent(accountId)}`), {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`取凭证失败：HTTP ${res.status}`);
+  const body = (await res.json()) as { credentials: unknown };
+  return AccountCredentials.parse(body.credentials);
 }

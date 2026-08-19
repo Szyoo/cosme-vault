@@ -34,6 +34,12 @@ export const DrawStatus = z.enum([
   "needsChoice", // 需要用户选择（多奖品可选或必填项缺失），已挂起等人工
   "skipped", // 主动跳过（已抽过/无法确认）
   "failed", // 失败（附 error）
+  /**
+   * 遇到没见过的页面模式，已安全中止并回传现场。
+   * @COSME 有多种奖品类别、每类又有多种流程模式，DOM 各不相同；
+   * 与其瞎猜导致误操作，不如停下来把现场交给人补一个新 pattern。
+   */
+  "unknownPattern",
 ]);
 export type DrawStatus = z.infer<typeof DrawStatus>;
 
@@ -142,6 +148,15 @@ export type PendingChoice = z.infer<typeof PendingChoice>;
  * 任务结果（runner → web）
  * ──────────────────────────────────────────────────────────── */
 
+/** 单个可交互元素（inspect 与未知模式诊断共用） */
+export const InspectedElement = z.object({
+  tag: z.string(),
+  type: z.string().nullable().default(null),
+  text: z.string(),
+  selector: z.string(), // 建议选择器
+});
+export type InspectedElement = z.infer<typeof InspectedElement>;
+
 /** 失败/调试时回传的现场快照，弥补无头环境「看不见画面」 */
 export const Artifacts = z.object({
   screenshotPath: z.string().nullable().default(null),
@@ -156,23 +171,34 @@ export const ScanResult = z.object({
 });
 export type ScanResult = z.infer<typeof ScanResult>;
 
+/**
+ * 未知模式诊断包：`status = 'unknownPattern'` 时回传，供人工据此补写新 pattern。
+ * 配合 artifacts 里的截图与 HTML 快照，基本不用再上站点复现。
+ */
+export const PatternDiagnostics = z.object({
+  /** 卡在哪个 URL */
+  url: z.string(),
+  title: z.string(),
+  /** 已尝试过哪些 pattern、各自为何不匹配 */
+  triedPatterns: z.array(z.object({ name: z.string(), reason: z.string() })).default([]),
+  /** 该页全部可交互元素与建议选择器 */
+  elements: z.array(InspectedElement).default([]),
+  /** 正文摘要，便于快速辨认页面种类 */
+  bodyExcerpt: z.string().default(""),
+});
+export type PatternDiagnostics = z.infer<typeof PatternDiagnostics>;
+
 export const DrawResult = z.object({
   kind: z.literal("draw"),
   status: DrawStatus,
+  /** 命中的流程模式名（便于统计各类别占比） */
+  pattern: z.string().nullable().default(null),
   /** status 为 needsChoice 时必填：待用户选择的内容 */
   pendingChoices: z.array(PendingChoice).default([]),
+  /** status 为 unknownPattern 时必填：现场诊断包 */
+  diagnostics: PatternDiagnostics.nullable().default(null),
 });
 export type DrawResult = z.infer<typeof DrawResult>;
-
-/** inspect 回传的单个可交互元素 */
-export const InspectedElement = z.object({
-  tag: z.string(),
-  type: z.string().nullable().default(null),
-  text: z.string(),
-  selector: z.string(), // 建议选择器
-});
-
-export type InspectedElement = z.infer<typeof InspectedElement>;
 
 export const InspectResult = z.object({
   kind: z.literal("inspect"),

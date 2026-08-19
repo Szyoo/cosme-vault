@@ -46,10 +46,14 @@ export const accountPresents = sqliteTable(
       .notNull()
       .references(() => presents.id, { onDelete: "cascade" }),
     status: text("status", {
-      enum: ["pending", "drawn", "needsChoice", "skipped", "failed"],
+      enum: ["pending", "drawn", "needsChoice", "skipped", "failed", "unknownPattern"],
     })
       .notNull()
       .default("pending"),
+    /** 命中的流程模式名（@COSME 多类别多模式，便于统计与排查） */
+    pattern: text("pattern"),
+    /** status=unknownPattern 时的现场诊断包（PatternDiagnostics 的 JSON） */
+    diagnostics: text("diagnostics"),
     /** needsChoice 时暂存待用户选择的内容（PendingChoice[] 的 JSON） */
     pendingChoices: text("pending_choices"),
     /** 用户已做的选择（Record<questionId, optionId> 的 JSON），恢复任务时回传给 runner */

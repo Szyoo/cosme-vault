@@ -1,14 +1,16 @@
 /**
  * runner 主循环（pull 模型）。
  *
- * 反复：心跳 → 长轮询领任务 → 分发执行 → 上报结果（失败附现场快照）。
- * 具体抽奖流程（scan/draw/inspect 的页面操作）尚待把初版 Java 业务逻辑移植进来，
- * 现为带类型的骨架，跑通链路但不做真实页面操作。
+ * 反复：心跳 → 长轮询领任务 → 分发执行 → 上报结果（失败/未知模式附现场快照）。
+ * draw 与 inspect 已实现；scan（奖品扫描）待实现。
  */
 import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
-import { fetchNextJob, pushLog, reportJob, sendHeartbeat } from "./control-plane.ts";
-import { closeBrowser } from "./browser.ts";
+import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat } from "./control-plane.ts";
+import { closeBrowser, newPage } from "./browser.ts";
+import { captureArtifacts } from "./artifacts.ts";
+import { drawOnce } from "./cosme/draw.ts";
+import { inspectPage } from "./cosme/inspect.ts";
 
 let currentJobId: string | null = null;
 let stopping = false;
@@ -55,15 +57,49 @@ async function handleScan(_job: ScanJob): Promise<Omit<JobReport, "jobId" | "fin
   throw new Error("scan 尚未实现：待移植奖品扫描逻辑");
 }
 
-async function handleDraw(_job: DrawJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
-  // TODO(移植): 初版 Draw.gotoFill 状态机 + Fill.fillQuestion（用 @cosme/core 的关键词库）+ send
-  //   遇到 needsManualChoice 的问题 → 返回 DrawResult{status:'needsChoice', pendingChoices}
-  throw new Error("draw 尚未实现：待移植抽奖流程状态机");
+async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
+  // 凭证按需拉取，不进任务载荷（避免明文落 jobs 表）
+  const credentials = await fetchCredentials(job.accountId);
+  const page = await newPage();
+  try {
+    const outcome = await drawOnce(
+      page,
+      {
+        presentLink: job.presentLink,
+        credentials,
+        resolvedChoices: job.resolvedChoices,
+      },
+      {
+        log: (text, level = "info") => pushLog({ jobId: job.id, at: nowIso(), level, text }),
+      },
+    );
+
+    // 未知模式与失败都留现场，便于事后补 pattern 或排查
+    const needArtifacts = outcome.status === "unknownPattern" || outcome.status === "failed";
+    const artifacts = needArtifacts ? await captureArtifacts(page, job.id) : null;
+
+    return { ok: outcome.status !== "failed", outcome, error: null, artifacts };
+  } finally {
+    await page.close().catch(() => undefined);
+  }
 }
 
-async function handleInspect(_job: InspectJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
-  // TODO(移植): 打开 url，回传全部可交互元素清单，用于选择器校验
-  throw new Error("inspect 尚未实现：待接入元素清单回传");
+async function handleInspect(job: InspectJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
+  // 只读巡检：回传页面全部可交互元素与建议选择器，用于校验/补写 selectors
+  const page = await newPage();
+  try {
+    await page.goto(job.url, { waitUntil: "domcontentloaded", timeout: 40_000 });
+    const elements = await inspectPage(page);
+    await pushLog({ jobId: job.id, at: nowIso(), level: "info", text: `巡检 ${job.url}：${elements.length} 个可交互元素` });
+    return {
+      ok: true,
+      outcome: { kind: "inspect", elements },
+      error: null,
+      artifacts: await captureArtifacts(page, job.id),
+    };
+  } finally {
+    await page.close().catch(() => undefined);
+  }
 }
 
 /* ── 主循环 ── */

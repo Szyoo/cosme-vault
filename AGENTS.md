@@ -77,7 +77,10 @@ apps/
 
 ## 已知现状与待办
 
-- **runner 的 scan/draw/inspect 是带类型的骨架**（`apps/runner/src/index.ts` 里 `throw 未实现`）。真实页面操作待把初版 Java 业务逻辑（`Draw.java` 状态机、`Fill.java` 填表、登录检测）移植进来，配合 `@cosme/core` 的关键词库。
+- **draw 与 inspect 已实现并跑通一次真实投递（2026-08-19，奖品 12057）；scan 待实现。**
+- **流程模式注册表（重要架构）**：`apps/runner/src/cosme/patterns/`。@COSME 奖品分多类别、每类多模式、DOM 各不相同，故每个模式是一个实现 `FlowPattern` 的模块，自己回答「这一页是不是我认识的」。加新模式只需写一个文件 + 加进 `patterns/index.ts` 的 `PATTERNS` 数组（顺序即优先级）。
+- **未知模式反馈机制**：所有模式都不认领时**安全中止、绝不瞎点**，返回 `status: 'unknownPattern'` 并附 `PatternDiagnostics`（URL / 标题 / 全部可交互元素与建议选择器 / 正文摘要 / 各模式的拒绝原因），同时存截图与 HTML 快照，落库到 `account_presents.diagnostics`。据此补 pattern 基本不用再上站点复现。
+- **已实现的唯一模式 `is-enq-survey`**：确认页 → `is-enq.cosme.net` 的 PHP 问卷 → `input[name=send]` 送信。
 - **选择器校验工具已就绪**：`npm run recon -- <url> [--form]` 列出页面全部可交互元素与建议选择器（只读、不提交表单，对账号零风险）；需登录态的页面先跑 `npm run login`。登录相关选择器已实测填入，`PRESENT` 与 `SURVEY` 仍是 TODO(recon)，待建立会话后继续。
 - **`packages/core/selectors.ts` 的 URL 已实测确认（2026-08-18，从 VPS）**：奖品列表真正的两个来源是 `/brandcollection/present/`（未登录可见）与 `/brandfanclub/present`（必须登录），2023 年记的 `/present/` 只是导航页；奖品详情形如 `/brandcollection/present/detail/present_id/<ID>`（用正则提 ID 比认 class 稳）；登录走集中式 `isauth` 网关而非独立表单页；页面编码是 **Shift_JIS**。**表单与按钮类选择器仍全是 TODO(inspect)**——匿名 curl 只能看到未登录视图，需登录后用 inspect 任务校验。
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
@@ -121,6 +124,21 @@ apps/
 从 VPS（Vultr 东京，数据中心 IP）对 @cosme 做只读 curl 探测：首页与两个奖品列表页**全部 HTTP 200**，返回完整真实内容，**无验证码 / Cloudflare 挑战 / 拦截页特征**。初步结论：**@cosme 未对该数据中心 IP 做黑名单拦截，VPS 无头部署可行**。
 
 ⚠️ 此结论的边界：curl 只验证了 **IP 信誉**，未验证 **浏览器指纹 / TLS 指纹 / JS 挑战**，也未验证**登录**这一最敏感动作。正式定案仍需在 VPS 上跑一次 `npm run probe`（真 Playwright 无头）并完成一次登录。若登录环节被拦，再切 Mac mini（runner 是 pull 模型，切换只改部署不改代码）。
+
+## 抽奖流程实测结论（2026-08-19，已完整跑通一次投递）
+
+```
+详情页 ──a[onclick]──> /isauth/addinfo/… ──> /enquete/confirm ──POST──> is-enq.cosme.net 问卷 ──send──> page=end
+```
+
+- **「応募する」不是按钮而是 `a[onclick="location.href='…'"]`**，直接提 URL 导航比模拟点击稳。⚠️ 内层问卷地址是 **URL 编码**的（`%2Fenquete%2F`），所以要认未编码的 `/isauth/addinfo/` 段——写 `a[onclick*="/enquete/"]` 会永远匹配不到（已踩过）。
+- **问卷跑在独立主机** `is-enq.cosme.net/app/usr/ans/ans_pc.php`（PHP 引擎），与 www 站不同。
+- **字段命名有规律**：题目 `q<序号>_<问卷ID>_<组号>_<类型后缀>`（`_r`=radio）；个人资料统一 `prof_*`。**初版 Java 2023 年写的 `select[name=prof_010_job1]` 至今有效**，且职业选项是「自営業・自由業」（中点）而初版硬编码斜杠——当年那个 try/catch 兜底现在正好用上。
+- **确认页会显示账号已登记的姓名/住址/电话，但问卷里又会问一遍** `prof_001_name`，故设置页录的个人资料确实要用。
+- **投递全程无 reCAPTCHA**，风控只在登录环节。
+- ⚠️ **@COSME 任何页面都不标注「已应募」**：投递成功后详情页照样显示「応募する」，重走入口也照样进确认页。**因此去重完全是我们的责任**（`account_presents.status`），控制面派任务前必须先查库，且任务重试必须幂等。
+- 列表卡片结构：`<li>` 内 `p.img > a > img`（图）、`dl > dt > a`（品牌）、`dl > dd > a`（标题+期间）；图片 URL 可由 ID 构造 `cache-cdn.cosme.net/media/monitor/<ID>/<ID>.png`。
+- ⚠️ **`brandfanclub/present` 登录后仍无任何 `present_id` 链接**——它是另一种结构（可能需加入具体品牌粉丝俱乐部）。这正是「多类别多模式」的活例子，待其单独实现或走未知模式反馈。
 
 ## 合规底线（不可逾越）
 
