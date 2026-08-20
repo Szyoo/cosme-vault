@@ -18,7 +18,8 @@
  * 选项文案与 is-enq 问卷同源，**关键词库可直接复用**。
  */
 import type { Page } from "playwright";
-import { matchesAnswerKeyword, needsManualChoice, selectors } from "@cosme/core";
+import { selectors } from "@cosme/core";
+import { scanQuestions, applyDecisions } from "./survey-common.ts";
 import type { PendingChoice } from "@cosme/contract";
 import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from "./types.ts";
 import { fillAndSubmitSurvey } from "./is-enq-survey.ts";
@@ -114,67 +115,18 @@ export const presentBlogPattern: FlowPattern = {
 async function answerBlogSurvey(page: Page, ctx: PatternContext): Promise<PatternOutcome> {
   await ctx.pace();
 
-  // ── 扫描题目 ──
-  const scan = await page.evaluate(() => {
-    const groups: Record<string, { type: string; value: string; label: string }[]> = {};
-    for (const el of Array.from(
-      document.querySelectorAll<HTMLInputElement>("input[type=radio],input[type=checkbox]"),
-    )) {
-      if (!/^id\[\d+\]/.test(el.name)) continue; // 只认问卷题目，跳过站内搜索等杂项
-      const label = (el.closest("label")?.innerText ?? el.parentElement?.innerText ?? "")
-        .trim()
-        .replace(/\s+/g, " ");
-      (groups[el.name] ||= []).push({ type: el.type, value: el.value, label });
-    }
-    const prompts: Record<string, string> = {};
-    for (const name of Object.keys(groups)) {
-      const el = document.querySelector<HTMLInputElement>(`[name="${CSS.escape(name)}"]`);
-      const block = el?.closest("table, div, li, dl, fieldset");
-      prompts[name] = (block?.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 200);
-    }
-    return { groups, prompts };
-  });
-
-  const questionCount = Object.keys(scan.groups).length;
-  if (questionCount === 0) {
+  const questions = await scanQuestions(page);
+  if (questions.length === 0) {
     await ctx.log("问卷页未解析到任何题目", "warn");
     return { status: "unknownPattern" };
   }
 
-  // ── 需人工选择的题 → 挂起 ──
-  const pending: PendingChoice[] = [];
-  for (const [name, opts] of Object.entries(scan.groups)) {
-    const prompt = scan.prompts[name] ?? "";
-    if (needsManualChoice(prompt) && !ctx.resolvedChoices[name]) {
-      pending.push({ questionId: name, prompt, options: opts.map((o) => ({ id: o.value, text: o.label })) });
-    }
-  }
+  const { pending, applied } = await applyDecisions(page, questions, ctx);
   if (pending.length > 0) {
-    await ctx.log(`有 ${pending.length} 道题需要人工选择，挂起等待`, "warn");
+    await ctx.log(`${questions.length} 题中有 ${pending.length} 题需要人工决定，挂起等待`, "warn");
     return { status: "needsChoice", pendingChoices: pending };
   }
-
-  // ── 作答：用户已决定的优先，其余按关键词库 ──
-  let answered = 0;
-  for (const [name, value] of Object.entries(ctx.resolvedChoices)) {
-    const el = page.locator(`[name="${name}"][value="${value}"]`).first();
-    if ((await el.count()) > 0) {
-      await el.check({ timeout: 3000 }).catch(() => undefined);
-      answered++;
-    }
-  }
-  for (const [name, opts] of Object.entries(scan.groups)) {
-    for (const o of opts) {
-      if (o.label && matchesAnswerKeyword(o.label)) {
-        const el = page.locator(`[name="${name}"][value="${o.value}"]`).first();
-        await el.check({ timeout: 3000 }).catch(() => undefined);
-        answered++;
-        // radio 组选中一个就够，避免后面的选项把前面的顶掉
-        if (opts[0]?.type === "radio") break;
-      }
-    }
-  }
-  await ctx.log(`问卷 ${questionCount} 题，已作答 ${answered} 项`);
+  await ctx.log(`问卷 ${questions.length} 题，已作答 ${applied} 项`);
 
   // ── 提交 ──
   await ctx.pace();
@@ -187,8 +139,6 @@ async function answerBlogSurvey(page: Page, ctx: PatternContext): Promise<Patter
   await Promise.all([page.waitForLoadState("domcontentloaded"), submit.click()]);
   await page.waitForTimeout(2500);
 
-  // ── 判定 ──
-  // 仍停在问卷表单上说明被退回（多为必填项没答）
   if ((await page.locator(PRESENT_BLOG.surveyForm).count()) > 0) {
     const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
     const reason = /エラー|入力してください|選択してください|必須項目/.exec(body)?.[0] ?? "未知原因";

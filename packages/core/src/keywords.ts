@@ -42,7 +42,25 @@ export const ANSWER_KEYWORDS: readonly string[] = [
  * 命中这些文本的问题不自动作答，而是把选项回传给用户在网页上选（如具体奖品款式）。
  * 移植自 Fill.java 中对「ご希望の…お選びください」多奖品选择的特殊处理。
  */
-export const MANUAL_CHOICE_MARKERS: readonly string[] = ["ご希望の", "選びください"];
+export const MANUAL_CHOICE_MARKERS: readonly string[] = [
+  // 「ご希望の」是真正的判别词：普通题目的题干是「当てはまるものを1つお選びください」，
+  // 只有让你挑奖品款式的题才会说「ご希望の…」。
+  "ご希望の",
+  // 「選び」而非「選びください」：站点两种写法都有（お選びください / お選び下さい），
+  // 写全会漏掉汉字版（实测确认）。
+  "選び",
+];
+
+/**
+ * 会**反转语义**的标记词。
+ *
+ * 子串匹配的固有缺陷：`「@cosme以外のWEBサイト」` 只因为含 `@cosme` 就会被选中，
+ * 而词库那条词的本意是选 @cosme 本身。命中这些标记的选项一律不自动勾选。
+ *
+ * ⚠️ 这份列表必须**精确**，不能图省事写「ない」——
+ * 「使ったことはないが、よく知っている」正是要选的答案，含「はない」。
+ */
+export const NEGATION_MARKERS: readonly string[] = ["以外", "ではない", "ではありません", "ません", "不要", "興味はない"];
 
 /** 判断某段问卷选项文本是否命中自动作答词表 */
 export function matchesAnswerKeyword(labelText: string): boolean {
