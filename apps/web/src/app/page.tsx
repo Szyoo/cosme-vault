@@ -33,6 +33,7 @@ export default function Home() {
       pattern: schema.accountPresents.pattern,
       name: schema.presents.name,
       brand: schema.presents.brand,
+      imageUrl: schema.presents.imageUrl,
       period: schema.presents.description,
     })
     .from(schema.accountPresents)
@@ -143,7 +144,10 @@ export default function Home() {
                   return (
                     <tr key={`${r.accountId}-${r.presentId}`}>
                       <td className="clip" title={r.name ?? r.presentId}>
-                        {r.name ?? r.presentId}
+                        <span className="pz">
+                          <Thumb src={r.imageUrl} alt={r.name ?? ""} />
+                          <span className="clip">{r.name ?? r.presentId}</span>
+                        </span>
                       </td>
                       <td>{r.brand ?? "—"}</td>
                       <td className="num">{r.period ?? "—"}</td>
@@ -182,6 +186,17 @@ export default function Home() {
       <Nav diagnosticsCount={diagnosticsCount} />
     </main>
   );
+}
+
+/**
+ * 奖品缩略图。
+ * 无图时画一个占位方块而不是留空——表格行高才不会跳。
+ * 图片地址已在 runner 侧经 validateImageUrl 过滤，这里不会拿到占位图或站点图标。
+ */
+function Thumb({ src, alt }: { src: string | null; alt: string }) {
+  if (!src) return <span className="thumb thumb-none" aria-hidden />;
+  // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image 优化
+  return <img className="thumb" src={src} alt={alt} loading="lazy" width={40} height={40} />;
 }
 
 function StatCard({ label, value, sub }: { label: string; value: number; sub: string }) {
