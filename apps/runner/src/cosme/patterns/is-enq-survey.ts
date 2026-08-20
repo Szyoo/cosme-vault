@@ -22,8 +22,12 @@ import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from ".
 const ENQ_HOST = "is-enq.cosme.net";
 /** 确认页表单 */
 const CONFIRM_FORM = 'form[action*="/enquete/confirm"]';
-/** brandcollection 详情页上的应募入口（跳转地址藏在 onclick 里） */
-const APPLY_ANCHOR = 'a[onclick*="isauth/addinfo"]';
+/**
+ * 详情页上的应募入口（跳转地址藏在 onclick 里）。
+ * ⚠️ 两种标签都出现过：brandcollection 是 `a[onclick]`，
+ * 手机版全量列表里的 `/brands/<id>/present/<id>/` 页是 **`input[onclick]`**（实测）。
+ */
+const APPLY_ANCHOR = '[onclick*="isauth/addinfo"]';
 
 export const isEnqSurveyPattern: FlowPattern = {
   name: "is-enq-survey",

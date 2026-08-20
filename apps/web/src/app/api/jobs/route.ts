@@ -20,7 +20,7 @@ function hasCronToken(req: Request): boolean {
 }
 
 const CreateJob = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("scan"), accountId: z.string(), sources: z.array(z.enum(["normal", "brandFanClub"])).optional() }),
+  z.object({ kind: z.literal("scan"), accountId: z.string(), sources: z.array(z.enum(["normal", "brandFanClub", "mobileAll"])).optional() }),
   z.object({ kind: z.literal("draw"), accountId: z.string(), presentId: z.string(), presentLink: z.string().url() }),
   z.object({ kind: z.literal("inspect"), accountId: z.string(), url: z.string().url() }),
 ]);

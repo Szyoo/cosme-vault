@@ -7,7 +7,7 @@
 import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
 import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat } from "./control-plane.ts";
-import { closeBrowser, newPage } from "./browser.ts";
+import { closeBrowser, newMobilePage, newPage } from "./browser.ts";
 import { captureArtifacts } from "./artifacts.ts";
 import { drawOnce } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
@@ -57,12 +57,16 @@ async function runJob(job: Job): Promise<JobReport> {
 async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
   const page = await newPage();
   try {
+    // mobileAll 必须手机 UA，故额外开一个手机上下文的页面
+    const mobile = job.sources.includes("mobileAll") ? await newMobilePage() : undefined;
     const { presents, reports } = await scanSources(
       page,
       job.sources,
       (text, level = "info") => pushLog({ jobId: job.id, at: nowIso(), level, text }),
       () => new Promise((r) => setTimeout(r, randomDelay(PACING.betweenPresentsMs))),
+      mobile,
     );
+    await mobile?.close().catch(() => undefined);
 
     // 有来源没认出版式 → 留现场，便于补解析器
     const unrecognized = reports.some((r) => !r.recognized);

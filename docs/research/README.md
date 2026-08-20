@@ -69,8 +69,12 @@
 | --- | --- | --- | --- |
 | ブランドコレクション | `/brandcollection/present/` | 3 | ✅ 已支持 |
 | ブランドファンクラブ限定 | `/brandfanclub/present` | 10 | ✅ 已支持 |
-| **プロデュースメンバー限定** | **`/present/detail/present_id/<n>`** | **2** | **⚠️ 未支持** |
+| ⭐ **手机版全量列表** | **`s.cosme.net/present/`**（须手机 UA） | **45** | ✅ 已支持（`mobileAll`） |
+| プロデュースメンバー限定 | `/present/detail/present_id/<n>` | 2 | ⚠️ 未支持（已含在 mobileAll 里？待核） |
 | @cosme ポイント | `point.cosme.net/tsukau/present` | ? | ⚠️ 未支持（积分兑换类，可能不是抽奖） |
+
+**结论：不要只看桌面版。** 站点自报 57 件，桌面三页合计只有 13 个；
+剩下 45 个只在手机版全量列表里。实测三来源合计入库 58 个、全部有图。
 
 ⚠️ 两个容易误判的点：
 
