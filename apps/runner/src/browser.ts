@@ -6,6 +6,7 @@
 import { chromium, type BrowserContext, type Page } from "playwright";
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { selectors } from "@cosme/core";
 import { config } from "./config.ts";
 
 let context: BrowserContext | null = null;
@@ -56,6 +57,36 @@ export async function newPage(): Promise<Page> {
 }
 
 export async function closeBrowser(): Promise<void> {
+  await mobileContext?.close();
+  mobileContext = null;
   await context?.close();
   context = null;
+}
+
+/**
+ * 手机 UA 的独立上下文。
+ *
+ * 为什么需要：全量奖品列表只在 `s.cosme.net/present/` 上，且**必须手机 UA**
+ * 才拿到 57 件的完整清单（桌面 UA 给的是桌面版内容，只有 13 个）。
+ * 与主上下文共用同一份持久化 profile 目录不可行（Chrome 单实例锁），
+ * 故用主浏览器新开一个 context，只覆盖 UA 与视口——会话 cookie 需要另行携带。
+ */
+let mobileContext: BrowserContext | null = null;
+
+export async function getMobileContext(): Promise<BrowserContext> {
+  if (mobileContext) return mobileContext;
+  const main = await getContext();
+  mobileContext = await main.browser()!.newContext({
+    userAgent: selectors.MOBILE_USER_AGENT,
+    viewport: { width: 390, height: 844 },
+    locale: "ja-JP",
+    timezoneId: "Asia/Tokyo",
+  });
+  // 把登录态带过去：奖品列表需要登录才完整
+  await mobileContext.addCookies(await main.cookies());
+  return mobileContext;
+}
+
+export async function newMobilePage(): Promise<Page> {
+  return (await getMobileContext()).newPage();
 }

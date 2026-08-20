@@ -23,7 +23,8 @@ export const presents = sqliteTable(
   "presents",
   {
     id: text("id").primaryKey(),
-    source: text("source", { enum: ["normal", "brandFanClub"] }).notNull(),
+    // 与 contract 的 PresentSource 保持一致；mobileAll 是手机版全量列表（奖品的大头）
+    source: text("source", { enum: ["normal", "brandFanClub", "mobileAll"] }).notNull(),
     link: text("link").notNull(),
     name: text("name").notNull(),
     brand: text("brand"),

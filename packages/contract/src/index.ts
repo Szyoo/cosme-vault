@@ -11,7 +11,16 @@ import { z } from "zod";
  * ──────────────────────────────────────────────────────────── */
 
 /** 奖品来源：@cosme 有两个奖品列表页（普通 / 品牌粉丝俱乐部），沿用二代 draw4cosme 的分类 */
-export const PresentSource = z.enum(["normal", "brandFanClub"]);
+export const PresentSource = z.enum([
+  "normal", // /brandcollection/present/ —— 每周三更新的品牌新品
+  "brandFanClub", // /brandfanclub/present —— 粉丝俱乐部限定（桌面页只露出 10 个）
+  /**
+   * s.cosme.net/present/ 的全量列表 —— **奖品的大头在这里**。
+   * 实测：站点共 57 件在募集，桌面版各页合计只暴露 13 个，
+   * 剩下 45 个只在**手机版全量列表**里出现（桌面版无等价页面，试过的 /list、/all 均 404）。
+   */
+  "mobileAll",
+]);
 export type PresentSource = z.infer<typeof PresentSource>;
 
 /** 单个奖品（全局唯一，与账号无关） */
@@ -98,7 +107,7 @@ export const ScanJob = z.object({
   kind: z.literal("scan"),
   id: z.string(),
   accountId: z.string(),
-  sources: z.array(PresentSource).default(["normal", "brandFanClub"]),
+  sources: z.array(PresentSource).default(["normal", "brandFanClub", "mobileAll"]),
 });
 
 /** 抽取任务：对某账号的某个奖品走完整抽奖流程 */

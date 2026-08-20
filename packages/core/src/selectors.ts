@@ -9,9 +9,24 @@
 export const LIST_URLS = {
   /** 品牌 collection 奖品列表（未登录即可见奖品 detail 链接） */
   normal: "https://www.cosme.net/brandcollection/present/",
-  /** 品牌粉丝俱乐部奖品列表（未登录时不渲染奖品，必须先登录） */
+  /** 品牌粉丝俱乐部奖品列表（未登录时不渲染奖品，必须先登录）。桌面页只露出 10 个 */
   brandFanClub: "https://www.cosme.net/brandfanclub/present",
+  /**
+   * ⭐ 全量列表（**奖品的大头**）。
+   *
+   * 实测 2026-08-20：站点共「現在募集中のプレゼント 57件」，而桌面版
+   * `/present/` + `/brandcollection/present/` + `/brandfanclub/present`
+   * 合计只暴露 13 个；另外 45 个只出现在这个**手机版**列表里。
+   * 桌面版没有等价页面（`/brandfanclub/present/list`、`/present/list/` 均 404）。
+   *
+   * ⚠️ 抓它必须用**手机 UA**，否则站点给的是桌面版内容。
+   */
+  mobileAll: "https://s.cosme.net/present/",
 } as const;
+
+/** 抓 mobileAll 时要用的手机 UA（桌面 UA 拿不到全量列表） */
+export const MOBILE_USER_AGENT =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
 /**
  * 奖品详情页 URL 形态（实测）：
@@ -164,6 +179,19 @@ export const LIST_CARD = {
     applyMarker: ".psnt-btn",
   },
 } as const;
+
+/**
+ * 手机版全量列表里的奖品链接形态：`s.cosme.net/brand/brand_id/<品牌ID>/present/<奖品ID>`。
+ * 其规范地址是 `www.cosme.net/brands/<品牌ID>/present/<奖品ID>/`（桌面 UA 可正常访问）。
+ *
+ * ⚠️ 这类详情页的投递入口是 **`input[onclick]`**（不是 `a[onclick]`），
+ * 跳转地址同样是 `isauth/addinfo`，与 brandcollection 同族。
+ */
+export const BRAND_PRESENT_PATTERN = /\/brand(?:s)?(?:\/brand_id)?\/(\d+)\/present\/(\d+)/;
+
+export function brandPresentUrl(brandId: string, presentId: string): string {
+  return `https://www.cosme.net/brands/${brandId}/present/${presentId}/`;
+}
 
 /** brandFanClub 奖品入口：/beautist/article/<数字ID> */
 export const ARTICLE_PATTERN = /\/beautist\/article\/(\d+)/;
