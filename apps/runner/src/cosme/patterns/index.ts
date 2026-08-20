@@ -8,10 +8,16 @@ import type { Page } from "playwright";
 import type { PatternDiagnostics } from "@cosme/contract";
 import { inspectPage } from "../inspect.ts";
 import { isEnqSurveyPattern } from "./is-enq-survey.ts";
+import { presentBlogPattern } from "./present-blog.ts";
 import type { FlowPattern } from "./types.ts";
 
-/** 已知模式，按优先级排列 */
-export const PATTERNS: readonly FlowPattern[] = [isEnqSurveyPattern];
+/**
+ * 已知模式，按优先级排列（越具体的放越前）。
+ *
+ * present-blog 放在前面：它的识别条件更窄（URL 形态 + present-blog 表单），
+ * 而 is-enq-survey 的识别条件里包含「页面有 /enquete/confirm 表单」这种较宽的判断。
+ */
+export const PATTERNS: readonly FlowPattern[] = [presentBlogPattern, isEnqSurveyPattern];
 
 export interface PatternMatch {
   pattern: FlowPattern;

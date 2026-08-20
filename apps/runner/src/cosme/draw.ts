@@ -6,7 +6,7 @@
  */
 import type { Page } from "playwright";
 import type { AccountCredentials, DrawResult } from "@cosme/contract";
-import { PACING, randomDelay, selectors } from "@cosme/core";
+import { PACING, randomDelay } from "@cosme/core";
 import { selectPattern, collectDiagnostics } from "./patterns/index.ts";
 
 export interface DrawDeps {
@@ -31,36 +31,23 @@ export async function drawOnce(
 ): Promise<DrawResult> {
   const pace = () => new Promise<void>((r) => setTimeout(r, randomDelay(PACING.stepDelayMs)));
 
-  // ── 1. 打开详情页，取出「応募する」的跳转地址 ──
+  // ── 1. 打开奖品入口页（详情页或 article 页） ──
   await deps.log(`打开奖品详情页 ${params.presentLink}`);
   await page.goto(params.presentLink, { waitUntil: "domcontentloaded", timeout: 40_000 });
   await pace();
 
-  const entryUrl = await page.evaluate((sel: string) => {
-    const a = document.querySelector<HTMLAnchorElement>(sel);
-    if (!a) return null;
-    const m = (a.getAttribute("onclick") ?? "").match(/location\.href='([^']+)'/);
-    return m ? m[1] : null;
-  }, selectors.PRESENT.applyAnchor);
+  // 注意：**编排层不做任何入口跳转**。各来源的入口形态不同
+  // （brandcollection 藏在 onclick、brandFanClub 是普通 href），
+  // 由各模式在自己的 execute 里处理，这样加新来源不必改这个文件。
 
-  if (!entryUrl) {
-    // 没有应募入口：可能已结束、需要额外会员资格，或是没见过的详情页版式
-    const diagnostics = await collectDiagnostics(page, [
-      { name: "(entry)", reason: `详情页未找到 ${selectors.PRESENT.applyAnchor}` },
-    ]);
-    const ended = /募集終了|受付終了|終了しました/.test(diagnostics.bodyExcerpt);
-    await deps.log(ended ? "该奖品已结束募集，跳过" : "详情页无应募入口且非明确结束，回传现场", ended ? "info" : "warn");
-    return ended
-      ? { kind: "draw", status: "skipped", pattern: null, pendingChoices: [], diagnostics: null }
-      : { kind: "draw", status: "unknownPattern", pattern: null, pendingChoices: [], diagnostics };
+  // ── 2. 先判断是否明确已结束（省掉无谓的模式识别） ──
+  const bodyNow = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").slice(0, 2000));
+  if (/募集(は)?終了|受付(は)?終了|終了しました|受付を終了/.test(bodyNow)) {
+    await deps.log("该奖品已结束募集，跳过");
+    return { kind: "draw", status: "skipped", pattern: null, pendingChoices: [], diagnostics: null };
   }
 
-  // ── 2. 进入应募流程 ──
-  await deps.log("进入应募流程");
-  await page.goto(entryUrl, { waitUntil: "domcontentloaded", timeout: 40_000 });
-  await pace();
-
-  // ── 3. 识别模式 ──
+  // ── 3. 识别模式（入口形态各异，交给各模式自己认） ──
   const picked = await selectPattern(page);
   if (picked.pattern === null) {
     await deps.log(`遇到未知页面模式，已安全中止并回传现场（${picked.diagnostics.url}）`, "warn");

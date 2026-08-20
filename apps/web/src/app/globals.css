@@ -147,3 +147,25 @@
     margin-bottom: 8px;
   }
 }
+
+/* 奖品缩略图。图片地址已在 runner 侧过滤过（不会是占位图或站点图标），
+   这里只管显示；无图时画个同尺寸方块，避免表格行高跳动。 */
+.pz {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.thumb {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--inner-bg);
+  border: 1px solid var(--glass-border);
+}
+.thumb-none {
+  display: inline-block;
+  background: var(--inner-bg);
+}

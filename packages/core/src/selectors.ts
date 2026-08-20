@@ -125,6 +125,70 @@ export const SURVEY = {
 export const DREW_MARKER = "" as const;
 
 /**
+ * 列表卡片结构（两个来源差别很大，各有一套）。
+ */
+export const LIST_CARD = {
+  /**
+   * brandcollection：无语义 class，靠结构定位。
+   *   <li><p class="img"><a href="…present_id/<ID>"><img></a></p>
+   *       <dl><dt><a>品牌</a></dt><dd><a>标题<br>（期间）</a></dd></dl></li>
+   */
+  normal: {
+    anchor: 'a[href*="present_id"]',
+    card: "li",
+    /** ⚠️ 图片必须限定在这个容器里取，不能用 card.querySelector("img") */
+    image: "p.img img",
+    brand: "dt a",
+    title: "dd a",
+  },
+  /**
+   * brandFanClub：有语义 class（第三代 Python 代码里的 `.psnt-ttl` 就是给它写的）。
+   *   <li><a href="/beautist/article/<ID>">
+   *       <p class="psnt-pic"><img alt="商品名 / 品牌" onerror="…noimg…"></p>
+   *       <dl><dt><span class="psnt-ttl">商品名</span> / 品牌</dt>
+   *           <dd class="psnt-num">計N名様 現品</dd>
+   *           <dd class="psnt-copy">一句话文案</dd>
+   *           <dd class="psnt-btn">応募する</dd></dl></a></li>
+   *
+   * ⚠️ 注意它**没有 present_id**，奖品入口是 `/beautist/article/<ID>`。
+   */
+  brandFanClub: {
+    anchor: 'a[href*="/beautist/article/"]',
+    card: "li",
+    image: "p.psnt-pic img",
+    title: ".psnt-ttl",
+    /** 品牌名在 dt 里、位于 .psnt-ttl 之后的「 / 品牌」部分 */
+    brandInDt: "dt",
+    quantity: ".psnt-num",
+    copy: ".psnt-copy",
+    applyMarker: ".psnt-btn",
+  },
+} as const;
+
+/** brandFanClub 奖品入口：/beautist/article/<数字ID> */
+export const ARTICLE_PATTERN = /\/beautist\/article\/(\d+)/;
+
+/**
+ * brandFanClub 的投递流程（2026-08-20 实测，与 is-enq 问卷流程完全不同）：
+ *   /beautist/article/<ID> 上的「応募する」→
+ *   /brands/<品牌ID>/present-blog/<PB码>/confirm/ → POST → 完成
+ *
+ * 特点：**无 isauth/addinfo、无 enquete、无 reCAPTCHA、也没有 addbrand 复选框**
+ * （已经是粉丝俱乐部成员，不需要再关注）。确认页表单只有 token + act=submit。
+ */
+export const PRESENT_BLOG = {
+  /** article 页上的应募入口（href 直接指向 confirm 页，不是 onclick 跳转） */
+  applyAnchor: 'a[href*="/present-blog/"]',
+  /** 确认页 URL 形态 */
+  confirmPattern: /\/brands\/(\d+)\/present-blog\/([A-Za-z0-9]+)\/confirm\//,
+  confirmForm: 'form[action*="/present-blog/"]',
+  tokenField: 'input[name="token"]',
+  submitButton: 'input[type="submit"]',
+  /** 标题含此串即说明停在确认页 */
+  titleMarker: "登録情報確認",
+} as const;
+
+/**
  * 页面编码：实测列表页为 **Shift_JIS**（`charset=Shift_JIS`）。
  * Playwright 会自行按 meta 解码，但若改用 HTTP 直抓则必须显式转码，否则日文全乱。
  */

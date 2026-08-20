@@ -31,6 +31,7 @@ export default function RecordsPage() {
       updatedAt: schema.accountPresents.updatedAt,
       name: schema.presents.name,
       brand: schema.presents.brand,
+      imageUrl: schema.presents.imageUrl,
       link: schema.presents.link,
       period: schema.presents.description,
       source: schema.presents.source,
@@ -111,6 +112,13 @@ export default function RecordsPage() {
                       </td>
                       <td>{r.brand ?? "—"}</td>
                       <td className="clip" title={r.name ?? r.presentId}>
+                        <span className="pz">
+                          {r.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img className="thumb" src={r.imageUrl} alt="" loading="lazy" width={40} height={40} />
+                          ) : (
+                            <span className="thumb thumb-none" aria-hidden />
+                          )}
                         {r.link ? (
                           <a href={r.link} target="_blank" rel="noreferrer">
                             {r.name ?? r.presentId}
@@ -118,6 +126,7 @@ export default function RecordsPage() {
                         ) : (
                           (r.name ?? r.presentId)
                         )}
+                        </span>
                       </td>
                       <td className="num tiny">{r.period ?? "—"}</td>
                       <td className="tiny">{labelOf(r.accountId)}</td>
