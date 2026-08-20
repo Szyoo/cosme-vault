@@ -15,8 +15,7 @@
  * - 全程**无 reCAPTCHA**
  */
 import type { Page } from "playwright";
-import { matchesAnswerKeyword, needsManualChoice } from "@cosme/core";
-import type { PendingChoice } from "@cosme/contract";
+import { scanQuestions, applyDecisions } from "./survey-common.ts";
 import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from "./types.ts";
 
 /** 问卷引擎主机名 */
@@ -92,80 +91,28 @@ export const isEnqSurveyPattern: FlowPattern = {
  * **有可能**也被导到同一个问卷引擎，那时应当复用这里的逻辑而不是抄一遍。
  */
 export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Promise<PatternOutcome> {
-  // ── 扫描问卷题目，判断是否有需要人工选择的题 ──
   await ctx.pace();
-  const scan = await page.evaluate(() => {
-    const groups: Record<string, { type: string; value: string; label: string }[]> = {};
-    for (const el of Array.from(
-      document.querySelectorAll<HTMLInputElement>("input[type=radio],input[type=checkbox]"),
-    )) {
-      const label = (el.closest("label")?.innerText ?? el.parentElement?.innerText ?? "")
-        .trim()
-        .replace(/\s+/g, " ");
-      (groups[el.name] ||= []).push({ type: el.type, value: el.value, label });
-    }
-    // 题干文本：取该组第一个 input 所在区块的上方文字
-    const prompts: Record<string, string> = {};
-    for (const name of Object.keys(groups)) {
-      const el = document.querySelector<HTMLInputElement>(`[name="${name}"]`);
-      const block = el?.closest("table, div, li, dl");
-      prompts[name] = (block?.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 200);
-    }
-    return { groups, prompts };
-  });
 
-  // ── 3. 需人工选择的题（如「ご希望の…お選びください」）→ 挂起等用户 ──
-  const pending: PendingChoice[] = [];
-  for (const [name, opts] of Object.entries(scan.groups)) {
-    const prompt = scan.prompts[name] ?? "";
-    if (needsManualChoice(prompt) && !ctx.resolvedChoices[name]) {
-      pending.push({
-        questionId: name,
-        prompt,
-        options: opts.map((o) => ({ id: o.value, text: o.label })),
-      });
-    }
-  }
+  const questions = await scanQuestions(page);
+  const { pending, applied } = await applyDecisions(page, questions, ctx);
   if (pending.length > 0) {
-    await ctx.log(`有 ${pending.length} 道题需要人工选择，挂起等待`, "warn");
+    await ctx.log(`${questions.length} 题中有 ${pending.length} 题需要人工决定，挂起等待`, "warn");
     return { status: "needsChoice", pendingChoices: pending };
   }
 
-  // ── 4. 自动作答 + 填个人资料 ──
-  const keywords = await page.evaluate(
-    ({ profile, resolved }) => {
-      const acted: string[] = [];
-
-      // 4a. 用户已决定的选择优先应用
-      for (const [name, value] of Object.entries(resolved)) {
-        const el = document.querySelector<HTMLInputElement>(`[name="${name}"][value="${value}"]`);
-        if (el) {
-          el.click();
-          acted.push(`已选:${name}=${value}`);
-        }
-      }
-
-      // 4b. 「応募する」这类同意项必选（不选就等于不参加）
-      for (const el of Array.from(
-        document.querySelectorAll<HTMLInputElement>("input[type=radio],input[type=checkbox]"),
-      )) {
-        const label = (el.closest("label")?.innerText ?? el.parentElement?.innerText ?? "").trim();
-        if (label.includes("応募する") && !label.includes("しない")) {
-          el.click();
-          acted.push("同意项:応募する");
-        }
-      }
-
-      // 4c. 个人资料字段（prof_* 命名，初版 Java 的发现，2026 仍有效）
+  // 个人资料字段（prof_*）—— 只有 is-enq 问卷有，present-blog 的确认页已核对过
+  const profileFilled = await page.evaluate(
+    (profile: { name: string; age: string; job: string }) => {
+      const done: string[] = [];
       const nameInput = document.querySelector<HTMLInputElement>('input[name="prof_001_name"]');
       if (nameInput && profile.name) {
         nameInput.value = profile.name;
-        acted.push("prof_001_name");
+        done.push("prof_001_name");
       }
-      const ageInput = document.querySelector<HTMLInputElement>('input[name*="age"][name^="prof_"]');
+      const ageInput = document.querySelector<HTMLInputElement>('input[name^="prof_"][name*="age"]');
       if (ageInput && profile.age) {
         ageInput.value = profile.age;
-        acted.push("age");
+        done.push("age");
       }
       // 职业下拉：精确匹配 → 斜杠/中点互换兜底（站点两种写法都出现过）
       const job = document.querySelector<HTMLSelectElement>('select[name="prof_010_job1"]');
@@ -174,53 +121,36 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
           const opt = Array.from(job.options).find((o) => o.text.trim() === v);
           if (opt) {
             job.value = opt.value;
-            acted.push("prof_010_job1");
+            done.push("prof_010_job1");
             break;
           }
         }
       }
-      return acted;
+      return done;
     },
-    { profile: ctx.profile, resolved: ctx.resolvedChoices },
+    ctx.profile,
   );
-  await ctx.log(`问卷已填：${keywords.join(", ") || "无可填项"}`);
+  await ctx.log(`问卷 ${questions.length} 题，已作答 ${applied} 项${profileFilled.length ? `，个人资料 ${profileFilled.join("/")}` : ""}`);
 
-  // 4d. 其余选项按关键词库勾选（在 Node 侧判断，词库不必进浏览器上下文）
-  for (const [name, opts] of Object.entries(scan.groups)) {
-    for (const o of opts) {
-      if (o.label && matchesAnswerKeyword(o.label)) {
-        await page
-          .locator(`[name="${name}"][value="${o.value}"]`)
-          .first()
-          .check({ timeout: 3000 })
-          .catch(() => undefined);
-      }
-    }
-  }
-
-  // ── 5. 送信 ──
+  // ── 送信 ──
   await ctx.pace();
-  // 送信按钮实测有两种：input[type=submit] 与 input[type=image]（图片按钮），
-  // 都带 name="send"，故按 name 定位而非按 type。
+  // 送信按钮实测有两种：input[type=submit] 与 input[type=image]（图片按钮），都带 name="send"
   const send = page.locator('[name="send"]');
   if ((await send.count()) === 0) return { status: "unknownPattern" };
   await ctx.log("送信");
   await Promise.all([page.waitForLoadState("domcontentloaded"), send.first().click()]);
   await page.waitForTimeout(2000);
 
-  // ── 6. 判定结果 ──
-  // ⚠️ 实测：@COSME **不在任何页面标注「已应募」**（详情页投递后仍显示「応募する」），
-  // 所以只能靠「有没有离开问卷表单」判断，去重必须靠我们自己的 DB。
-  //
-  // ⚠️ 不能用「正文是否含『必須』」判断失败——问卷正文本身就印着
+  // ⚠️ 不能用「正文含『必須』」判断失败——问卷正文本身就印着
   // 「（ * は必須回答です。）」这句说明，那样会把成功也判成失败（已踩过）。
+  // 判据是「有没有离开问卷表单」。
   const stillOnForm = (await page.locator('[name="send"]').count()) > 0;
   if (stillOnForm) {
-    // 仍停在问卷上，说明被退回；此时正文里的错误提示才有意义
     const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
     const reason = /エラー|入力してください|選択してください/.exec(body)?.[0] ?? "未知原因";
     await ctx.log(`送信被退回（${reason}）`, "error");
     return { status: "failed" };
   }
   await ctx.log("送信完成");
-  return { status: "drawn" };}
+  return { status: "drawn" };
+}

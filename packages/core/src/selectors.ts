@@ -202,6 +202,14 @@ export const PRESENT_BLOG = {
    * 「商品について理解した」等），**关键词库可直接复用**。
    */
   surveyPathMarker: "/survey/",
+  /**
+   * 问卷题目的 DOM 结构（2026-08-20 实测）：
+   *   <div class="qa">  Q1 题干…*  <div class="answer"><label><input>选项</label>…</div>  </div>
+   * 题干 = `.qa` 的文本减去 `.answer` 的文本；题干里带 `*` 表示必填。
+   * 与初版 Java 的 `//div[@class='qa']/div/label` 正好对应——那套 XPath 至今有效。
+   */
+  questionBlock: "div.qa",
+  answerBlock: "div.answer",
   surveyForm: 'form[action*="/present-blog/"][action*="/survey/"]',
   /** 问卷题目的字段名形态 */
   surveyFieldPattern: /^id\[\d+\](\[\])?$/,
