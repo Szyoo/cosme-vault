@@ -70,11 +70,21 @@ export async function drawOnce(
     pace,
   });
 
+  // ⚠️ 模式在执行中途也可能返回 unknownPattern（比如 POST 后落到没见过的页面）。
+  // 那种情况同样要采集现场——否则反馈机制在这条路径上等于失效（已踩过：
+  // present-blog 首次实测落到 /survey/ 页，但诊断包是空的，无从下手）。
+  const diagnostics =
+    outcome.status === "unknownPattern"
+      ? await collectDiagnostics(page, [
+          { name: picked.pattern.name, reason: "模式执行中途遇到未预期的页面" },
+        ])
+      : null;
+
   return {
     kind: "draw",
     status: outcome.status,
     pattern: picked.pattern.name,
     pendingChoices: outcome.pendingChoices ?? [],
-    diagnostics: null,
+    diagnostics,
   };
 }

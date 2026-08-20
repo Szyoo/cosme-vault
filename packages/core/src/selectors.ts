@@ -181,11 +181,31 @@ export const PRESENT_BLOG = {
   applyAnchor: 'a[href*="/present-blog/"]',
   /** 确认页 URL 形态 */
   confirmPattern: /\/brands\/(\d+)\/present-blog\/([A-Za-z0-9]+)\/confirm\//,
-  confirmForm: 'form[action*="/present-blog/"]',
+  confirmForm: 'form[action*="/present-blog/"][action*="/confirm/"]',
   tokenField: 'input[name="token"]',
   submitButton: 'input[type="submit"]',
   /** 标题含此串即说明停在确认页 */
   titleMarker: "登録情報確認",
+
+  /**
+   * 确认页 POST 之后是**自家的问卷页** `/present-blog/<PB码>/survey/`
+   * （2026-08-20 实测，不是 is-enq 引擎）。
+   *
+   * 与 is-enq 问卷的差异：
+   * - 字段命名是 `id[13116]`（radio）/ `id[13117][]`（checkbox），不是 `q001_*`
+   * - 没有 `prof_*` 个人资料字段（确认页已核对过登记信息）
+   * - 提交按钮 value 为「アンケートに回答して応募する」
+   * - 隐藏域同样是 act + token
+   * - 无 reCAPTCHA
+   *
+   * 好消息：题目选项文案与 is-enq 问卷同源（「使ったことはないが、よく知っている」
+   * 「商品について理解した」等），**关键词库可直接复用**。
+   */
+  surveyPathMarker: "/survey/",
+  surveyForm: 'form[action*="/present-blog/"][action*="/survey/"]',
+  /** 问卷题目的字段名形态 */
+  surveyFieldPattern: /^id\[\d+\](\[\])?$/,
+  surveySubmit: 'input[type="submit"]',
 } as const;
 
 /**
