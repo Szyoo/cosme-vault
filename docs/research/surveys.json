@@ -1,0 +1,1862 @@
+{
+  "harvestedAt": "2026-08-20T05:58:15.779Z",
+  "records": [
+    {
+      "presentId": "bfc-2710060",
+      "source": "brandFanClub",
+      "brand": "SILCUS",
+      "name": "【現品30名様】シルクグロウベールUVミスト",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/132172/present-blog/PB3645/survey/",
+      "questions": [
+        {
+          "field": "id[13170]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13171][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13172]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13173][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13174][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2710365",
+      "source": "brandFanClub",
+      "brand": "ボタニカル フォース",
+      "name": "ボタニカルフォース つるつるクレイウォッシュ",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/110386/present-blog/PB3628/survey/",
+      "questions": [
+        {
+          "field": "id[13080]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13081][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13083]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13082][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13084][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2710647",
+      "source": "brandFanClub",
+      "brand": "ハーバー",
+      "name": "デュオエッセンスリップ(スキンケアミニボトル付)",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/156/present-blog/PB3616/survey/",
+      "questions": [
+        {
+          "field": "id[13005]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13006][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13007]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13009][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13008][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2710942",
+      "source": "brandFanClub",
+      "brand": "YOLU",
+      "name": "8月新商品メロウマスク豪華フルセット",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/125320/present-blog/PB3653/survey/",
+      "questions": [
+        {
+          "field": "id[13206]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13207][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13208]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13209][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13210][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2710968",
+      "source": "brandFanClub",
+      "brand": "Beauty of Joseon",
+      "name": "【現品贈呈】BOJ 新作のトーンアップクリーム",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/127424/present-blog/PB3619/survey/",
+      "questions": [
+        {
+          "field": "id[13023]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13024][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13025]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13026][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13027][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2710973",
+      "source": "brandFanClub",
+      "brand": "Sulwhasoo(雪花秀, ソルファス)",
+      "name": "潤燥(ユンジョ)エッセンス サンプル15mL",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/7737/present-blog/PB3639/survey/",
+      "questions": [
+        {
+          "field": "id[13134]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13135][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13136]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13137][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13138][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2711006",
+      "source": "brandFanClub",
+      "brand": "クラプロックス",
+      "name": "クラプロックスビーユー歯みがき",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/124105/present-blog/PB3647/survey/",
+      "questions": [
+        {
+          "field": "id[13182]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13183][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13184]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13185][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13186][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2711089",
+      "source": "brandFanClub",
+      "brand": "SKIN1004",
+      "name": "センテラ TECA クリーム",
+      "flow": "unknown",
+      "surveyUrl": "https://www.cosme.net/beautist/article/2711089",
+      "questions": [],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": null
+    },
+    {
+      "presentId": "bfc-2711174",
+      "source": "brandFanClub",
+      "brand": "ALBLANC(アルブラン)",
+      "name": "現品30名様★ブライトニングスキントリートUV",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/10844/present-blog/PB3651/survey/",
+      "questions": [
+        {
+          "field": "id[13200]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13201][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13202]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13203][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13204][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "bfc-2711176",
+      "source": "brandFanClub",
+      "brand": "ルルルン",
+      "name": "生命科学発想でハリツヤ・引き締まり感を呼び覚ます",
+      "flow": "present-blog",
+      "surveyUrl": "https://www.cosme.net/brands/103508/present-blog/PB3650/survey/",
+      "questions": [
+        {
+          "field": "id[13194]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13195][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13196]",
+          "type": "radio",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "現在使っている"
+            },
+            {
+              "value": "2",
+              "label": "過去使ったことがある"
+            },
+            {
+              "value": "3",
+              "label": "使ったことはないが、よく知っている"
+            },
+            {
+              "value": "4",
+              "label": "名前だけは知っていた"
+            },
+            {
+              "value": "5",
+              "label": "今回初めて知った"
+            }
+          ]
+        },
+        {
+          "field": "id[13197][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "新聞・雑誌・フリーペーパー"
+            },
+            {
+              "value": "2",
+              "label": "TV"
+            },
+            {
+              "value": "3",
+              "label": "メーカー・ブランドのホームページ"
+            },
+            {
+              "value": "4",
+              "label": "@cosme"
+            },
+            {
+              "value": "5",
+              "label": "@cosme以外のWEBサイト・アプリ"
+            },
+            {
+              "value": "6",
+              "label": "SNS・動画SNS・ブログ"
+            },
+            {
+              "value": "7",
+              "label": "店頭"
+            },
+            {
+              "value": "8",
+              "label": "人(家族、友人、販売員など)"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        },
+        {
+          "field": "id[13198][]",
+          "type": "checkbox",
+          "prompt": "",
+          "required": false,
+          "options": [
+            {
+              "value": "1",
+              "label": "商品について理解した"
+            },
+            {
+              "value": "2",
+              "label": "商品に興味・関心を持った"
+            },
+            {
+              "value": "3",
+              "label": "商品のクチコミをチェックしてみたい"
+            },
+            {
+              "value": "4",
+              "label": "メーカー・ブランドのホームページをチェックしたい"
+            },
+            {
+              "value": "5",
+              "label": "お店に商品を探しに行ってみたい"
+            },
+            {
+              "value": "6",
+              "label": "商品のサンプル・テスターを使ってみたい"
+            },
+            {
+              "value": "7",
+              "label": "商品を購入してみたい"
+            },
+            {
+              "value": "8",
+              "label": "知人に伝えたい"
+            },
+            {
+              "value": "9",
+              "label": "その他"
+            }
+          ]
+        }
+      ],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": "アンケートに回答して応募する"
+    },
+    {
+      "presentId": "12053",
+      "source": "normal",
+      "brand": "タカミ",
+      "name": "タカミから「黄金ビタミン・ショット」が誕生。500名さまに現品プレゼント！",
+      "flow": "is-enq",
+      "surveyUrl": "https://is-enq.cosme.net/app/usr/ans/ans_pc.php?enq_id=27508&a_key=rJEfX5fnT_CwF57WTm90Rt10TFl.my3R&site_type=opn&_gl=1*15m22eh*_gcl_au*MTM1ODA5MTgwNS4xNzg3MDY3MDAwLjE2NTQ2MzA5MDIuMTc4NzIwNTIxMC4xNzg3MjA1NDU1LjExMzcyNTE2MzAuMTc4NzEyODA4OS4xNzg3MjA1NDU1*_ga*MTQyMDUwNDcwOS4xNzg3MDY3MDAx*_ga_HEKY12CWNG*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0NTYkajIwJGwwJGgw*_ga_7W5LJ9GKH3*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0NTYkajIwJGwwJGgw",
+      "questions": [],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": null
+    },
+    {
+      "presentId": "12054",
+      "source": "normal",
+      "brand": "エスティ ローダー",
+      "name": "【9月4日発売】「アドバンス ナイト リペア」コレクションから、ブースター化粧水が新登場！現品を500名様に",
+      "flow": "is-enq",
+      "surveyUrl": "https://is-enq.cosme.net/app/usr/ans/ans_pc.php?enq_id=27517&a_key=1_6HEylCTmnRTt9nX4kW2U3reWfk19fk&site_type=opn&_gl=1*ghovs*_gcl_au*MTM1ODA5MTgwNS4xNzg3MDY3MDAwLjE2NTQ2MzA5MDIuMTc4NzIwNTIxMC4xNzg3MjA1NDc1LjExMzcyNTE2MzAuMTc4NzEyODA4OS4xNzg3MjA1NDc1*_ga*MTQyMDUwNDcwOS4xNzg3MDY3MDAx*_ga_HEKY12CWNG*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0NzUkajEkbDAkaDA.*_ga_7W5LJ9GKH3*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0NzUkajEkbDAkaDA.",
+      "questions": [],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": null
+    },
+    {
+      "presentId": "12057",
+      "source": "normal",
+      "brand": "ミノン",
+      "name": "【NEW】敏感肌を考え続けたミノン アミノモイストから“とろうる”クレンジングオイルが新登場！現品500名様に♪",
+      "flow": "is-enq",
+      "surveyUrl": "https://is-enq.cosme.net/app/usr/ans/ans_pc.php?enq_id=27474&a_key=wF7RFy9HFtC.Ht8w0_EkRJCaFt9Hw_pf&site_type=opn&_gl=1*grbhsn*_gcl_au*MTM1ODA5MTgwNS4xNzg3MDY3MDAwLjE2NTQ2MzA5MDIuMTc4NzIwNTIxMC4xNzg3MjA1NDg2LjExMzcyNTE2MzAuMTc4NzEyODA4OS4xNzg3MjA1NDg2*_ga*MTQyMDUwNDcwOS4xNzg3MDY3MDAx*_ga_HEKY12CWNG*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0ODckajU0JGwwJGgw*_ga_7W5LJ9GKH3*czE3ODcyMDUyMDQkbzQkZzEkdDE3ODcyMDU0ODckajU0JGwwJGgw",
+      "questions": [],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": null
+    }
+  ]
+}
