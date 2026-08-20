@@ -17,6 +17,7 @@
     "probe": "npm run probe --workspace apps/runner",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "recon": "npm run recon --workspace apps/runner --",
-    "login": "npm run login --workspace apps/runner --"
+    "login": "npm run login --workspace apps/runner --",
+    "harvest": "npm run harvest --workspace apps/runner --"
   }
 }
