@@ -81,10 +81,13 @@ apps/
 - **扫描的来源级反馈**：`ScanSourceReport` 区分「确实没有奖品」与「版式没认出来」，后者带诊断包——避免某来源悄悄失效被误当成「今天没新奖品」。实测 `brandFanClub` 即被正确标记为未识别（附 158 个元素的现场）。
 - **幂等性是硬要求**：重扫**绝不能**把已投递记录重置为 pending（`queue.ts` 里只对不存在的 account_presents 插入）。因为 @COSME 不标注「已应募」，这张表是防重复投递的唯一防线。
 - **流程模式注册表（重要架构）**：`apps/runner/src/cosme/patterns/`。@COSME 奖品分多类别、每类多模式、DOM 各不相同，故每个模式是一个实现 `FlowPattern` 的模块，自己回答「这一页是不是我认识的」。加新模式只需写一个文件 + 加进 `patterns/index.ts` 的 `PATTERNS` 数组（顺序即优先级）。
-- **未知模式反馈机制**：所有模式都不认领时**安全中止、绝不瞎点**，返回 `status: 'unknownPattern'` 并附 `PatternDiagnostics`（URL / 标题 / 全部可交互元素与建议选择器 / 正文摘要 / 各模式的拒绝原因），同时存截图与 HTML 快照，落库到 `account_presents.diagnostics`。据此补 pattern 基本不用再上站点复现。
+- **未知模式反馈机制**：所有模式都不认领时，**以及模式在执行中途遇到未预期页面时**（两条路径都要采集——后者曾漏采，导致首次实测 present-blog 落到 `/survey/` 页时诊断包是空的），**安全中止、绝不瞎点**，返回 `status: 'unknownPattern'` 并附 `PatternDiagnostics`（URL / 标题 / 全部可交互元素与建议选择器 / 正文摘要 / 各模式的拒绝原因），同时存截图与 HTML 快照，落库到 `account_presents.diagnostics`。据此补 pattern 基本不用再上站点复现。
 - **已实现两个模式**：
   - `is-enq-survey`（brandcollection）：详情页 onclick 入口 → `/enquete/confirm` → `is-enq.cosme.net` PHP 问卷 → `input[name=send]` 送信。
-  - `present-blog`（brandFanClub 限定）：`/beautist/article/<ID>` 的普通 href 入口 → `/brands/<品牌ID>/present-blog/<PB码>/confirm/` → POST（表单只有 token + act=submit）。**无 addbrand 复选框**（本就是粉丝俱乐部成员）、无 enquete、无 reCAPTCHA。**POST 之后的落点尚未实测**，故实现上不猜：落到 is-enq 就复用问卷逻辑，见完成特征算成功，否则回传 unknownPattern。
+  - `present-blog`（brandFanClub 限定，**已完整实测跑通**）：`/beautist/article/<ID>` 的普通 href 入口 → `/brands/<品牌ID>/present-blog/<PB码>/confirm/`（POST，表单只有 token + act=submit）→ **自家问卷页 `/present-blog/<PB码>/survey/`**（不是 is-enq 引擎）→ 「アンケートに回答して応募する」。
+    - 问卷字段命名是 `id[13116]`（radio）/ `id[13117][]`（checkbox），与 is-enq 的 `q001_*` 完全不同；**没有 `prof_*` 个人资料字段**（确认页已核对过登记信息）。
+    - 好消息：选项文案与 is-enq 问卷同源（「使ったことはないが、よく知っている」等），**关键词库直接复用**。
+    - **无 addbrand 复选框**（本就是粉丝俱乐部成员）、无 enquete、全程无 reCAPTCHA。
 - **入口跳转属于各模式自己的职责**，编排层 `draw.ts` 不含任何模式专属逻辑——两个来源的入口形态不同（onclick 藏地址 vs 普通 href），加新来源不必改编排层。
 - **brandFanClub 的奖品 id 用 `bfc-<articleId>` 前缀**（它没有 present_id），避免与 brandcollection 的数字 id 撞号。
 - **图片抓取有专门防护**：`@cosme/core` 的 `validateImageUrl`，四类实测陷阱——站点头部图标（`common_headers/`）、`onerror` 换上的占位图（`psnt_noimg`）、按 ID 构造 URL 想当然（**12053 是 .jpg 不是 .png**）、协议相对地址过不了 `z.string().url()`。策略是白名单（`/media/monitor/`、`/media/product/`、`/media/sku`）+ 占位与装饰黑名单，**宁可留空也不存错的**。
