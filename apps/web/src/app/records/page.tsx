@@ -33,7 +33,8 @@ export default function RecordsPage() {
       brand: schema.presents.brand,
       imageUrl: schema.presents.imageUrl,
       link: schema.presents.link,
-      period: schema.presents.description,
+      period: schema.presents.period,
+      quantity: schema.presents.quantity,
       source: schema.presents.source,
     })
     .from(schema.accountPresents)

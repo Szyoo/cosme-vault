@@ -29,7 +29,12 @@ export const presents = sqliteTable(
     name: text("name").notNull(),
     brand: text("brand"),
     imageUrl: text("image_url"),
-    description: text("description"),
+    /** 应募期间，只放日期区间 */
+    period: text("period"),
+    /** 数量与形式，如「計20名様現品」 */
+    quantity: text("quantity"),
+    /** 一句话文案 */
+    tagline: text("tagline"),
     scannedAt: text("scanned_at").notNull().default(sql`(datetime('now'))`),
   },
   (t) => [uniqueIndex("presents_link_uq").on(t.link)],

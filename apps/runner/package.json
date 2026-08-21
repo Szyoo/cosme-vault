@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "recon": "node --env-file-if-exists=../../.env src/recon.ts",
     "login": "node --env-file-if-exists=../../.env src/login.ts",
-    "harvest": "node --env-file-if-exists=../../.env src/harvest-surveys.ts"
+    "harvest": "node --env-file-if-exists=../../.env src/harvest-surveys.ts",
+    "audit": "node --env-file-if-exists=../../.env src/audit-presents.ts"
   },
   "dependencies": {
     "@cosme/contract": "*",

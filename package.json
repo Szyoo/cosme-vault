@@ -18,6 +18,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "recon": "npm run recon --workspace apps/runner --",
     "login": "npm run login --workspace apps/runner --",
-    "harvest": "npm run harvest --workspace apps/runner --"
+    "harvest": "npm run harvest --workspace apps/runner --",
+    "audit": "npm run audit --workspace apps/runner --"
   }
 }

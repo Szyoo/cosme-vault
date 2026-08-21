@@ -31,15 +31,26 @@ export const PresentSource = z.enum([
 ]);
 export type PresentSource = z.infer<typeof PresentSource>;
 
-/** 单个奖品（全局唯一，与账号无关） */
+/**
+ * 单个奖品（全局唯一，与账号无关）。
+ *
+ * ⚠️ 字段语义要分清，别把「数量」「文案」塞进「期间」——
+ * 曾经把 `計5名様現品 · うるおいケアしながら…` 写进了展示为「期间」的字段（已修）。
+ */
 export const Present = z.object({
   id: z.string(),
   source: PresentSource,
   link: z.string().url(),
+  /** 奖品标题 */
   name: z.string(),
   brand: z.string().nullable().default(null),
   imageUrl: z.string().url().nullable().default(null),
-  description: z.string().nullable().default(null),
+  /** 应募期间，**只放日期区间**（如 `8/19～8/25`）。取不到就 null，不要用别的内容凑 */
+  period: z.string().nullable().default(null),
+  /** 数量与形式（如 `計20名様現品`） */
+  quantity: z.string().nullable().default(null),
+  /** 一句话文案 */
+  tagline: z.string().nullable().default(null),
   scannedAt: z.string().datetime(),
 });
 export type Present = z.infer<typeof Present>;

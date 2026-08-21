@@ -19,7 +19,12 @@ interface RawCard {
   link: string;
   title: string;
   brand: string | null;
+  /** **只放日期区间**，取不到就 null——别用数量/文案凑（踩过） */
   period: string | null;
+  /** 数量与形式，如「計20名様現品」 */
+  quantity: string | null;
+  /** 一句话文案 */
+  tagline: string | null;
   imageRaw: string | null;
 }
 
@@ -33,7 +38,7 @@ async function parseNormal(page: Page): Promise<RawCard[]> {
   const sel = selectors.LIST_CARD.normal;
   return page.evaluate((sel: typeof selectors.LIST_CARD.normal) => {
     const seen = new Map<string, ReturnType<typeof mk>>();
-    const mk = (o: { siteId: string; link: string; title: string; brand: string | null; period: string | null; imageRaw: string | null }) => o;
+    const mk = (o: { siteId: string; link: string; title: string; brand: string | null; period: string | null; quantity: string | null; tagline: string | null; imageRaw: string | null }) => o;
     for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>(sel.anchor))) {
       const id = (a.href.match(/present_id\/(\d+)/) ?? [])[1];
       if (!id) continue;
@@ -57,6 +62,8 @@ async function parseNormal(page: Page): Promise<RawCard[]> {
           title: title || prev?.title || "",
           brand: brand || prev?.brand || null,
           period: period ?? prev?.period ?? null,
+          quantity: null,
+          tagline: null,
           imageRaw: imageRaw || prev?.imageRaw || null,
         });
       }
@@ -70,7 +77,7 @@ async function parseBrandFanClub(page: Page): Promise<RawCard[]> {
   const sel = selectors.LIST_CARD.brandFanClub;
   return page.evaluate((sel: typeof selectors.LIST_CARD.brandFanClub) => {
     const seen = new Map<string, ReturnType<typeof mk>>();
-    const mk = (o: { siteId: string; link: string; title: string; brand: string | null; period: string | null; imageRaw: string | null }) => o;
+    const mk = (o: { siteId: string; link: string; title: string; brand: string | null; period: string | null; quantity: string | null; tagline: string | null; imageRaw: string | null }) => o;
     for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>(sel.anchor))) {
       const id = (a.href.match(/\/beautist\/article\/(\d+)/) ?? [])[1];
       if (!id) continue;
@@ -87,10 +94,9 @@ async function parseBrandFanClub(page: Page): Promise<RawCard[]> {
       const afterTitle = dtText.startsWith(title) ? dtText.slice(title.length) : dtText;
       const brand = afterTitle.replace(/^\s*\/\s*/, "").trim() || null;
 
-      // 数量/形式（「計5名様 現品」）当作说明存起来
-      const qty = card.querySelector(sel.quantity)?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-      const copy = card.querySelector(sel.copy)?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-      const period = [qty, copy].filter(Boolean).join(" · ") || null;
+      // 数量与文案是**两个不同的字段**，不要合并进期间（列表页没有期间，留给 audit 从详情页补）
+      const quantity = card.querySelector(sel.quantity)?.textContent?.replace(/\s+/g, " ").trim() || null;
+      const tagline = card.querySelector(sel.copy)?.textContent?.replace(/\s+/g, " ").trim() || null;
 
       // ⚠️ 这里的 img 带 onerror 占位图，交给 validateImageUrl 过滤
       const imageRaw = card.querySelector(sel.image)?.getAttribute("src") ?? null;
@@ -101,7 +107,9 @@ async function parseBrandFanClub(page: Page): Promise<RawCard[]> {
           link: `https://www.cosme.net/beautist/article/${id}`,
           title,
           brand,
-          period,
+          period: null,
+          quantity,
+          tagline,
           imageRaw,
         });
       }
@@ -123,7 +131,7 @@ async function parseBrandFanClub(page: Page): Promise<RawCard[]> {
 async function parseBrandFanClubViaBrand(page: Page, pace: () => Promise<void>): Promise<RawCard[]> {
   // 第一跳：从列表页取「卡片标题 + 品牌ID」
   const cards = await page.evaluate(() => {
-    const out: { brandId: string; title: string; brand: string | null; qty: string | null; imageRaw: string | null }[] = [];
+    const out: { brandId: string; title: string; brand: string | null; quantity: string | null; tagline: string | null; imageRaw: string | null }[] = [];
     const seen = new Set<string>();
     for (const t of Array.from(document.querySelectorAll(".psnt-ttl"))) {
       const card = t.closest("li") ?? t.parentElement;
@@ -138,9 +146,9 @@ async function parseBrandFanClubViaBrand(page: Page, pace: () => Promise<void>):
       const dt = card.querySelector("dt")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
       const title = (t.textContent ?? "").replace(/\s+/g, " ").trim();
       const brand = dt.startsWith(title) ? dt.slice(title.length).replace(/^\s*\/\s*/, "").trim() || null : null;
-      const qty = card.querySelector(".psnt-num")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-      const copy = card.querySelector(".psnt-copy")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-      out.push({ brandId, title, brand, qty: [qty, copy].filter(Boolean).join(" · ") || null, imageRaw: card.querySelector("img")?.getAttribute("src") ?? null });
+      const quantity = card.querySelector(".psnt-num")?.textContent?.replace(/\s+/g, " ").trim() || null;
+      const tagline = card.querySelector(".psnt-copy")?.textContent?.replace(/\s+/g, " ").trim() || null;
+      out.push({ brandId, title, brand, quantity, tagline, imageRaw: card.querySelector("img")?.getAttribute("src") ?? null });
     }
     return out;
   });
@@ -163,7 +171,9 @@ async function parseBrandFanClubViaBrand(page: Page, pace: () => Promise<void>):
           link: selectors.brandPresentUrl(found.brandId, found.presentId),
           title: c.title,
           brand: c.brand,
-          period: c.qty,
+          period: null, // 列表页没有期间，由 audit 从详情页补
+          quantity: c.quantity,
+          tagline: c.tagline,
           imageRaw: c.imageRaw,
         });
       }
@@ -224,7 +234,9 @@ export async function scanSource(
       // 只用页面上真实存在的地址；占位图/站点图标一律过滤成 null。
       // ⚠️ 刻意不按 ID 构造 URL——实测过后缀会变（12053 是 .jpg 不是 .png）
       imageUrl: validateImageUrl(r.imageRaw),
-      description: r.period,
+      period: r.period,
+      quantity: r.quantity,
+      tagline: r.tagline,
       scannedAt,
     }));
 
