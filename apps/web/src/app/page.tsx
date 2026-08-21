@@ -11,7 +11,7 @@ import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { reclaimStaleJobs } from "@/lib/queue.ts";
 import { db, schema } from "@/db/index.ts";
-import { countQueuedJobs, getRunnerStatus } from "@/lib/runner-status.ts";
+import { getRunnerStatus } from "@/lib/runner-status.ts";
 import { loadQueue } from "@/lib/queue-view.ts";
 import { formatAgo } from "@/lib/ago.ts";
 import { fmtLogTime } from "@/lib/when.ts";
@@ -37,8 +37,10 @@ export default async function Home() {
   reclaimStaleJobs();
 
   const runner = getRunnerStatus();
-  const queued = countQueuedJobs();
   const queue = loadQueue();
+  // 「任务」一律按用户的操作单位数（跑一轮=1、单独重跑=1），别再数内部 job——
+  // 曾在这里显示「25 个任务在排队」，其实那是一轮里的 25 个奖品（用户指出误导）
+  const queuedBatches = queue.batches.filter((b) => b.queued > 0).length;
 
   const rows = db
     .select({
@@ -115,7 +117,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="row">
-            <StopButton queued={queued} />
+            <StopButton queued={queuedBatches} />
             <RunButton />
           </div>
         </div>
@@ -123,7 +125,7 @@ export default async function Home() {
         {/* runner 不在的时候，光看「待投递 131」会以为在跑，实际什么都不会发生 */}
         {runner.kind !== "online" && (
           <p className="small warn-text">
-            {queued > 0 ? `${t.runner.offlineQueued(queued)} ` : ""}
+            {queuedBatches > 0 ? `${t.runner.offlineQueued(queuedBatches)} ` : ""}
             {t.runner.startHint}
           </p>
         )}
