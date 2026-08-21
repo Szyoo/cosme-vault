@@ -117,7 +117,7 @@ apps/
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
 - **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。
 - **runner 取凭证走独立端点** `/api/runner/credentials?accountId=`（Bearer RUNNER_TOKEN）。**刻意不把凭证塞进任务载荷**——那会把明文写进 jobs 表并留在历史里。
-- **页面已齐**：`/`（控制台：runner 状态、跑一轮、奖品状态表、待选择区、未识别提示、任务与日志）、`/records`（投递历史与统计）、`/diagnostics`（未识别版式的现场，含元素清单与一键复制）、`/choices/[presentId]`（Bark 深链接落点）、`/settings`、`/login`。
+- **页面已齐**：`/`（控制台）、`/presents/[presentId]`（**奖品详情**：全部字段 + @COSME 原页面链接 + 单个投递按钮，控制台与记录页的奖品名都链到这里）、`/records`（投递历史与统计）、`/diagnostics`（未识别版式的现场，含元素清单与一键复制）、`/choices/[presentId]`（Bark 深链接落点）、`/settings`、`/login`。
   **视觉尚未统一到 @szyyw/design**（目前只引了 tokens/components 的 CSS，未真正用其组件与 DotField 背景），是下一步。
 - **诊断页是反馈闭环的最后一环**：`/api/diagnostics` 汇总两类未识别项——`account_presents.diagnostics`（draw 的未知模式）与最近 scan 结果里 `recognized=false` 的来源报告。元素清单可一键复制，拿去直接写选择器，通常不必再上站点复现。
 - **DB 迁移**用 `drizzle-kit generate/migrate`，迁移文件进 `apps/web/drizzle/`（首版 `0000_sticky_kate_bishop.sql` 已生成并跑通）。drizzle-kit 直连 DB 不经 `src/db/index.ts`，故 `db:migrate` 脚本里带 `mkdir -p data`。
