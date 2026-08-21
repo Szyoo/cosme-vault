@@ -15,7 +15,7 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import Database from "better-sqlite3";
 import { chromium, type Page } from "playwright";
-import { PACING, randomDelay, validateImageUrl } from "@cosme/core";
+import { PACING, isPeriodExpired, normalizePeriod, randomDelay, validateImageUrl } from "@cosme/core";
 
 const args = process.argv.slice(2);
 const FIX = args.includes("--fix");
@@ -60,9 +60,8 @@ async function truthFromPage(page: Page): Promise<{
       grab(/応募(?:受付|期間)\s*[：:]\s*\d{1,2}\s*[\/月]\s*\d{1,2}\s*日?\s*[～~\-]\s*\d{1,2}\s*[\/月]\s*\d{1,2}\s*日?/) ??
       grab(/\d{1,2}月\d{1,2}日\s*[（(][^）)]{0,3}[）)]\s*[～~\-]\s*\d{1,2}月\d{1,2}日/) ??
       grab(/\d{1,2}\/\d{1,2}\s*[～~\-]\s*\d{1,2}\/\d{1,2}/);
-    const period = rawPeriod
-      ? (rawPeriod.match(/\d{1,2}\s*[\/月]\s*\d{1,2}.*$/)?.[0] ?? rawPeriod).replace(/\s+/g, "")
-      : null;
+    // 只回传原文，归一化在 Node 侧用 normalizePeriod 做（记法有四五种）
+    const period = rawPeriod;
 
     const quantity = grab(/(?:計)?\s*\d+\s*名様?\s*(?:現品|サンプル|モニター)?/)?.replace(/\s+/g, "") ?? null;
     // 一句话文案：列表页的 .psnt-copy 在详情页通常没有，退回取标题里「/」后的商品名做兜底
@@ -76,11 +75,14 @@ async function truthFromPage(page: Page): Promise<{
       .map((i) => i.getAttribute("src") ?? "")
       .filter((s) => /\/media\/(monitor|product|sku)/.test(s));
 
+    // ⚠️ 入口文案不止「応募する」：タイアップ页是「今すぐ応募」，
+    // 且其入口是外部追踪链 c.w1.to（曾因此把 81 个 tieup 全误报成「无应募入口」）
     const entryOpen =
       !!document.querySelector('[onclick*="isauth/addinfo"]') ||
       !!document.querySelector('a[href*="/present-blog/"]') ||
       !!document.querySelector('a[href*="/confirm/"]') ||
-      /応募する/.test(text);
+      !!document.querySelector('a[href*="c.w1.to"]') ||
+      /応募する|今すぐ応募|エントリー(する)?|応募はこちら/.test(text);
     const ended = /募集(は)?終了|受付(は)?終了|終了しました|受付を終了/.test(text);
 
     // 品牌名：详情页标题多为「品牌 / 商品名をプレゼント！」
@@ -146,8 +148,13 @@ async function main(): Promise<void> {
       const problems: string[] = [];
 
       // 逐项比对
-      if (!r.period && t.period) problems.push("期间缺失");
-      else if (r.period && t.period && r.period.replace(/\s/g, "") !== t.period) problems.push("期间不一致");
+      // 期间比较前先归一化：站点同一期间有 `8/19～9/15` 与 `8月19日（水）～9月15日`
+      // 等多种记法，不归一化会把同一期间报成「不一致」（踩过：79 个误报）
+      const pageP = normalizePeriod(t.period);
+      const dbP = normalizePeriod(r.period);
+      if (!dbP && pageP) problems.push("期间缺失");
+      else if (dbP && pageP && dbP !== pageP) problems.push("期间不一致");
+      if (dbP && isPeriodExpired(dbP)) problems.push("期间已过");
       if (/名様|・/.test(r.period ?? "")) problems.push("期间字段装了非日期内容");
       if (!r.quantity && t.quantity) problems.push("数量缺失");
       if (!r.image_url) problems.push("无图");
@@ -166,7 +173,7 @@ async function main(): Promise<void> {
       }
 
       if (FIX) {
-        const nextPeriod = t.period ?? (/名様|・/.test(r.period ?? "") ? null : r.period);
+        const nextPeriod = pageP ?? dbP;
         // 数量归一：旧数据里混着「数量 · 文案」，拆开；页面值优先（格式更规整）
         let qty = t.quantity ?? r.quantity;
         let tagline = r.tagline ?? t.tagline;
