@@ -8,23 +8,11 @@ import { notFound } from "next/navigation";
 import { db, schema } from "@/db/index.ts";
 import { Nav } from "../../nav.tsx";
 import { DrawOneButton } from "./draw-one.tsx";
+import { sourceOf, statusOf } from "../../labels.ts";
 
 export const dynamic = "force-dynamic";
 
-const STATUS: Record<string, { label: string; pill: string }> = {
-  pending: { label: "待投递", pill: "" },
-  drawn: { label: "已投递", pill: "green" },
-  needsChoice: { label: "待选择", pill: "violet" },
-  skipped: { label: "已跳过", pill: "" },
-  failed: { label: "失败", pill: "red" },
-  unknownPattern: { label: "未知模式", pill: "amber" },
-};
 
-const SOURCE_LABEL: Record<string, string> = {
-  normal: "ブランドコレクション",
-  brandFanClub: "ファンクラブ限定（article 直链）",
-  brandFanClubViaBrand: "ファンクラブ限定（经品牌主页）",
-};
 
 export default async function PresentDetail({ params }: { params: Promise<{ presentId: string }> }) {
   const { presentId } = await params;
@@ -58,10 +46,19 @@ export default async function PresentDetail({ params }: { params: Promise<{ pres
 
   return (
     <main className="page">
+      {/* 返回入口放在**顶部**：底部导航在手机上要滚过整页才看得到，等于退不出去 */}
+      <nav className="back-row">
+        <a className="chip" href="/">
+          ← 控制台
+        </a>
+        <a className="chip" href="/records">
+          记录
+        </a>
+      </nav>
       <h1 className="page-title">{present.name}</h1>
       <p className="page-sub">
         {present.brand ? `${present.brand} · ` : ""}
-        {SOURCE_LABEL[present.source] ?? present.source}
+        {sourceOf(present.source).full}
       </p>
 
       <section className="glass section">
@@ -80,6 +77,10 @@ export default async function PresentDetail({ params }: { params: Promise<{ pres
           )}
 
           <dl className="kv" style={{ flex: 1, minWidth: 220, marginTop: 0 }}>
+            <dt>类型</dt>
+            <dd>
+              <span className={`pill ${sourceOf(present.source).pill}`}>{sourceOf(present.source).short}</span>
+            </dd>
             <dt>应募期间</dt>
             <dd className="num">{present.period ?? "—"}</dd>
             <dt>数量 / 形式</dt>
@@ -111,7 +112,7 @@ export default async function PresentDetail({ params }: { params: Promise<{ pres
         ) : (
           <div className="stack">
             {links.map((l) => {
-              const st = STATUS[l.status] ?? { label: l.status, pill: "" };
+              const st = statusOf(l.status);
               const account = accounts.find((a) => a.id === l.accountId);
               return (
                 <div key={l.id} className="inner row spread">

@@ -12,6 +12,17 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { PendingChoice } from "@cosme/contract";
 
+/** 顶部返回条。选择页有多个状态分支，各自都要有出口，故抽成组件。 */
+function BackRow() {
+  return (
+    <nav className="back-row">
+      <a className="chip" href="/">
+        ← 控制台
+      </a>
+    </nav>
+  );
+}
+
 interface Data {
   status: string;
   present: { id: string; name: string; brand: string | null; link: string } | null;
@@ -88,6 +99,7 @@ function ChoiceInner() {
   if (error && !data) {
     return (
       <main className="page narrow">
+      <BackRow />
         <h1 className="page-title">选择奖品</h1>
         <p className="err-text">{error}</p>
       </main>
@@ -96,6 +108,7 @@ function ChoiceInner() {
   if (!data) {
     return (
       <main className="page narrow">
+      <BackRow />
         <p>读取中…</p>
       </main>
     );
@@ -103,6 +116,7 @@ function ChoiceInner() {
   if (done) {
     return (
       <main className="page narrow">
+      <BackRow />
         <h1 className="page-title">已提交</h1>
         <p>选择已保存，稍后会自动继续投递这个奖品。</p>
         <button type="button" className="btn" onClick={() => router.push("/")}>
@@ -114,6 +128,7 @@ function ChoiceInner() {
   if (data.status !== "needsChoice") {
     return (
       <main className="page narrow">
+      <BackRow />
         <h1 className="page-title">无需选择</h1>
         <p>
           该奖品当前状态是 <strong>{data.status}</strong>，可能已经处理过了。
@@ -124,6 +139,7 @@ function ChoiceInner() {
 
   return (
     <main className="page narrow">
+      <BackRow />
       <h1 className="page-title">选择奖品</h1>
       {data.present && (
         <p className="page-sub">

@@ -7,17 +7,11 @@
 import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { Nav } from "../nav.tsx";
+import { sourceOf, statusOf } from "../labels.ts";
 
 export const dynamic = "force-dynamic";
 
-const STATUS: Record<string, { label: string; pill: string }> = {
-  pending: { label: "待投递", pill: "" },
-  drawn: { label: "已投递", pill: "green" },
-  needsChoice: { label: "待选择", pill: "violet" },
-  skipped: { label: "已跳过", pill: "" },
-  failed: { label: "失败", pill: "red" },
-  unknownPattern: { label: "未知模式", pill: "amber" },
-};
+
 
 export default function RecordsPage() {
   const rows = db
@@ -94,6 +88,7 @@ export default function RecordsPage() {
               <thead>
                 <tr>
                   <th>状态</th>
+                  <th>类型</th>
                   <th>品牌</th>
                   <th>奖品</th>
                   <th>期间</th>
@@ -104,14 +99,20 @@ export default function RecordsPage() {
               </thead>
               <tbody>
                 {rows.map((r) => {
-                  const st = STATUS[r.status] ?? { label: r.status, pill: "" };
+                  const st = statusOf(r.status);
+                  const src = sourceOf(r.source ?? "");
                   return (
                     <tr key={`${r.accountId}-${r.presentId}`}>
                       <td>
                         <span className={`pill ${st.pill}`}>{st.label}</span>
                         {r.error && <div className="tiny muted">{r.error.slice(0, 36)}</div>}
                       </td>
-                      <td>{r.brand ?? "—"}</td>
+                      <td>
+                        <span className={`pill ${src.pill}`} title={src.full}>
+                          {src.short}
+                        </span>
+                      </td>
+                      <td className="clip">{r.brand ?? "—"}</td>
                       <td className="clip" title={r.name ?? r.presentId}>
                         <a className="pz" href={`/presents/${r.presentId}`}>
                           {r.imageUrl ? (

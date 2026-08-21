@@ -178,3 +178,12 @@ a.pz {
 a.pz:hover .clip {
   text-decoration: underline;
 }
+
+/* 顶部返回条。底部导航在手机上要滚过整页才看得到，
+   所以详情类页面必须在**顶部**也给一个出口。 */
+.back-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}

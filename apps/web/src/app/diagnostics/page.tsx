@@ -47,6 +47,11 @@ export default function DiagnosticsPage() {
   if (!data) {
     return (
       <main className="page">
+        <nav className="back-row">
+          <a className="chip" href="/">
+            ← 控制台
+          </a>
+        </nav>
         <p>读取中…</p>
       </main>
     );
@@ -56,6 +61,11 @@ export default function DiagnosticsPage() {
 
   return (
     <main className="page">
+      <nav className="back-row">
+        <a className="chip" href="/">
+          ← 控制台
+        </a>
+      </nav>
       <h1 className="page-title">诊断</h1>
       <p className="page-sub">
         runner 遇到没见过的页面版式时会安全中止并回传现场（不会瞎点）。这里列出待处理的现场，

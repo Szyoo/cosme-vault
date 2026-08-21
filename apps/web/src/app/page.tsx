@@ -9,18 +9,11 @@ import { getHeartbeat, isRunnerOnline } from "@/lib/runner-state.ts";
 import { RunButton } from "./run-button.tsx";
 import { Nav } from "./nav.tsx";
 import { LiveRefresh } from "./live-refresh.tsx";
+import { sourceOf, statusOf } from "./labels.ts";
 
 export const dynamic = "force-dynamic";
 
-/** 状态 → 展示文案与 pill 配色 */
-const STATUS: Record<string, { label: string; pill: string }> = {
-  pending: { label: "待投递", pill: "" },
-  drawn: { label: "已投递", pill: "green" },
-  needsChoice: { label: "待选择", pill: "violet" },
-  skipped: { label: "已跳过", pill: "" },
-  failed: { label: "失败", pill: "red" },
-  unknownPattern: { label: "未知模式", pill: "amber" },
-};
+
 
 export default function Home() {
   const online = isRunnerOnline();
@@ -37,6 +30,7 @@ export default function Home() {
       imageUrl: schema.presents.imageUrl,
       period: schema.presents.period,
       quantity: schema.presents.quantity,
+      source: schema.presents.source,
     })
     .from(schema.accountPresents)
     .leftJoin(schema.presents, eq(schema.presents.id, schema.accountPresents.presentId))
@@ -137,15 +131,17 @@ export default function Home() {
               <thead>
                 <tr>
                   <th>奖品</th>
+                  <th>类型</th>
                   <th>品牌</th>
+                  <th>数量</th>
                   <th>期间</th>
                   <th>状态</th>
-                  <th>模式</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => {
-                  const s = STATUS[r.status] ?? { label: r.status, pill: "" };
+                  const st = statusOf(r.status);
+                  const src = sourceOf(r.source ?? "");
                   return (
                     <tr key={`${r.accountId}-${r.presentId}`}>
                       <td className="clip" title={r.name ?? r.presentId}>
@@ -154,12 +150,19 @@ export default function Home() {
                           <span className="clip">{r.name ?? r.presentId}</span>
                         </a>
                       </td>
-                      <td>{r.brand ?? "—"}</td>
-                      <td className="num">{r.period ?? "—"}</td>
                       <td>
-                        <span className={`pill ${s.pill}`}>{s.label}</span>
+                        <span className={`pill ${src.pill}`} title={src.full}>
+                          {src.short}
+                        </span>
                       </td>
-                      <td className="mono tiny">{r.pattern ?? "—"}</td>
+                      <td className="clip">{r.brand ?? "—"}</td>
+                      <td className="tiny num">{r.quantity ?? "—"}</td>
+                      <td className="num tiny">{r.period ?? "—"}</td>
+                      <td>
+                        <span className={`pill ${st.pill}`} title={r.pattern ?? ""}>
+                          {st.label}
+                        </span>
+                      </td>
                     </tr>
                   );
                 })}
