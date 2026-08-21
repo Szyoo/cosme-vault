@@ -30,7 +30,7 @@ const ENQ_HOST = "is-enq.cosme.net";
 
 export const presentBlogPattern: FlowPattern = {
   name: "present-blog",
-  describes: "品牌粉丝俱乐部限定：article → present-blog 确认页 → POST 完成",
+  describes: "粉丝俱乐部限定：确认页 → POST → 自家问卷页 → 应募",
 
   async recognize(page: Page): Promise<Recognition> {
     const url = page.url();
@@ -62,7 +62,14 @@ export const presentBlogPattern: FlowPattern = {
       // 到不了确认表单：可能已结束或已应募，交给上层收现场判断
       return { status: "unknownPattern" };
     }
-    await ctx.log("提交登録情報確認（本流程无需勾选关注，已是粉丝俱乐部成员）");
+    // 「関注品牌」复选框：present-blog 那批没有，经品牌主页那批有（addBrand，默认勾选）。
+    // 站点写明应募需要关注品牌，故保持勾选状态不动。
+    const addBrand = form.locator(PRESENT_BLOG.addBrandCheckbox);
+    const hasAddBrand = (await addBrand.count()) > 0;
+    if (hasAddBrand && !(await addBrand.first().isChecked())) {
+      await addBrand.first().check({ timeout: 3000 }).catch(() => undefined);
+    }
+    await ctx.log(`提交登録情報確認${hasAddBrand ? "（含关注品牌，应募必需）" : "（已是粉丝俱乐部成员，无需勾选）"}`);
     await ctx.pace();
     await Promise.all([
       page.waitForLoadState("domcontentloaded"),

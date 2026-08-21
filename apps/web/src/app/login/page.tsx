@@ -49,7 +49,7 @@ function LoginForm() {
   return (
     <main className="page narrow">
       <h1 className="page-title grad-text">Cosme Vault</h1>
-      <form className="glass stack section" onSubmit={submit}>
+      <form className="glass stack section" method="post" action="/api/auth/login" onSubmit={submit}>
         <input
           className="field"
           name="username"

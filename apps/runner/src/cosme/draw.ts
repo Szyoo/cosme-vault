@@ -62,13 +62,30 @@ export async function drawOnce(
 
   await deps.log(`命中模式：${picked.pattern.name}（${picked.pattern.describes}）`);
 
-  // ── 4. 执行 ──
-  const outcome = await picked.pattern.execute(page, {
+  // ── 4. 执行（支持一次「接力」） ──
+  //
+  // 为什么要接力：入口页与后续页面可能属于不同模式。实测案例——
+  // `/brands/<id>/present/<id>/` 详情页的入口是 isauth/addinfo（归 is-enq 模式），
+  // 但跳过去落在 `/present/<id>/confirm/`，那是 present-blog 模式的地盘。
+  // 让第一个模式跑完后，如果它「没认出落点」而**别的模式认得**，就交棒继续，
+  // 而不是直接判未知——否则这类跨模式流程永远走不通。
+  const ctx = {
     profile: params.credentials.profile,
     resolvedChoices: params.resolvedChoices,
     log: deps.log,
     pace,
-  });
+  };
+  let usedPattern = picked.pattern;
+  let outcome = await picked.pattern.execute(page, ctx);
+
+  if (outcome.status === "unknownPattern") {
+    const second = await selectPattern(page);
+    if (second.pattern && second.pattern.name !== picked.pattern.name) {
+      await deps.log(`交棒给模式：${second.pattern.name}（落点已换）`);
+      usedPattern = second.pattern;
+      outcome = await second.pattern.execute(page, ctx);
+    }
+  }
 
   // ⚠️ 模式在执行中途也可能返回 unknownPattern（比如 POST 后落到没见过的页面）。
   // 那种情况同样要采集现场——否则反馈机制在这条路径上等于失效（已踩过：
@@ -76,14 +93,14 @@ export async function drawOnce(
   const diagnostics =
     outcome.status === "unknownPattern"
       ? await collectDiagnostics(page, [
-          { name: picked.pattern.name, reason: "模式执行中途遇到未预期的页面" },
+          { name: usedPattern.name, reason: "模式执行中途遇到未预期的页面（含接力后）" },
         ])
       : null;
 
   return {
     kind: "draw",
     status: outcome.status,
-    pattern: picked.pattern.name,
+    pattern: usedPattern.name,
     pendingChoices: outcome.pendingChoices ?? [],
     diagnostics,
   };

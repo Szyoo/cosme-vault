@@ -24,7 +24,7 @@ export const presents = sqliteTable(
   {
     id: text("id").primaryKey(),
     // 与 contract 的 PresentSource 保持一致；mobileAll 是手机版全量列表（奖品的大头）
-    source: text("source", { enum: ["normal", "brandFanClub", "mobileAll"] }).notNull(),
+    source: text("source", { enum: ["normal", "brandFanClub", "brandFanClubViaBrand"] }).notNull(),
     link: text("link").notNull(),
     name: text("name").notNull(),
     brand: text("brand"),
@@ -101,4 +101,17 @@ export const adminUsers = sqliteTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+});
+
+/**
+ * runner 心跳。
+ *
+ * 原先存在进程内存里，但 Next 多 worker 时写心跳的 API 路由与渲染页面的进程
+ * 可能不是同一个，导致「在线」状态误报为离线。单行表（id 固定为 'runner'）。
+ */
+export const runnerState = sqliteTable("runner_state", {
+  id: text("id").primaryKey(),
+  location: text("location").notNull(),
+  at: text("at").notNull(),
+  busyJobId: text("busy_job_id"),
 });

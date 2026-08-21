@@ -111,56 +111,74 @@ async function parseBrandFanClub(page: Page): Promise<RawCard[]> {
 }
 
 /**
- * mobileAll：手机版全量列表（**奖品的大头**，实测 57 件里的 45 个只在这儿）。
+ * brandFanClubViaBrand：粉丝俱乐部限定里**要多跳一次**的那批（奖品的大头，45/55）。
  *
- * 卡片无稳定 class，故不依赖结构：从奖品链接反查最近的、有足够文本的容器。
- * 链接形态 `s.cosme.net/brand/brand_id/<品牌ID>/present/<奖品ID>`，
- * 入库时换成桌面规范地址（runner 后续用桌面 UA 打开它）。
+ * 桌面路径是两跳：
+ *   `/brandfanclub/present` 的卡片（只链到品牌主页）
+ *   → `/brand/brand_id/<品牌ID>/top`
+ *   → 品牌主页上的 `/brands/<品牌ID>/present/<奖品ID>/`
+ *
+ * 所以这个解析器要真的去访问品牌主页。逐个访问并带停顿，控制请求节奏。
  */
-async function parseMobileAll(page: Page): Promise<RawCard[]> {
-  return page.evaluate(() => {
-    const mk = (o: { siteId: string; link: string; title: string; brand: string | null; period: string | null; imageRaw: string | null }) => o;
-    const seen = new Map<string, ReturnType<typeof mk>>();
+async function parseBrandFanClubViaBrand(page: Page, pace: () => Promise<void>): Promise<RawCard[]> {
+  // 第一跳：从列表页取「卡片标题 + 品牌ID」
+  const cards = await page.evaluate(() => {
+    const out: { brandId: string; title: string; brand: string | null; qty: string | null; imageRaw: string | null }[] = [];
+    const seen = new Set<string>();
+    for (const t of Array.from(document.querySelectorAll(".psnt-ttl"))) {
+      const card = t.closest("li") ?? t.parentElement;
+      if (!card) continue;
+      const hrefs = Array.from(card.querySelectorAll<HTMLAnchorElement>("a[href]")).map((a) => a.getAttribute("href") ?? "");
+      // 有 article 直链的那 10 个走 present-blog，不在此处理
+      if (hrefs.some((h) => /\/beautist\/article\//.test(h))) continue;
+      const brandId = hrefs.find((h) => /\/brand\/brand_id\/\d+/.test(h))?.match(/\/brand\/brand_id\/(\d+)/)?.[1];
+      if (!brandId || seen.has(brandId)) continue;
+      seen.add(brandId);
 
-    for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="/present/"]'))) {
-      const m = a.href.match(/\/brand(?:s)?(?:\/brand_id)?\/(\d+)\/present\/(\d+)/);
-      if (!m) continue;
-      const [, brandId, presentId] = m;
-      if (!brandId || !presentId || seen.has(presentId)) continue;
-
-      // 向上找到信息足够的卡片容器（结构无关）
-      let card: HTMLElement | null = a;
-      for (let i = 0; i < 4 && card?.parentElement; i++) {
-        card = card.parentElement;
-        if ((card.innerText ?? "").trim().length > 25) break;
-      }
-      const raw = (card?.innerText ?? a.innerText ?? "").replace(/\s+/g, " ").trim();
-      if (!raw) continue;
-
-      // 文本形如「品牌名 标题 計N名様 一句话 応募する」
-      const lines = (card?.innerText ?? "").split("\n").map((t) => t.trim()).filter(Boolean);
-      const brand = lines[0] ?? null;
-      const title = lines[1] ?? raw.slice(0, 60);
-      const period = lines.find((t) => /計\d+名様|名様/.test(t)) ?? null;
-      const img = card?.querySelector("img")?.getAttribute("src") ?? null;
-
-      seen.set(presentId, mk({
-        siteId: presentId,
-        link: `https://www.cosme.net/brands/${brandId}/present/${presentId}/`,
-        title,
-        brand,
-        period,
-        imageRaw: img,
-      }));
+      const dt = card.querySelector("dt")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const title = (t.textContent ?? "").replace(/\s+/g, " ").trim();
+      const brand = dt.startsWith(title) ? dt.slice(title.length).replace(/^\s*\/\s*/, "").trim() || null : null;
+      const qty = card.querySelector(".psnt-num")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const copy = card.querySelector(".psnt-copy")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      out.push({ brandId, title, brand, qty: [qty, copy].filter(Boolean).join(" · ") || null, imageRaw: card.querySelector("img")?.getAttribute("src") ?? null });
     }
-    return Array.from(seen.values());
+    return out;
   });
+
+  // 第二跳：逐个进品牌主页取奖品地址
+  const result: RawCard[] = [];
+  for (const c of cards) {
+    try {
+      await page.goto(selectors.brandTopUrl(c.brandId), { waitUntil: "domcontentloaded", timeout: 35_000 });
+      const found = await page.evaluate(() => {
+        for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="/present/"]'))) {
+          const m = (a.getAttribute("href") ?? "").match(/\/brands\/(\d+)\/present\/(\d+)/);
+          if (m) return { brandId: m[1]!, presentId: m[2]! };
+        }
+        return null;
+      });
+      if (found) {
+        result.push({
+          siteId: found.presentId,
+          link: selectors.brandPresentUrl(found.brandId, found.presentId),
+          title: c.title,
+          brand: c.brand,
+          period: c.qty,
+          imageRaw: c.imageRaw,
+        });
+      }
+    } catch {
+      // 单个品牌页打不开就跳过，不影响整轮
+    }
+    await pace();
+  }
+  return result;
 }
 
-const PARSERS: Record<PresentSource, (page: Page) => Promise<RawCard[]>> = {
+/** 单跳解析器（只看列表页） */
+const SIMPLE_PARSERS: Partial<Record<PresentSource, (page: Page) => Promise<RawCard[]>>> = {
   normal: parseNormal,
   brandFanClub: parseBrandFanClub,
-  mobileAll: parseMobileAll,
 };
 
 /**
@@ -170,8 +188,8 @@ const PARSERS: Record<PresentSource, (page: Page) => Promise<RawCard[]>> = {
  */
 function presentId(source: PresentSource, siteId: string): string {
   if (source === "brandFanClub") return `bfc-${siteId}`;
-  // mobileAll 的 id 段（31774…）与 brandcollection（12057…）不重叠，但仍加前缀防将来撞号
-  if (source === "mobileAll") return `bp-${siteId}`;
+  // 这批的 id 段（31774…）与 brandcollection（12057…）不重叠，但仍加前缀防将来撞号
+  if (source === "brandFanClubViaBrand") return `bp-${siteId}`;
   return siteId;
 }
 
@@ -181,11 +199,18 @@ function presentId(source: PresentSource, siteId: string): string {
  * ⚠️ mobileAll 必须用**手机 UA** 才拿得到全量列表，故调用方要能提供一个手机上下文的 page
  * （见 `scanSources` 的 `mobilePage`）；用桌面 UA 打开只会得到桌面版内容。
  */
-export async function scanSource(page: Page, source: PresentSource): Promise<ScanOutcome> {
+export async function scanSource(
+  page: Page,
+  source: PresentSource,
+  pace: () => Promise<void> = async () => undefined,
+): Promise<ScanOutcome> {
   const url = selectors.LIST_URLS[source];
-  await page.goto(url, { waitUntil: source === "mobileAll" ? "networkidle" : "domcontentloaded", timeout: 45_000 });
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45_000 });
 
-  const raw = await PARSERS[source](page);
+  const raw =
+    source === "brandFanClubViaBrand"
+      ? await parseBrandFanClubViaBrand(page, pace)
+      : await SIMPLE_PARSERS[source]!(page);
   const scannedAt = new Date().toISOString();
 
   const presents: Present[] = raw
@@ -247,20 +272,12 @@ export async function scanSources(
   sources: readonly PresentSource[],
   log: (text: string, level?: "info" | "warn" | "error") => Promise<void>,
   pace: () => Promise<void>,
-  /** 手机 UA 的 page；抓 mobileAll 必须用它（桌面 UA 拿不到全量列表） */
-  mobilePage?: Page,
 ): Promise<{ presents: Present[]; reports: ScanSourceReport[] }> {
   const byLink = new Map<string, Present>();
   const reports: ScanSourceReport[] = [];
 
   for (const source of sources) {
-    const target = source === "mobileAll" ? (mobilePage ?? page) : page;
-    if (source === "mobileAll" && !mobilePage) {
-      await log("跳过 mobileAll：未提供手机 UA 上下文（桌面 UA 拿不到全量列表）", "warn");
-      reports.push({ source, presentCount: 0, recognized: false, note: "缺少手机 UA 上下文", diagnostics: null });
-      continue;
-    }
-    const { presents, report } = await scanSource(target, source);
+    const { presents, report } = await scanSource(page, source, pace);
     reports.push(report);
     for (const p of presents) byLink.set(p.link, p);
 
