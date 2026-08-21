@@ -35,7 +35,8 @@ export default function Home() {
       name: schema.presents.name,
       brand: schema.presents.brand,
       imageUrl: schema.presents.imageUrl,
-      period: schema.presents.description,
+      period: schema.presents.period,
+      quantity: schema.presents.quantity,
     })
     .from(schema.accountPresents)
     .leftJoin(schema.presents, eq(schema.presents.id, schema.accountPresents.presentId))

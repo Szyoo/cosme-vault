@@ -1,0 +1,1008 @@
+{
+  "auditedAt": "2026-08-21T03:28:10.348Z",
+  "issues": [
+    {
+      "id": "bfc-2710060",
+      "field": "state",
+      "db": "8/17～8/23",
+      "page": "8/17～8/23",
+      "note": "页面无应募入口"
+    },
+    {
+      "id": "bfc-2711089",
+      "field": "state",
+      "db": "8/17～8/23",
+      "page": "8/17～8/23",
+      "note": "页面无应募入口"
+    },
+    {
+      "id": "bp-31774",
+      "field": "state",
+      "db": "8/17～8/23",
+      "page": "8/17～8/23",
+      "note": "页面无应募入口"
+    },
+    {
+      "id": "bp-31778",
+      "field": "period",
+      "db": "計20名様現品 · REJURAN ポアタイトニングトナーパッド",
+      "page": "8/17～8/23",
+      "note": "期间缺失"
+    },
+    {
+      "id": "bp-31808",
+      "field": "period",
+      "db": "計20名様現品 · 自然でぷっくりとした涙袋メイクが完成",
+      "page": "8/17～8/23",
+      "note": "期间缺失"
+    },
+    {
+      "id": "bp-31897",
+      "field": "period",
+      "db": "計20名様現品 · イオンバランスを整えサラサラの髪に！",
+      "page": "8/17～8/23",
+      "note": "期间缺失"
+    },
+    {
+      "id": "12053",
+      "field": "link",
+      "db": "https://www.cosme.net/brandcollection/present/detail/present_id/12053",
+      "page": "HTTP 404",
+      "note": "页面不可达"
+    }
+  ],
+  "report": [
+    {
+      "id": "bfc-2710060",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "【現品30名様】8月の強い紫外線から肌を守る。バッグに入れておきたいSILCUSシルクグロウベールUVミスト！｜SILCUSのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": false,
+        "ended": false
+      },
+      "problems": [
+        "页面无应募入口"
+      ]
+    },
+    {
+      "id": "bfc-2710365",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "10名様",
+        "image": true
+      },
+      "page": {
+        "title": "★現品が10名様に当たる！★つるつるクレイウォッシュ！透明感のあるツルツル肌に洗い上げる洗顔料｜ボタニカル フォースのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "10名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2710647",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "5名様",
+        "image": true
+      },
+      "page": {
+        "title": "≪現品プレゼント≫うるおいと血色感をひと塗りで。美容液発想の限定リップ｜ハーバーのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "5名様",
+        "tagline": null,
+        "imageUrl": "//cache-cdn.cosme.net/media/product/10228/skuimg-d_70432.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2710942",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17~8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "★新商品★メロウナイトリペアシリーズにヘアマスクが登場！＼豪華プレゼントキャンペーンも！／｜YOLUのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17~8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2710968",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "【ノーファンデで乗り切る8月】透明感UVで夕方まで崩れないサラツヤ美素肌｜Beauty of Joseonのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2710973",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "【最新クチコミ】使った人が手放せない。潤燥エッセンスの魅力とは？｜Sulwhasooのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": "//cache-cdn.cosme.net/media/product/10250/skuimg_1061183.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2711006",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "毎日の歯みがきが、少し楽しみになる。クラプロックスビーユー｜CURAPROX｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2711089",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "【現品30名様】 繰り返す肌荒れに！鎮静からトラブル跡までケアするTECAクリーム｜SKIN1004のブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": "//cache-cdn.cosme.net/media/product/10290/skuimg_1089737.jpg",
+        "entryOpen": false,
+        "ended": false
+      },
+      "problems": [
+        "页面无应募入口"
+      ]
+    },
+    {
+      "id": "bfc-2711174",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "★30名様プレゼント★日焼け止めでシミ予防＆ボディケアまで！美容フル装備UV｜ソフィーナ アルブランのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bfc-2711176",
+      "source": "brandFanClub",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "image": true
+      },
+      "page": {
+        "title": "【現品30名様】肌のエネルギー発想☆彡夏を越した肌のうるおいとハリを立て直す「ハイドラ 5ALA マスク」をプレゼント！｜【公式】ルルルンのブログ｜アットコスメブログ",
+        "brand": null,
+        "period": "8/17～8/23",
+        "quantity": "30名様",
+        "tagline": null,
+        "imageUrl": null,
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31774",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "image": true
+      },
+      "page": {
+        "title": "ナチュラルアイランド / 【現品20名】ハリのあるうるおいボディへをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ナチュラルアイランド",
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "tagline": "【現品20名】ハリのあるうるおいボディへ",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10155/skuimg_1111317.jpg",
+        "entryOpen": false,
+        "ended": false
+      },
+      "problems": [
+        "页面无应募入口"
+      ]
+    },
+    {
+      "id": "bp-31775",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ナリスアップ / くちびる用下地　ヌードリップミューターをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ナリスアップ",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "くちびる用下地　ヌードリップミューター",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10268/skuimg_1020972.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31778",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": null,
+        "quantity": "計20名様現品 · REJURAN ポアタイトニングトナーパッド",
+        "image": true
+      },
+      "page": {
+        "title": "リジュラン(REJURAN COSMETICS) / REJURAN ポアタイトニングトナーパッドをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "リジュラン(REJURAN COSMETICS)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "REJURAN ポアタイトニングトナーパッド",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10278/skuimg_1055510.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": [
+        "期间缺失"
+      ]
+    },
+    {
+      "id": "bp-31779",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ハウス オブ ローゼ(HOUSE OF ROSE) / クリアアップジェルをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ハウス オブ ローゼ(HOUSE OF ROSE)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "クリアアップジェル",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10225/skuimg-d_64039.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31782",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ママ＆キッズ / ママ＆キッズ スムースヘアミルクをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ママ＆キッズ",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ママ＆キッズ スムースヘアミルク",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10299/skuimg_1121398.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31785",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ジバンシイ(GIVENCHY) / プリズム・リーブルをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ジバンシイ(GIVENCHY)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "プリズム・リーブル",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10258/skuimg_987160.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31786",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計5名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ハーバー(HABA) / とろけてなじむリップスクラブ＆スキンケアセットをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ハーバー(HABA)",
+        "period": "8/17～8/23",
+        "quantity": "計5名様現品",
+        "tagline": "とろけてなじむリップスクラブ＆スキンケアセット",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10228/skuimg-d_70432.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31791",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ココンシュペール / ココンシュペールSP/TR　スリーク＆リッチをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ココンシュペール",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ココンシュペールSP/TR　スリーク＆リッチ",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10300/skuimg_1123878.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31801",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様サンプル",
+        "image": true
+      },
+      "page": {
+        "title": "JINO(ジーノ) / 「ジーノ」高保湿エイジングケアトライアルセットをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "JINO(ジーノ)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様サンプル",
+        "tagline": "「ジーノ」高保湿エイジングケアトライアルセット",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10282/skuimg_1066106.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31802",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "image": true
+      },
+      "page": {
+        "title": "AXXZIA（アクシージア） / 【現品20名】この夏、リスブランで始める毛穴ケアをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "AXXZIA（アクシージア）",
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "tagline": "【現品20名】この夏、リスブランで始める毛穴ケア",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10296/skuimg_1106365.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31803",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "メンターム / ベルディオUVモイスチャージェルN 80ｇをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "メンターム",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ベルディオUVモイスチャージェルN 80ｇ",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10218/skuimg_899326.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31808",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": null,
+        "quantity": "計20名様現品 · 自然でぷっくりとした涙袋メイクが完成",
+        "image": true
+      },
+      "page": {
+        "title": "too cool for school / プロ級涙袋メイク★フロッタージュペンシル 22号をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "too cool for school",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "プロ級涙袋メイク★フロッタージュペンシル 22号",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10257/skuimg_1122151.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": [
+        "期间缺失"
+      ]
+    },
+    {
+      "id": "bp-31823",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "SKIN1004 / センテラ TECA クリームをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "SKIN1004",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "センテラ TECA クリーム",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10290/skuimg_1089737.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31825",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "アンプルール(AMPLEUR) / ハイドロキノン×レチノール配合！人気の導入美容液をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "アンプルール(AMPLEUR)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ハイドロキノン×レチノール配合！人気の導入美容液",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10234/skuimg-d_81216.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31831",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "Sulwhasoo(雪花秀, ソルファス) / サンプル20名様・潤燥(ユンジョ)エッセンスをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "Sulwhasoo(雪花秀, ソルファス)",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "サンプル20名様・潤燥(ユンジョ)エッセンス",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10250/skuimg_1061183.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31836",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "デンティス / デンティス オーラルケア3点セットをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "デンティス",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "デンティス オーラルケア3点セット",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/2920/skuimg_1016550.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31851",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "キュレル(Curel) / キュレル リップケアクリーム 美発色ボルドーをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "キュレル(Curel)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "キュレル リップケアクリーム 美発色ボルドー",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10240/skuimg_981669.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31852",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "FAS / ベスコス多数受賞｜夏ダメージにも発酵デイクリームをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "FAS",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ベスコス多数受賞",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10266/skuimg_1016171.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31856",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "コラリッチ / 朝夜使い分け！なりたい肌へ導く2つの洗顔をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "コラリッチ",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "朝夜使い分け！なりたい肌へ導く2つの洗顔",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10293/skuimg_1099291.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31857",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "マキアージュ(MAQuillAGE) / リップグロウボムをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "マキアージュ(MAQuillAGE)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "リップグロウボム",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10281/skuimg_1063030.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31858",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "BOTANIST(ボタニスト) / ボタニスト　ボディースクラブ　デューイーをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "BOTANIST(ボタニスト)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ボタニスト　ボディースクラブ　デューイー",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10293/skuimg_1099116.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31859",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "アスタリフト / 20名様限定！大人気2商品プレゼントをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "アスタリフト",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "20名様限定！大人気2商品プレゼント",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10264/skuimg_1008542.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31870",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ラ ロッシュ ポゼ / ラ ロッシュ ポゼの名品をセットでプレゼントをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ラ ロッシュ ポゼ",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ラ ロッシュ ポゼの名品をセットでプレゼント",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10265/skuimg_1093657.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31871",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計10名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "ボトルワークス / モロッカンビューティ ヘアオイルスプレーをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ボトルワークス",
+        "period": "8/17～8/23",
+        "quantity": "計10名様現品",
+        "tagline": "モロッカンビューティ ヘアオイルスプレー",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10258/skuimg_988022.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31873",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "HACCI(ハッチ)(ハッチ/ハッチイチキューイチニー) / 【限定20名様！】コラーゲンドリンク3本セットをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "HACCI(ハッチ)(ハッチ",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "ハッチイチキューイチニー) / 【限定20名様！】コラーゲンドリンク3本セット",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10214/skuimg-d_42904_m.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31875",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "ナリス / 【現品20名様プレゼント】ふきとり化粧水をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ナリス",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "【現品20名様プレゼント】ふきとり化粧水",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10300/skuimg_1125924.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31879",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "ちふれ / 「リップ ライナー」を20名様にプレゼント♪をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ちふれ",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "「リップ ライナー」を20名様にプレゼント♪",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10188/skuimg-d_6000.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31880",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "SABON(サボン) / 【現品】リニューアルした新シャワーオイルをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "SABON(サボン)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "【現品】リニューアルした新シャワーオイル",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10294/skuimg_1100896.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31882",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "VT(ブイティー) / ビタミンCアスタキサン、グルタチオンマスク２点をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "VT(ブイティー)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ビタミンCアスタキサン、グルタチオンマスク２点",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10290/skuimg_1087647.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31890",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "10名様",
+        "image": true
+      },
+      "page": {
+        "title": "KANEBO / 注目の夜クリーム現品を10名様にプレゼント！をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "KANEBO",
+        "period": "8/17～8/23",
+        "quantity": "10名様",
+        "tagline": "注目の夜クリーム現品を10名様にプレゼント！",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10276/skuimg_1047395.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31891",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "image": true
+      },
+      "page": {
+        "title": "IOPE(アイオペ) / 【現品20名様】『PDRN カフェインショット』をプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "IOPE(アイオペ)",
+        "period": "8/17～8/23",
+        "quantity": "20名様",
+        "tagline": "【現品20名様】『PDRN カフェインショット』",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10236/skuimg_1033614.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31897",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": null,
+        "quantity": "計20名様現品 · イオンバランスを整えサラサラの髪に！",
+        "image": true
+      },
+      "page": {
+        "title": "THERATIS / 【新作現品】セラティス イオン ナイト チャージをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "THERATIS",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "【新作現品】セラティス イオン ナイト チャージ",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10212/skuimg-d_40025_m.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": [
+        "期间缺失"
+      ]
+    },
+    {
+      "id": "bp-31901",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "image": true
+      },
+      "page": {
+        "title": "エクセル / 【現品20名】エクセル　フェードブロウマスカラをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "エクセル",
+        "period": "8/17～8/23",
+        "quantity": "20名",
+        "tagline": "【現品20名】エクセル　フェードブロウマスカラ",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10299/skuimg_1122214.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31905",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "エッセンシャル / ふわりキラリスプレーをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "エッセンシャル",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "ふわりキラリスプレー",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10290/skuimg_1088684.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "bp-31907",
+      "source": "brandFanClubViaBrand",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "image": true
+      },
+      "page": {
+        "title": "アリィー(ALLIE) / 汗が気になる季節に！汗さらコンフォートUVをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "アリィー(ALLIE)",
+        "period": "8/17～8/23",
+        "quantity": "計20名様現品",
+        "tagline": "汗が気になる季節に！汗さらコンフォートUV",
+        "imageUrl": "https://cache-cdn.cosme.net/media/product/10217/skuimg-d_48193_m.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "12054",
+      "source": "normal",
+      "db": {
+        "period": "8/17～8/23",
+        "quantity": "500名様",
+        "image": true
+      },
+      "page": {
+        "title": "エスティ ローダー(ESTEE LAUDER) / アドバンス ナイト リペア トリートメント エッセンス ローション(200ml) ／アドバンス ナイト リペア SMR コンプレックス（15ml）をプレゼント！｜美容・化粧品情報はアットコ",
+        "brand": "エスティ ローダー(ESTEE LAUDER)",
+        "period": null,
+        "quantity": "500名様",
+        "tagline": null,
+        "imageUrl": "https://cache-cdn.cosme.net/media/monitor/12054/393/393.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    },
+    {
+      "id": "12057",
+      "source": "normal",
+      "db": {
+        "period": "8/19～8/25",
+        "quantity": "500名様",
+        "image": true
+      },
+      "page": {
+        "title": "ミノン(MINON) / ミノン アミノモイスト エッセンス クレンジングオイルをプレゼント！｜美容・化粧品情報はアットコスメ",
+        "brand": "ミノン(MINON)",
+        "period": null,
+        "quantity": "500名様",
+        "tagline": "ミノン アミノモイスト エッセンス クレンジングオイル",
+        "imageUrl": "https://cache-cdn.cosme.net/media/monitor/12057/394/394.jpg",
+        "entryOpen": true,
+        "ended": false
+      },
+      "problems": []
+    }
+  ]
+}
