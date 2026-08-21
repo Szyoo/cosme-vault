@@ -113,21 +113,15 @@ export default function RecordsPage() {
                       </td>
                       <td>{r.brand ?? "—"}</td>
                       <td className="clip" title={r.name ?? r.presentId}>
-                        <span className="pz">
+                        <a className="pz" href={`/presents/${r.presentId}`}>
                           {r.imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img className="thumb" src={r.imageUrl} alt="" loading="lazy" width={40} height={40} />
                           ) : (
                             <span className="thumb thumb-none" aria-hidden />
                           )}
-                        {r.link ? (
-                          <a href={r.link} target="_blank" rel="noreferrer">
-                            {r.name ?? r.presentId}
-                          </a>
-                        ) : (
-                          (r.name ?? r.presentId)
-                        )}
-                        </span>
+                          <span className="clip">{r.name ?? r.presentId}</span>
+                        </a>
                       </td>
                       <td className="num tiny">{r.period ?? "—"}</td>
                       <td className="tiny">{labelOf(r.accountId)}</td>

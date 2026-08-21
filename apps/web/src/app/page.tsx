@@ -149,10 +149,10 @@ export default function Home() {
                   return (
                     <tr key={`${r.accountId}-${r.presentId}`}>
                       <td className="clip" title={r.name ?? r.presentId}>
-                        <span className="pz">
+                        <a className="pz" href={`/presents/${r.presentId}`}>
                           <Thumb src={r.imageUrl} alt={r.name ?? ""} />
                           <span className="clip">{r.name ?? r.presentId}</span>
-                        </span>
+                        </a>
                       </td>
                       <td>{r.brand ?? "—"}</td>
                       <td className="num">{r.period ?? "—"}</td>

@@ -169,3 +169,12 @@
   display: inline-block;
   background: var(--inner-bg);
 }
+
+/* 表格里可点的奖品单元格：整块（图 + 名）都可点，手机上命中区域够大 */
+a.pz {
+  text-decoration: none;
+  color: inherit;
+}
+a.pz:hover .clip {
+  text-decoration: underline;
+}
