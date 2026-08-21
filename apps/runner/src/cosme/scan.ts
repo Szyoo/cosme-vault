@@ -9,7 +9,7 @@
  */
 import type { Page } from "playwright";
 import type { Present, PresentSource, ScanSourceReport } from "@cosme/contract";
-import { selectors, validateImageUrl } from "@cosme/core";
+import { isPeriodExpired, normalizePeriod, selectors, validateImageUrl } from "@cosme/core";
 import { collectDiagnostics } from "./patterns/index.ts";
 
 /** 解析器从页面里取到的原始卡片数据（未经校验） */
@@ -274,18 +274,6 @@ async function parseTieupCampaign(page: Page): Promise<RawCard[]> {
       const period = li.querySelector("span.pink02")?.textContent?.replace(/\s+/g, " ").trim() || null;
       const quantity = copy.match(/(?:現品)?\s*\d+\s*名様/)?.[0]?.replace(/\s+/g, "") ?? null;
 
-      // 期间已过的直接跳过，别把过期奖品扫进来白占一次投递
-      if (period) {
-        const end = period.match(/[～~]\s*(\d{1,2})\/(\d{1,2})/);
-        if (end) {
-          const now = new Date();
-          const endDate = new Date(now.getFullYear(), Number(end[1]) - 1, Number(end[2]), 23, 59);
-          // 跨年时（12月→1月）结束月小于当前月，按次年算
-          if (Number(end[1]) < now.getMonth() + 1 - 6) endDate.setFullYear(now.getFullYear() + 1);
-          if (endDate < now) continue;
-        }
-      }
-
       seen.set(id, {
         siteId: id,
         // 追踪链本身就是入口，直接存它——runner 打开后会被一路重定向到确认页
@@ -350,6 +338,8 @@ export async function scanSource(
 
   const presents: Present[] = raw
     .filter((r) => r.title) // 标题为空说明没解析到卡片正文，宁可丢弃也不入库脏数据
+    // 期间已过的不入库，免得白占一次投递（判断在 Node 侧做，可用 core 的共享函数）
+    .filter((r) => !isPeriodExpired(r.period))
     .map((r) => ({
       id: presentId(source, r.siteId),
       source,
@@ -359,7 +349,7 @@ export async function scanSource(
       // 只用页面上真实存在的地址；占位图/站点图标一律过滤成 null。
       // ⚠️ 刻意不按 ID 构造 URL——实测过后缀会变（12053 是 .jpg 不是 .png）
       imageUrl: validateImageUrl(r.imageRaw),
-      period: r.period,
+      period: normalizePeriod(r.period),
       quantity: r.quantity,
       tagline: r.tagline,
       scannedAt,
