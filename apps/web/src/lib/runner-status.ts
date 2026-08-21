@@ -46,7 +46,3 @@ function isJobStillRunning(jobId: string | null): boolean {
   return job?.status === "running";
 }
 
-/** 排队中的任务数。runner 离线时用来说明「排着队但没人干」。 */
-export function countQueuedJobs(): number {
-  return db.select().from(schema.jobs).where(eq(schema.jobs.status, "queued")).all().length;
-}

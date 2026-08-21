@@ -36,7 +36,7 @@ const zh = {
     busy: "执行中",
     idle: "空闲",
     lastSeen: (ago: string) => `最后心跳 ${ago}`,
-    offlineQueued: (n: number) => `${n} 个任务在排队，等 runner 上线才会开始。`,
+    offlineQueued: (n: number) => `${n} 个任务在排队（跑一轮算一个），等 runner 上线才会开始。`,
     diedMidJob:
       "掉线时手上还有任务——那次投递有没有真的提交出去无从查证（@COSME 不标注「已应募」），" +
       "已按超时回收并标成失败，请人工到原页面确认。",
@@ -308,7 +308,7 @@ const ja: Dict = {
     busy: "実行中",
     idle: "待機中",
     lastSeen: (ago: string) => `最終ハートビート ${ago}`,
-    offlineQueued: (n: number) => `${n} 件のタスクが待機中。runner が起動するまで進みません。`,
+    offlineQueued: (n: number) => `${n} 件のタスクが待機中（一周まわす＝1 件）。runner が起動するまで進みません。`,
     diedMidJob:
       "切断時にタスクを保持していました——その応募が実際に送信されたかは確認できません" +
       "（@COSME は「応募済み」を表示しない）。タイムアウトとして回収し失敗扱いにしました。元ページで確認してください。",
@@ -560,7 +560,7 @@ const en: Dict = {
     busy: "busy",
     idle: "idle",
     lastSeen: (ago: string) => `last heartbeat ${ago}`,
-    offlineQueued: (n: number) => `${n} job(s) queued — nothing runs until the runner is back.`,
+    offlineQueued: (n: number) => `${n} task(s) queued (a round counts as one) — nothing runs until the runner is back.`,
     diedMidJob:
       "It still held a job when it dropped off — whether that entry actually got submitted cannot be verified " +
       "(@COSME never marks “already entered”). It was reclaimed as timed out and marked failed; please check the original page.",
