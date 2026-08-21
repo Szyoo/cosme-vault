@@ -12,14 +12,22 @@ import { z } from "zod";
 
 /** 奖品来源：@cosme 有两个奖品列表页（普通 / 品牌粉丝俱乐部），沿用二代 draw4cosme 的分类 */
 export const PresentSource = z.enum([
-  "normal", // /brandcollection/present/ —— 每周三更新的品牌新品
-  "brandFanClub", // /brandfanclub/present —— 粉丝俱乐部限定（桌面页只露出 10 个）
+  /** `/brandcollection/present/` —— 每周三更新的品牌新品，入口是详情页的 `a[onclick]` */
+  "normal",
   /**
-   * s.cosme.net/present/ 的全量列表 —— **奖品的大头在这里**。
-   * 实测：站点共 57 件在募集，桌面版各页合计只暴露 13 个，
-   * 剩下 45 个只在**手机版全量列表**里出现（桌面版无等价页面，试过的 /list、/all 均 404）。
+   * 粉丝俱乐部限定，**带 `/beautist/article/<ID>` 直链**的那批（桌面列表页上有 10 个）。
+   * 走 present-blog 流程。
    */
-  "mobileAll",
+  "brandFanClub",
+  /**
+   * 同样是**粉丝俱乐部限定**奖品（详情页也写「ブランドファンクラブ限定プレゼント」），
+   * 但列表卡片只链到品牌主页，要多跳一次才拿到奖品地址：
+   *   `/brandfanclub/present` 卡片 → `/brand/brand_id/<品牌ID>/top` → `/brands/<品牌ID>/present/<奖品ID>/`
+   *
+   * 这是奖品的**大头**（实测 55 件里的 45 件）。走 is-enq 流程，
+   * 入口是详情页的 `input[onclick]`。
+   */
+  "brandFanClubViaBrand",
 ]);
 export type PresentSource = z.infer<typeof PresentSource>;
 
@@ -107,7 +115,7 @@ export const ScanJob = z.object({
   kind: z.literal("scan"),
   id: z.string(),
   accountId: z.string(),
-  sources: z.array(PresentSource).default(["normal", "brandFanClub", "mobileAll"]),
+  sources: z.array(PresentSource).default(["normal", "brandFanClub", "brandFanClubViaBrand"]),
 });
 
 /** 抽取任务：对某账号的某个奖品走完整抽奖流程 */

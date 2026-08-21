@@ -92,9 +92,27 @@ apps/
 - **brandFanClub 的奖品 id 用 `bfc-<articleId>` 前缀**（它没有 present_id），避免与 brandcollection 的数字 id 撞号。
 - **图片抓取有专门防护**：`@cosme/core` 的 `validateImageUrl`，四类实测陷阱——站点头部图标（`common_headers/`）、`onerror` 换上的占位图（`psnt_noimg`）、按 ID 构造 URL 想当然（**12053 是 .jpg 不是 .png**）、协议相对地址过不了 `z.string().url()`。策略是白名单（`/media/monitor/`、`/media/product/`、`/media/sku`）+ 占位与装饰黑名单，**宁可留空也不存错的**。
 - **选择器校验工具已就绪**：`npm run recon -- <url> [--form]` 列出页面全部可交互元素与建议选择器（只读、不提交表单，对账号零风险）；需登录态的页面先跑 `npm run login`。登录相关选择器已实测填入，`PRESENT` 与 `SURVEY` 仍是 TODO(recon)，待建立会话后继续。
-- **奖品来源共三个，`mobileAll` 是大头**（2026-08-20 实测）：站点自报「現在募集中のプレゼント 57件」，而桌面版各页合计只暴露 13 个（brandcollection 3 + brandFanClub 10）；**另外 45 个只出现在手机版全量列表 `s.cosme.net/present/`**，桌面版无等价页面（`/brandfanclub/present/list`、`/present/list/` 均 404）。抓它**必须用手机 UA**，否则站点返回桌面版内容——`browser.ts` 的 `getMobileContext()` 专门为此开一个带手机 UA 的 context 并把登录 cookie 带过去。实测三来源合计 58 个、全部有图。
-  - 这批奖品的链接形态是 `s.cosme.net/brand/brand_id/<品牌ID>/present/<奖品ID>`，规范地址 `www.cosme.net/brands/<品牌ID>/present/<奖品ID>/`（桌面 UA 可正常访问），id 前缀 `bp-`。
-  - ⚠️ 其详情页的投递入口是 **`input[onclick]`** 而非 `a[onclick]`，故 is-enq 模式的入口选择器放宽成了 `[onclick*="isauth/addinfo"]`。
+- **奖品来源共三个**（2026-08-21 实测，三种均已跑通真实投递）：
+
+  | 来源 | 列表页 | 数量 | 入口形态 | 走的模式 |
+  | --- | --- | --- | --- | --- |
+  | `normal` | `/brandcollection/present/` | 3 | 详情页 `a[onclick]` | is-enq-survey |
+  | `brandFanClub` | `/brandfanclub/present` | 10 | `/beautist/article/<ID>` 直链 | present-blog |
+  | `brandFanClubViaBrand` | 同上 | 35 | **两跳**：卡片→品牌主页→奖品 | is-enq → 接力 present-blog |
+
+  ⚠️ **`brandFanClubViaBrand` 的桌面入口要多跳一次**：`/brandfanclub/present` 上这批卡片
+  只链到 `/brand/brand_id/<品牌ID>/top`，得再进品牌主页才拿到
+  `/brands/<品牌ID>/present/<奖品ID>/`。一度误判成「只有手机版 `s.cosme.net` 才有」——
+  其实桌面入口一直都在，当时只取了卡片里的第一个链接（品牌链接）就以为那是推广卡片。
+  **命名也别按「从哪抓到的」来取**（曾叫 `mobileAll`，是坏名字）。
+  注意品牌主页要用 `/brand/brand_id/<id>/top`，`/brands/<id>/` 会超时。
+- **跨模式接力**：入口页与后续页可能属于不同模式——`/brands/<id>/present/<id>/` 详情页的入口是
+  `isauth/addinfo`（归 is-enq），但跳过去落在 `/present/<id>/confirm/`（present-blog 的地盘）。
+  `draw.ts` 因此支持**一次接力**：第一个模式返回 unknownPattern 且别的模式认得当前页，就交棒继续。
+- ⚠️ **同族页面的选择器别写死路径变体**（都踩过）：确认页有 `/present-blog/<PB>/confirm/`
+  与 `/present/<ID>/confirm/` 两种；问卷页同理有两种 `/survey/`；关注品牌复选框有
+  `addbrand`（present-blog，其实没有此框）与 **`addBrand`（驼峰，经品牌主页那批，默认勾选）**。
+  一律用宽口径选择器 + 大小写不敏感属性匹配。
 - **`packages/core/selectors.ts` 的 URL 已实测确认（2026-08-18，从 VPS）**：奖品列表真正的两个来源是 `/brandcollection/present/`（未登录可见）与 `/brandfanclub/present`（必须登录），2023 年记的 `/present/` 只是导航页；奖品详情形如 `/brandcollection/present/detail/present_id/<ID>`（用正则提 ID 比认 class 稳）；登录走集中式 `isauth` 网关而非独立表单页；页面编码是 **Shift_JIS**。**表单与按钮类选择器仍全是 TODO(inspect)**——匿名 curl 只能看到未登录视图，需登录后用 inspect 任务校验。
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
 - **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。

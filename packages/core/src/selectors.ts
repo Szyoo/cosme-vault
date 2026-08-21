@@ -12,21 +12,23 @@ export const LIST_URLS = {
   /** 品牌粉丝俱乐部奖品列表（未登录时不渲染奖品，必须先登录）。桌面页只露出 10 个 */
   brandFanClub: "https://www.cosme.net/brandfanclub/present",
   /**
-   * ⭐ 全量列表（**奖品的大头**）。
+   * ⭐ 粉丝俱乐部限定里**要多跳一次**的那批（奖品的大头，实测 55 件里的 45 件）。
    *
-   * 实测 2026-08-20：站点共「現在募集中のプレゼント 57件」，而桌面版
-   * `/present/` + `/brandcollection/present/` + `/brandfanclub/present`
-   * 合计只暴露 13 个；另外 45 个只出现在这个**手机版**列表里。
-   * 桌面版没有等价页面（`/brandfanclub/present/list`、`/present/list/` 均 404）。
+   * 与 `brandFanClub` 同一个列表页，区别只在卡片链接：
+   * 那 10 个直链 `/beautist/article/<ID>`，这 45 个只链到品牌主页，
+   * 需要再进品牌主页才拿到 `/brands/<品牌ID>/present/<奖品ID>/`。
    *
-   * ⚠️ 抓它必须用**手机 UA**，否则站点给的是桌面版内容。
+   * 历史注记：一度以为这批「只在手机版 s.cosme.net/present/ 才有」，
+   * 其实桌面入口一直都在，只是要多跳一跳（当时只取了卡片里的第一个链接，
+   * 拿到品牌链接就以为那是推广卡片）。
    */
-  mobileAll: "https://s.cosme.net/present/",
+  brandFanClubViaBrand: "https://www.cosme.net/brandfanclub/present",
 } as const;
 
-/** 抓 mobileAll 时要用的手机 UA（桌面 UA 拿不到全量列表） */
-export const MOBILE_USER_AGENT =
-  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+/** 品牌主页（多跳路径的中间站）。注意 `/brands/<id>/` 会超时，要用这个形式。 */
+export function brandTopUrl(brandId: string): string {
+  return `https://www.cosme.net/brand/brand_id/${brandId}/top`;
+}
 
 /**
  * 奖品详情页 URL 形态（实测）：
@@ -207,11 +209,22 @@ export const ARTICLE_PATTERN = /\/beautist\/article\/(\d+)/;
 export const PRESENT_BLOG = {
   /** article 页上的应募入口（href 直接指向 confirm 页，不是 onclick 跳转） */
   applyAnchor: 'a[href*="/present-blog/"]',
-  /** 确认页 URL 形态 */
-  confirmPattern: /\/brands\/(\d+)\/present-blog\/([A-Za-z0-9]+)\/confirm\//,
-  confirmForm: 'form[action*="/present-blog/"][action*="/confirm/"]',
+  /**
+   * 确认页 URL 形态。两种路径都归本模式：
+   * - `/brands/<品牌ID>/present-blog/<PB码>/confirm/` —— article 直链那批（10 个）
+   * - `/brands/<品牌ID>/present/<奖品ID>/confirm/`   —— 经品牌主页那批（35 个）
+   */
+  confirmPattern: /\/brands\/(\d+)\/(?:present-blog\/[A-Za-z0-9]+|present\/\d+)\/confirm\//,
+  confirmForm: 'form[action*="/confirm/"][action*="/brands/"]',
   tokenField: 'input[name="token"]',
   submitButton: 'input[type="submit"]',
+  /**
+   * 「关注品牌」复选框。⚠️ 两种写法都存在（实测）：
+   * - present-blog 那批：**没有**这个复选框（本就是粉丝俱乐部成员）
+   * - 经品牌主页那批：`addBrand`（**驼峰 B**，默认勾选，按钮写「同意して応募する」）
+   * 用大小写不敏感的属性选择器一次覆盖，别写死其中一种。
+   */
+  addBrandCheckbox: 'input[name="addBrand" i]',
   /** 标题含此串即说明停在确认页 */
   titleMarker: "登録情報確認",
 
@@ -238,7 +251,13 @@ export const PRESENT_BLOG = {
    */
   questionBlock: "div.qa",
   answerBlock: "div.answer",
-  surveyForm: 'form[action*="/present-blog/"][action*="/survey/"]',
+  /**
+   * 问卷表单。⚠️ 两批的路径不同，别写死其中一种（踩过：写死 /present-blog/
+   * 会让经品牌主页那批找不到提交按钮，问卷答完却交不上去）：
+   * - `/brands/<id>/present-blog/<PB>/survey/`
+   * - `/brands/<id>/present/<奖品ID>/survey/`
+   */
+  surveyForm: 'form[action*="/survey/"][action*="/brands/"]',
   /** 问卷题目的字段名形态 */
   surveyFieldPattern: /^id\[\d+\](\[\])?$/,
   surveySubmit: 'input[type="submit"]',

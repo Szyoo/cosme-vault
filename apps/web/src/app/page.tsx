@@ -8,6 +8,7 @@ import { db, schema } from "@/db/index.ts";
 import { getHeartbeat, isRunnerOnline } from "@/lib/runner-state.ts";
 import { RunButton } from "./run-button.tsx";
 import { Nav } from "./nav.tsx";
+import { LiveRefresh } from "./live-refresh.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default function Home() {
     .leftJoin(schema.presents, eq(schema.presents.id, schema.accountPresents.presentId))
     .all();
 
-  const logs = db.select().from(schema.runnerLogs).orderBy(desc(schema.runnerLogs.id)).limit(12).all();
+  const logs = db.select().from(schema.runnerLogs).orderBy(desc(schema.runnerLogs.id)).limit(20).all();
 
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
@@ -79,7 +80,10 @@ export default function Home() {
               {hb ? ` · ${hb.location} · ${hb.busyJobId ? "执行中" : "空闲"}` : " · 尚未收到心跳"}
             </p>
           </div>
-          <RunButton />
+          <div className="row">
+            <LiveRefresh />
+            <RunButton />
+          </div>
         </div>
         <p className="tiny muted">
           跑一轮 = 给每个启用账号扫描奖品；扫完自动派发投递，奖品之间按人类速度随机间隔。
