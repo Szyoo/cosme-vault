@@ -9,7 +9,7 @@
  */
 import type { Page } from "playwright";
 import type { Present, PresentSource, ScanSourceReport } from "@cosme/contract";
-import { isPeriodExpired, normalizePeriod, selectors, validateImageUrl } from "@cosme/core";
+import { isPeriodExpired, normalizePeriod, normalizeQuantity, selectors, validateImageUrl } from "@cosme/core";
 import { collectDiagnostics } from "./patterns/index.ts";
 
 /** 解析器从页面里取到的原始卡片数据（未经校验） */
@@ -350,7 +350,8 @@ export async function scanSource(
       // ⚠️ 刻意不按 ID 构造 URL——实测过后缀会变（12053 是 .jpg 不是 .png）
       imageUrl: validateImageUrl(r.imageRaw),
       period: normalizePeriod(r.period),
-      quantity: r.quantity,
+      // 数量写法有 28 种（`20名` / `10名様` / `計20名様現品` …），一律折成 `計N名様[・形式]`
+      quantity: normalizeQuantity(r.quantity),
       tagline: r.tagline,
       scannedAt,
     }));

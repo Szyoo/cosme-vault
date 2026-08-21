@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { RunnerHeartbeat } from "@cosme/contract";
 import { checkRunnerAuth } from "@/lib/runner-auth.ts";
 import { setHeartbeat } from "@/lib/runner-state.ts";
+import { publish } from "@/lib/events.ts";
 
 export async function POST(req: Request): Promise<NextResponse> {
   const denied = checkRunnerAuth(req);
@@ -13,5 +14,6 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "心跳格式非法" }, { status: 400 });
   }
   setHeartbeat(parsed.data);
-  return NextResponse.json({ ok: true });
+  publish("heartbeat");
+    return NextResponse.json({ ok: true });
 }

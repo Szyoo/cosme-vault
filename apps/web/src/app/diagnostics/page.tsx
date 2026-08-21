@@ -11,6 +11,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { InspectedElement, PatternDiagnostics } from "@cosme/contract";
 import { Nav } from "../nav.tsx";
+import { useT } from "@/i18n/context.tsx";
+import type { Dict } from "@/i18n/dict.ts";
 
 interface UnknownPattern {
   presentId: string;
@@ -30,6 +32,7 @@ interface UnrecognizedSource {
 }
 
 export default function DiagnosticsPage() {
+  const t = useT();
   const [data, setData] = useState<{
     unknownPatterns: UnknownPattern[];
     unrecognizedSources: UnrecognizedSource[];
@@ -47,12 +50,8 @@ export default function DiagnosticsPage() {
   if (!data) {
     return (
       <main className="page">
-        <nav className="back-row">
-          <a className="chip" href="/">
-            ← 控制台
-          </a>
-        </nav>
-        <p>读取中…</p>
+        <Nav current="/diagnostics" t={t} />
+        <p>{t.common.loading}</p>
       </main>
     );
   }
@@ -61,39 +60,38 @@ export default function DiagnosticsPage() {
 
   return (
     <main className="page">
-      <nav className="back-row">
-        <a className="chip" href="/">
-          ← 控制台
-        </a>
-      </nav>
-      <h1 className="page-title">诊断</h1>
+      <Nav current="/diagnostics" t={t} />
+
+      <h1 className="page-title">{t.diag.title}</h1>
       <p className="page-sub">
-        runner 遇到没见过的页面版式时会安全中止并回传现场（不会瞎点）。这里列出待处理的现场，
-        据此在 <code>apps/runner/src/cosme/patterns/</code> 加一个新模式即可。
+        {t.diag.sub} <code>apps/runner/src/cosme/patterns/</code>
       </p>
 
       {total === 0 && (
         <div className="empty">
           <div>✅</div>
-          <p>目前没有未识别的页面 —— 所有遇到的版式都有对应实现。</p>
+          <p>{t.diag.none}</p>
         </div>
       )}
 
       {data.unrecognizedSources.length > 0 && (
         <section className="section">
-          <div className="section-name">列表来源未识别（{data.unrecognizedSources.length}）</div>
+          <div className="section-name">
+            {t.diag.unrecognizedSources}（{data.unrecognizedSources.length}）
+          </div>
           {data.unrecognizedSources.map((s) => (
-            <Card key={s.source} title={`来源：${s.source}`} subtitle={s.note} at={s.at} diagnostics={s.diagnostics} />
+            <Card key={s.source} t={t} title={s.source} subtitle={s.note} at={s.at} diagnostics={s.diagnostics} />
           ))}
         </section>
       )}
 
       {data.unknownPatterns.length > 0 && (
         <section className="section">
-          <div className="section-name">投递流程未识别（{data.unknownPatterns.length}）</div>
+          <div className="section-name">{t.diag.unknownFlows}（{data.unknownPatterns.length}）</div>
           {data.unknownPatterns.map((u) => (
             <Card
               key={`${u.accountId}-${u.presentId}`}
+              t={t}
               title={`${u.brand ? `${u.brand} · ` : ""}${u.name ?? u.presentId}`}
               subtitle={u.link ?? ""}
               at={u.updatedAt}
@@ -103,17 +101,18 @@ export default function DiagnosticsPage() {
         </section>
       )}
 
-      <Nav current="/diagnostics" />
     </main>
   );
 }
 
 function Card({
+  t,
   title,
   subtitle,
   at,
   diagnostics,
 }: {
+  t: Dict;
   title: string;
   subtitle: string;
   at: string | null;
@@ -142,26 +141,26 @@ function Card({
 
       {!diagnostics && (
         <p className="small muted">
-          （没有现场包 —— 可能是旧记录，或 runner 采集失败）
+          {t.diag.noBundle}
         </p>
       )}
 
       {diagnostics && (
         <>
           <dl className="kv">
-            <dt>卡在</dt>
+            <dt>{t.diag.stuckAt}</dt>
             <dd>
               <code className="mono tiny">{diagnostics.url}</code>
             </dd>
-            <dt>标题</dt>
-            <dd>{diagnostics.title || "—"}</dd>
+            <dt>{t.diag.pageTitle}</dt>
+            <dd>{diagnostics.title || t.common.none}</dd>
             {diagnostics.triedPatterns.length > 0 && (
               <>
-                <dt>已试模式</dt>
+                <dt>{t.diag.triedPatterns}</dt>
                 <dd>
-                  {diagnostics.triedPatterns.map((t) => (
-                    <div key={t.name} className="tiny">
-                      <code>{t.name}</code> — {t.reason}
+                  {diagnostics.triedPatterns.map((tried) => (
+                    <div key={tried.name} className="tiny">
+                      <code>{tried.name}</code> — {tried.reason}
                     </div>
                   ))}
                 </dd>
@@ -171,18 +170,18 @@ function Card({
 
           <div className="actions">
             <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-              {open ? "收起" : `展开元素清单（${diagnostics.elements.length}）`}
+              {open ? t.diag.collapse : t.diag.expandElements(diagnostics.elements.length)}
             </button>
             <button type="button" className="btn-ghost btn-small" onClick={copyElements}>
-              {copied ? "已复制 ✓" : "复制元素清单"}
+              {copied ? t.diag.copied : t.diag.copyElements}
             </button>
           </div>
 
-          {open && <ElementTable elements={diagnostics.elements} />}
+          {open && <ElementTable elements={diagnostics.elements} t={t} />}
 
           {diagnostics.bodyExcerpt && (
             <details className="section">
-              <summary className="small">正文摘要</summary>
+              <summary className="small">{t.diag.bodyExcerpt}</summary>
               <p className="tiny muted" style={{ whiteSpace: "pre-wrap" }}>{diagnostics.bodyExcerpt}</p>
             </details>
           )}
@@ -192,23 +191,23 @@ function Card({
   );
 }
 
-function ElementTable({ elements }: { elements: InspectedElement[] }) {
+function ElementTable({ elements, t }: { elements: InspectedElement[]; t: Dict }) {
   return (
     <div className="table-wrap">
       <table className="tbl">
         <thead>
           <tr>
-            <th>标签</th>
-            <th>类型</th>
-            <th>建议选择器</th>
-            <th>文本</th>
+            <th>{t.diag.tag}</th>
+            <th>{t.diag.kind}</th>
+            <th>{t.diag.selector}</th>
+            <th>{t.diag.text}</th>
           </tr>
         </thead>
         <tbody>
           {elements.map((e, i) => (
             <tr key={`${e.selector}-${i}`}>
               <td>{e.tag}</td>
-              <td>{e.type ?? "—"}</td>
+              <td>{e.type ?? t.common.none}</td>
               <td className="mono tiny">{e.selector}</td>
               <td>{e.text.slice(0, 60)}</td>
             </tr>

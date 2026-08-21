@@ -9,8 +9,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
 import { Nav } from "../nav.tsx";
+import { useT } from "@/i18n/context.tsx";
+import type { Dict } from "@/i18n/dict.ts";
 
 export default function SettingsPage() {
+  const t = useT();
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
   const [newLabel, setNewLabel] = useState("");
   const [busy, setBusy] = useState(false);
@@ -46,7 +49,7 @@ export default function SettingsPage() {
   }
 
   async function removeAccount(id: string, label: string) {
-    if (!confirm(`删除账号「${label}」及其全部抽取记录？此操作不可撤销。`)) return;
+    if (!confirm(t.settings.confirmDelete(label))) return;
     await fetch(`/api/accounts/${id}`, { method: "DELETE" });
     await reload();
   }
@@ -62,37 +65,38 @@ export default function SettingsPage() {
 
   return (
     <main className="page">
-      <h1 className="page-title">设置</h1>
+      <Nav current="/settings" t={t} />
+
+      <h1 className="page-title">{t.settings.title}</h1>
 
       <section className="section">
-        <div className="section-name">cosme 账号</div>
-        <p className="page-sub">
-          抽奖批次会按顺序轮抽这里启用的账号。凭证经 AES-256-GCM 加密存储，页面不会回显已保存的值。
-        </p>
+        <div className="section-name">{t.settings.accounts}</div>
+        <p className="page-sub">{t.settings.accountsHint}</p>
 
         <form className="row section" onSubmit={addAccount}>
           <input
             className="field"
-            placeholder="账号备注名（如：主号）"
+            placeholder={t.settings.newLabel}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
             style={{ flex: 1 }}
           />
           <button type="submit" className="btn" disabled={busy || !newLabel.trim()}>
-            添加账号
+            {t.settings.add}
           </button>
         </form>
 
         {accounts.length === 0 && (
           <div className="empty">
             <div>👤</div>
-            <p>还没有账号，先添加一个。</p>
+            <p>{t.settings.empty}</p>
           </div>
         )}
 
         {accounts.map((a) => (
           <AccountCard
             key={a.id}
+            t={t}
             account={a}
             onSaved={async (msg) => {
               setMessage(msg);
@@ -106,17 +110,18 @@ export default function SettingsPage() {
         {message && <p className="ok-text">{message}</p>}
       </section>
 
-      <Nav current="/settings" />
     </main>
   );
 }
 
 function AccountCard({
+  t,
   account,
   onSaved,
   onToggle,
   onDelete,
 }: {
+  t: Dict;
   account: AccountSummary;
   onSaved: (msg: string) => Promise<void>;
   onToggle: () => void;
@@ -142,7 +147,7 @@ function AccountCard({
       // 提交后立刻清空表单，避免明文停留在页面上
       setForm({ email: "", password: "", name: "", age: "", job: "" });
       setOpen(false);
-      await onSaved(res.ok ? `「${account.label}」的凭证已保存` : `保存失败`);
+      await onSaved(res.ok ? t.settings.saved(account.label) : t.settings.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -154,28 +159,26 @@ function AccountCard({
       <div className="row spread">
         <strong>{account.label}</strong>
         <span className="small">
-          {c.configured ? "🔑 凭证已配置" : "⚠️ 凭证未配置"}
+          {c.configured ? `🔑 ${t.settings.credConfigured}` : `⚠️ ${t.settings.credMissing}`}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
         <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
-          {account.enabled ? "停用" : "启用"}
+          {account.enabled ? t.settings.disable : t.settings.enable}
         </button>
         <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-          {open ? "收起" : "填写凭证"}
+          {open ? t.settings.collapse : t.settings.fillCred}
         </button>
         <button type="button" className="btn-ghost danger btn-small" onClick={onDelete}>
-          删除
+          {t.settings.delete}
         </button>
       </div>
 
       {open && (
         <form className="stack section" onSubmit={save}>
-          <p className="tiny muted">
-            留空的字段保持原值不变。姓名 / 年龄 / 职业会被填进抽奖表单（对应日文栏位「名前」「年齢」「職業」）。
-          </p>
+          <p className="tiny muted">{t.settings.credHint}</p>
           <input
             className="field"
-            placeholder="cosme 登录邮箱"
+            placeholder={t.settings.email}
             autoComplete="off"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -183,31 +186,31 @@ function AccountCard({
           <input
             className="field"
             type="password"
-            placeholder="cosme 登录密码"
+            placeholder={t.settings.password}
             autoComplete="new-password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           <input
             className="field"
-            placeholder="姓名（名前）"
+            placeholder={t.settings.realName}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <input
             className="field"
-            placeholder="年龄（年齢）"
+            placeholder={t.settings.age}
             value={form.age}
             onChange={(e) => setForm({ ...form, age: e.target.value })}
           />
           <input
             className="field"
-            placeholder="职业（職業，如 自営業/自由業）"
+            placeholder={t.settings.job}
             value={form.job}
             onChange={(e) => setForm({ ...form, job: e.target.value })}
           />
           <button type="submit" className="btn" disabled={saving}>
-            {saving ? "保存中…" : "保存凭证"}
+            {saving ? t.settings.saving : t.settings.save}
           </button>
         </form>
       )}

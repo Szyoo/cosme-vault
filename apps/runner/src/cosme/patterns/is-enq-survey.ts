@@ -16,6 +16,7 @@
  */
 import type { Page } from "playwright";
 import { scanQuestions, applyDecisions } from "./survey-common.ts";
+import { clickAndSettle } from "../click.ts";
 import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from "./types.ts";
 
 /** 问卷引擎主机名 */
@@ -98,6 +99,22 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
   await ctx.pace();
 
   const questions = await scanQuestions(page);
+
+  // ⚠️ **已应募的判定放在最前面**，而且是结构性的、不看文案。
+  //
+  // 实测（12057：08-19 投递成功，08-21 重走同一条流程）：入口与确认页**完全看不出**
+  // 已经应募过，照样能走到 `is-enq.cosme.net/.../ans_pc.php`——但那一页**题数 0、
+  // 没有 `[name=send]`**，站点在这里才把「已抽选」摊出来。
+  //
+  // 这一段原先没有，于是走到最后 `send.count() === 0` 时被当成 `unknownPattern`
+  // 报成「没见过的版式」（诊断页上还会催人去补 pattern）。证据其实早就躺在
+  // `docs/research/surveys.json` 里，我自己的日志也打过「未取到题目（可能已应募）」，
+  // 只是当时把它读成了采集失败。
+  if (questions.length === 0 && (await page.locator('[name="send"]').count()) === 0) {
+    await ctx.log("问卷页没有任何题目与送信控件——站点表明已应募过，本次不提交任何内容", "warn");
+    return { status: "alreadyEntered" };
+  }
+
   const { pending, applied } = await applyDecisions(page, questions, ctx);
   if (pending.length > 0) {
     await ctx.log(`${questions.length} 题中有 ${pending.length} 题需要人工决定，挂起等待`, "warn");
@@ -140,15 +157,24 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
   await ctx.pace();
   // 送信按钮实测有两种：input[type=submit] 与 input[type=image]（图片按钮），都带 name="send"
   const send = page.locator('[name="send"]');
+  // 走到这里说明**有题目却没有送信控件**——那才是真的版式不认识（已应募的情况
+  // 在函数开头就返回 alreadyEntered 了）
   if ((await send.count()) === 0) return { status: "unknownPattern" };
   await ctx.log("送信");
-  await Promise.all([page.waitForLoadState("domcontentloaded"), send.first().click()]);
+  // 与 present-blog 同一个坑：click() 自带的导航等待会在站点慢跳转时抛超时，
+  // 把已经提交成功的投递记成失败。见 cosme/click.ts。
+  await clickAndSettle(page, send.first());
   await page.waitForTimeout(2000);
 
   // ⚠️ 不能用「正文含『必須』」判断失败——问卷正文本身就印着
   // 「（ * は必須回答です。）」这句说明，那样会把成功也判成失败（已踩过）。
   // 判据是「有没有离开问卷表单」。
-  const stillOnForm = (await page.locator('[name="send"]').count()) > 0;
+  let stillOnForm = (await page.locator('[name="send"]').count()) > 0;
+  if (stillOnForm) {
+    // 慢跳转再宽限一轮，别把「还在跳」当成「被退回」
+    await page.waitForTimeout(4000);
+    stillOnForm = (await page.locator('[name="send"]').count()) > 0;
+  }
   if (stillOnForm) {
     const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
     const reason = /エラー|入力してください|選択してください/.exec(body)?.[0] ?? "未知原因";

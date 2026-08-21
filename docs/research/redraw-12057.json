@@ -1,0 +1,20 @@
+{
+  "harvestedAt": "2026-08-21T07:41:09.285Z",
+  "records": [
+    {
+      "presentId": "12057",
+      "source": "normal",
+      "brand": "ミノン",
+      "name": "【NEW】敏感肌を考え続けたミノン アミノモイストから“とろうる”クレンジングオイルが新登場！現品500名様に♪",
+      "flow": "is-enq",
+      "surveyUrl": "https://is-enq.cosme.net/app/usr/ans/ans_pc.php?enq_id=27474&a_key=wF7RFy9HFtC.Ht8w0_EkRJCaFt9Hw_pf&site_type=opn&_gl=1*1ei08zf*_gcl_au*MTM1ODA5MTgwNS4xNzg3MDY3MDAwLjE4MTg3NTYzOS4xNzg3Mjk4MDYxLjE3ODcyOTgwNjAuMTEwNTg4Mzg5MC4xNzg3MjE3OTQ5LjE3ODcyOTgwNjA.*_ga*MTQyMDUwNDcwOS4xNzg3MDY3MDAx*_ga_HEKY12CWNG*czE3ODcyOTgwMzEkbzckZzEkdDE3ODcyOTgwNjEkajMwJGwwJGgw*_ga_7W5LJ9GKH3*czE3ODcyOTgwMzEkbzckZzEkdDE3ODcyOTgwNjEkajMwJGwwJGgw",
+      "questions": [],
+      "textInputs": [],
+      "selects": [],
+      "submitLabel": null,
+      "duplicateHints": [],
+      "duplicateContext": []
+    }
+  ],
+  "note": "重复应募检测实验的证据：12057 于 08-19 投递成功后，08-21 重走同一条 is-enq 流程，落点仍是 ans_pc.php 但题数 0、无 [name=send]——站点在问卷页摊牌「已应募」。alreadyEntered 状态与自动重试策略据此而来（见 AGENTS.md）。此文件原本覆盖掉了 surveys.json（harvest 会话失效时的窄范围运行），已拆出另存。"
+}

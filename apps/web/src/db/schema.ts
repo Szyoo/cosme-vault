@@ -52,7 +52,7 @@ export const accountPresents = sqliteTable(
       .notNull()
       .references(() => presents.id, { onDelete: "cascade" }),
     status: text("status", {
-      enum: ["pending", "drawn", "needsChoice", "skipped", "failed", "unknownPattern"],
+      enum: ["pending", "drawn", "needsChoice", "skipped", "alreadyEntered", "failed", "unknownPattern"],
     })
       .notNull()
       .default("pending"),
@@ -82,6 +82,16 @@ export const jobs = sqliteTable("jobs", {
   payload: text("payload").notNull(),
   /** 触发来源：cron 定时 或 manual 手动 */
   trigger: text("trigger", { enum: ["cron", "manual"] }).notNull().default("manual"),
+  /**
+   * 同一次用户操作产生的所有 job 共享一个 batch_id。
+   *
+   * 存在的理由：队列原先按 job 展示，而一轮会产生上百个 draw（一个奖品一个 job），
+   * 界面上就成了「26 个任务在排队」——那是内部实现，不是用户的操作单位。
+   * 用户想的是「一轮」算一个任务、「单独点重跑」算一个任务。
+   */
+  batchId: text("batch_id"),
+  /** 'run' = 跑一轮（scan + 它派发出的 draw）；'single' = 手动点的单个奖品 */
+  batchKind: text("batch_kind", { enum: ["run", "single"] }),
   result: text("result"), // JobReport 的 JSON
   error: text("error"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

@@ -1,0 +1,310 @@
+/**
+ * 任务队列服务：控制面侧的 pull 模型实现。
+ * runner 领取时把 queued → running 并组装成 contract 的 Job；上报时落库并回写业务状态。
+ */
+import { randomUUID } from "node:crypto";
+import { and, eq, lt } from "drizzle-orm";
+import { type Job, type JobReport } from "@cosme/contract";
+import { db, schema } from "@/db/index.ts";
+import { dispatchPendingDraws } from "@/lib/dispatch.ts";
+import { nextStamp } from "@/lib/stamp.ts";
+
+/** 卡死判定阈值：超过这么久还是 running 的任务视为 runner 已崩溃 */
+const STALE_RUNNING_MS = 15 * 60 * 1000;
+
+/**
+ * 同一个奖品最多自动重排几次。
+ * 防的是「这个奖品每次都把 runner 打挂」的循环——那样会反复走确认页 POST。
+ */
+const MAX_RECLAIM_RETRIES = 2;
+
+/** 数一下这个奖品已经有多少个 draw 任务是被回收掉的（用于止损） */
+function countReclaimedDraws(
+  tx: Pick<typeof db, "select">,
+  accountId: string,
+  presentId: string,
+): number {
+  return tx
+    .select({ payload: schema.jobs.payload, error: schema.jobs.error })
+    .from(schema.jobs)
+    .where(and(eq(schema.jobs.kind, "draw"), eq(schema.jobs.status, "failed")))
+    .all()
+    .filter((j) => {
+      if (!j.error?.includes("超时未上报")) return false;
+      try {
+        const p = JSON.parse(j.payload) as { accountId?: string; presentId?: string };
+        return p.accountId === accountId && p.presentId === presentId;
+      } catch {
+        return false;
+      }
+    }).length;
+}
+
+/**
+ * 回收僵死任务：runner 崩溃/被强杀时任务会永远停在 running。
+ *
+ * ⚠️ 刻意**不自动重排 draw 任务**：崩溃时我们无法知道那次投递到底有没有提交成功
+ * （@COSME 不标注「已应募」，无从查证）。自动重试等于可能重复投递，
+ * 故一律标记为 failed 交人工判断——宁可漏一次，不可重复投。
+ *
+ * ⚠️ 调用点不止 `next-job`：那条路径要等 runner 来领任务才触发，而 runner 崩掉时
+ * 恰恰没人来领，任务就永远挂在 running。控制台每次渲染也会调一次（见 app/page.tsx）。
+ */
+export function reclaimStaleJobs(): number {
+  const cutoff = new Date(Date.now() - STALE_RUNNING_MS).toISOString();
+  return db.transaction((tx) => {
+    const stale = tx
+      .select()
+      .from(schema.jobs)
+      .where(and(eq(schema.jobs.status, "running"), lt(schema.jobs.startedAt, cutoff)))
+      .all();
+
+    for (const job of stale) {
+      tx.update(schema.jobs)
+        .set({
+          status: "failed",
+          error: "任务超时未上报（runner 可能已崩溃），已回收",
+          finishedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.jobs.id, job.id))
+        .run();
+
+      // draw 任务要同步回写业务状态，否则记录停在 pending / running 语义不清
+      if (job.kind === "draw") {
+        const p = JSON.parse(job.payload) as { accountId?: string; presentId?: string };
+        if (p.accountId && p.presentId) {
+          // ⚠️ 这里的策略在 2026-08-21 改过一次，理由要记住：
+          //
+          // 原先一律标 failed 交人工确认，前提是「站点不给任何已应募的痕迹，
+          // 重跑可能重复投递」。**那个前提只在入口与确认页成立**——问卷页其实会摊牌
+          // （题目与送信控件都消失），runner 现在会把它判成 alreadyEntered 并且
+          // **什么都不提交**（见 patterns/is-enq-survey.ts 的注释与实测证据）。
+          //
+          // 所以重跑是安全的：崩在送信之前 → 这次补完；崩在送信之后 → 落到空问卷页
+          // 判成已应募。两种情况都最多提交一次。于是默认回 pending 自动重试，
+          // 不再让人去原页面肉眼确认。
+          //
+          // 唯一要防的是**崩溃循环**：同一个奖品反复把 runner 打挂会反复走确认页 POST。
+          // 因此累计被回收 MAX_RECLAIM_RETRIES 次之后就停手，标 failed 交人工。
+          const reclaimed = countReclaimedDraws(tx, p.accountId, p.presentId);
+          const giveUp = reclaimed >= MAX_RECLAIM_RETRIES;
+          tx.update(schema.accountPresents)
+            .set({
+              status: giveUp ? "failed" : "pending",
+              error: giveUp
+                ? `投递已连续中断 ${reclaimed} 次，不再自动重试，请人工确认是否已应募`
+                : "上一次投递中断，已自动重排；若其实已应募，runner 会在问卷页识别出来并跳过",
+              updatedAt: new Date().toISOString(),
+            })
+            .where(
+              and(
+                eq(schema.accountPresents.accountId, p.accountId),
+                eq(schema.accountPresents.presentId, p.presentId),
+              ),
+            )
+            .run();
+        }
+      }
+    }
+    return stale.length;
+  });
+}
+
+/** 领取最早的一个 queued 任务，标记 running，并还原成 contract 的 Job 形状 */
+export function claimNextJob(): Job | null {
+  reclaimStaleJobs();
+  return db.transaction((tx) => {
+    const row = tx
+      .select()
+      .from(schema.jobs)
+      .where(eq(schema.jobs.status, "queued"))
+      .orderBy(schema.jobs.createdAt)
+      .limit(1)
+      .get();
+    if (!row) return null;
+
+    tx.update(schema.jobs)
+      .set({ status: "running", startedAt: new Date().toISOString() })
+      .where(eq(schema.jobs.id, row.id))
+      .run();
+
+    const payload = JSON.parse(row.payload) as Record<string, unknown>;
+    return { kind: row.kind, id: row.id, ...payload } as Job;
+  });
+}
+
+/** 入队一个任务，返回 jobId */
+export function enqueueJob(
+  kind: "scan" | "draw" | "inspect",
+  payload: Record<string, unknown>,
+  trigger: "cron" | "manual" = "manual",
+): string {
+  const id = randomUUID();
+  // 手动单点的任务自成一批：队列上显示成「单独重跑 · <奖品名>」，
+  // 与「一轮」区分开——用户的操作单位是这两个，不是「一个奖品一个 job」
+  db.insert(schema.jobs)
+    .values({
+      id,
+      kind,
+      status: "queued",
+      payload: JSON.stringify(payload),
+      trigger,
+      // ⚠️ 显式写毫秒戳：createdAt 就是队列排序键，sqlite 默认值只到秒，
+      // 同一批入队的上百条会撞成同一个值，顺序就不可判定了（见 lib/stamp.ts）
+      createdAt: nextStamp(),
+      batchId: randomUUID(),
+      batchKind: "single",
+    })
+    .run();
+  return id;
+}
+
+/** applyReport 的副作用：事务内不能 await，故把待推送的通知带出来由调用方发送 */
+export interface ReportEffects {
+  /** 需要用户在网页上做选择的奖品 */
+  needsChoice: { accountId: string; presentId: string }[];
+  /** 遇到未知页面模式（需要补 pattern） */
+  unknownPattern: { accountId: string; presentId: string }[];
+  /** 自动派发出去的 draw 任务数 */
+  dispatchedDraws: number;
+}
+
+/** 处理 runner 上报的结果：落 job 结果 + 回写业务表 + 事件驱动地派发后续任务 */
+export function applyReport(report: JobReport): ReportEffects {
+  const effects: ReportEffects = { needsChoice: [], unknownPattern: [], dispatchedDraws: 0 };
+  db.transaction((tx) => {
+    tx.update(schema.jobs)
+      .set({
+        status: report.ok ? "done" : "failed",
+        result: JSON.stringify(report),
+        error: report.error,
+        finishedAt: report.finishedAt,
+      })
+      .where(eq(schema.jobs.id, report.jobId))
+      .run();
+
+    // ⚠️ 不能因 ok=false 就跳过回写：失败的 draw 也必须把状态写进 account_presents，
+    // 否则失败在界面上完全看不见、记录永远停在 pending（已踩过）。
+    if (!report.outcome) return;
+
+    const outcome = report.outcome;
+    if (outcome.kind === "scan") {
+      // 扫描任务的 accountId 从载荷取，用于建立「该账号 × 该奖品」的待抽记录
+      const scanJob = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
+      const accountId = scanJob
+        ? (JSON.parse(scanJob.payload) as { accountId?: string }).accountId
+        : undefined;
+
+      for (const p of outcome.presents) {
+        // 显式 upsert：奖品 id 取自站点的 present_id，是天然主键。
+        // 不用 onConflictDoUpdate(target: link)——那样主键冲突不在处理范围内，重扫会直接报错。
+        const existing = tx.select().from(schema.presents).where(eq(schema.presents.id, p.id)).get();
+        if (existing) {
+          tx.update(schema.presents)
+            .set({ name: p.name, brand: p.brand, imageUrl: p.imageUrl, period: p.period, quantity: p.quantity, tagline: p.tagline })
+            .where(eq(schema.presents.id, p.id))
+            .run();
+        } else {
+          tx.insert(schema.presents)
+            .values({
+              id: p.id,
+              source: p.source,
+              link: p.link,
+              name: p.name,
+              brand: p.brand,
+              imageUrl: p.imageUrl,
+              period: p.period,
+              quantity: p.quantity,
+              tagline: p.tagline,
+              scannedAt: p.scannedAt,
+            })
+            .run();
+        }
+
+        // 为该账号建立待抽记录；已存在则保持原状态不动
+        // （关键：绝不能把已投递的记录重置为 pending，否则会重复投递——
+        //  @COSME 不标注「已应募」，去重全靠这张表）
+        if (accountId) {
+          const link = tx
+            .select()
+            .from(schema.accountPresents)
+            .where(
+              and(
+                eq(schema.accountPresents.accountId, accountId),
+                eq(schema.accountPresents.presentId, p.id),
+              ),
+            )
+            .get();
+          if (!link) {
+            tx.insert(schema.accountPresents)
+              .values({ id: randomUUID(), accountId, presentId: p.id, status: "pending" })
+              .run();
+          }
+        }
+      }
+
+      // 事件驱动：扫描完成即派发该账号的待抽任务，无需外层状态机
+      if (accountId) {
+        const trigger = (scanJob?.trigger ?? "manual") as "cron" | "manual";
+        // 一轮里派发出的 draw 继承 scan 的批次，界面上才是一条队列项
+        effects.dispatchedDraws = dispatchPendingDraws(
+          accountId,
+          trigger,
+          tx,
+          scanJob?.batchId
+            ? { id: scanJob.batchId, kind: (scanJob.batchKind ?? "run") as "run" | "single" }
+            : undefined,
+        ).length;
+      }
+    } else if (outcome.kind === "draw") {
+      // draw 任务的 accountId/presentId 需从 job payload 取
+      const job = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
+      if (!job) return;
+      const p = JSON.parse(job.payload) as { accountId?: string; presentId?: string };
+      if (!p.accountId || !p.presentId) return;
+      const prev = tx
+        .select({ drawnAt: schema.accountPresents.drawnAt })
+        .from(schema.accountPresents)
+        .where(
+          and(
+            eq(schema.accountPresents.accountId, p.accountId),
+            eq(schema.accountPresents.presentId, p.presentId),
+          ),
+        )
+        .get();
+
+      tx.update(schema.accountPresents)
+        .set({
+          status: outcome.status,
+          pattern: outcome.pattern,
+          pendingChoices: outcome.pendingChoices.length ? JSON.stringify(outcome.pendingChoices) : null,
+          // 未知模式的现场诊断包：供人工据此补写新 pattern
+          diagnostics: outcome.diagnostics ? JSON.stringify(outcome.diagnostics) : null,
+          // ⚠️ 只在真的投出去时写时间；其余状态**保留原值**。
+          // 原先是 `: null`，等于「后续任何一次上报都会抹掉投递时间」——
+          // 例如已投递的奖品重跑一次被判 alreadyEntered，投递时间就没了。
+          drawnAt: outcome.status === "drawn" ? new Date().toISOString() : (prev?.drawnAt ?? null),
+          // ⚠️ 成功/已应募时要**清掉上一次的报错**，否则界面上一直挂着过期的失败原因
+          error:
+            outcome.status === "drawn" || outcome.status === "alreadyEntered"
+              ? null
+              : (report.error ?? null),
+          updatedAt: new Date().toISOString(),
+        })
+        .where(
+          and(
+            eq(schema.accountPresents.accountId, p.accountId),
+            eq(schema.accountPresents.presentId, p.presentId),
+          ),
+        )
+        .run();
+
+      if (outcome.status === "needsChoice") {
+        effects.needsChoice.push({ accountId: p.accountId, presentId: p.presentId });
+      } else if (outcome.status === "unknownPattern") {
+        effects.unknownPattern.push({ accountId: p.accountId, presentId: p.presentId });
+      }
+    }
+  });
+  return effects;
+}

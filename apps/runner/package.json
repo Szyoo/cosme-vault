@@ -11,7 +11,8 @@
     "recon": "node --env-file-if-exists=../../.env src/recon.ts",
     "login": "node --env-file-if-exists=../../.env src/login.ts",
     "harvest": "node --env-file-if-exists=../../.env src/harvest-surveys.ts",
-    "audit": "node --env-file-if-exists=../../.env src/audit-presents.ts"
+    "audit": "node --env-file-if-exists=../../.env src/audit-presents.ts",
+    "fix:quantity": "node --env-file-if-exists=../../.env src/normalize-quantity.ts"
   },
   "dependencies": {
     "@cosme/contract": "*",

@@ -3,6 +3,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useT } from "@/i18n/context.tsx";
 
 /**
  * ⚠️ Next 16：`useSearchParams()` 在预渲染阶段必须包在 Suspense 边界内，
@@ -11,13 +12,14 @@ import { useRouter, useSearchParams } from "next/navigation";
  */
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="page">载入中…</main>}>
+    <Suspense fallback={<main className="page">…</main>}>
       <LoginForm />
     </Suspense>
   );
 }
 
 function LoginForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [username, setUsername] = useState("");
@@ -37,7 +39,7 @@ function LoginForm() {
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "登录失败");
+        setError(data.error ?? t.login.failed);
         return;
       }
       router.replace(params.get("next") ?? "/");
@@ -48,12 +50,12 @@ function LoginForm() {
 
   return (
     <main className="page narrow">
-      <h1 className="page-title grad-text">Cosme Vault</h1>
+      <h1 className="page-title grad-text">{t.appName}</h1>
       <form className="glass stack section" method="post" action="/api/auth/login" onSubmit={submit}>
         <input
           className="field"
           name="username"
-          placeholder="用户名"
+          placeholder={t.login.username}
           autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -63,7 +65,7 @@ function LoginForm() {
           className="field"
           name="password"
           type="password"
-          placeholder="密码"
+          placeholder={t.login.password}
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -71,7 +73,7 @@ function LoginForm() {
         />
         {error && <p className="err-text">{error}</p>}
         <button type="submit" className="btn" disabled={busy}>
-          {busy ? "登录中…" : "登录"}
+          {busy ? t.login.submitting : t.login.submit}
         </button>
       </form>
     </main>

@@ -15,7 +15,15 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import Database from "better-sqlite3";
 import { chromium, type Page } from "playwright";
-import { PACING, isPeriodExpired, normalizePeriod, randomDelay, validateImageUrl } from "@cosme/core";
+import {
+  PACING,
+  isNormalizedQuantity,
+  isPeriodExpired,
+  normalizePeriod,
+  normalizeQuantity,
+  randomDelay,
+  validateImageUrl,
+} from "@cosme/core";
 
 const args = process.argv.slice(2);
 const FIX = args.includes("--fix");
@@ -63,7 +71,11 @@ async function truthFromPage(page: Page): Promise<{
     // 只回传原文，归一化在 Node 侧用 normalizePeriod 做（记法有四五种）
     const period = rawPeriod;
 
-    const quantity = grab(/(?:計)?\s*\d+\s*名様?\s*(?:現品|サンプル|モニター)?/)?.replace(/\s+/g, "") ?? null;
+    // 形式（現品 / サンプル）可能在数字**前**（实测有 `現品200名様`），两侧都要允许
+    const quantity =
+      grab(
+        /(?:現品|サンプル|モニター)?\s*(?:計|各)?\s*\d[\d,]*\s*名様?\s*(?:現品|サンプル|モニター)?/,
+      )?.replace(/\s+/g, "") ?? null;
     // 一句话文案：列表页的 .psnt-copy 在详情页通常没有，退回取标题里「/」后的商品名做兜底
     const tagline =
       document.querySelector(".psnt-copy")?.textContent?.replace(/\s+/g, " ").trim() ||
@@ -156,7 +168,11 @@ async function main(): Promise<void> {
       else if (dbP && pageP && dbP !== pageP) problems.push("期间不一致");
       if (dbP && isPeriodExpired(dbP)) problems.push("期间已过");
       if (/名様|・/.test(r.period ?? "")) problems.push("期间字段装了非日期内容");
-      if (!r.quantity && t.quantity) problems.push("数量缺失");
+      // 数量同样要先归一化再比（站点 28 种写法，见 core 的 normalizeQuantity）
+      const pageQ = normalizeQuantity(t.quantity);
+      const dbQ = normalizeQuantity(r.quantity);
+      if (!dbQ && pageQ) problems.push("数量缺失");
+      else if (!isNormalizedQuantity(r.quantity)) problems.push("数量写法未归一");
       if (!r.image_url) problems.push("无图");
       else if (!validateImageUrl(r.image_url)) problems.push("图片地址未通过校验");
       if (t.ended) problems.push("站点已结束募集");
@@ -174,14 +190,16 @@ async function main(): Promise<void> {
 
       if (FIX) {
         const nextPeriod = pageP ?? dbP;
-        // 数量归一：旧数据里混着「数量 · 文案」，拆开；页面值优先（格式更规整）
-        let qty = t.quantity ?? r.quantity;
+        // 数量：旧数据里混着「数量 · 文案」，先拆开，再统一折成 `計N名様[・形式]`。
+        // 页面值优先——它带形式信息（現品 / サンプル），列表页常常没有。
+        let qtyRaw = t.quantity ?? r.quantity;
         let tagline = r.tagline ?? t.tagline;
-        if (qty?.includes(" · ")) {
-          const [q, ...rest] = qty.split(" · ");
-          qty = (t.quantity ?? q) ?? null;
+        if (qtyRaw?.includes(" · ")) {
+          const [q, ...rest] = qtyRaw.split(" · ");
+          qtyRaw = (t.quantity ?? q) ?? null;
           tagline ??= rest.join(" · ") || null;
         }
+        const qty = normalizeQuantity(qtyRaw) ?? dbQ;
         db.prepare("update presents set period = ?, quantity = ?, tagline = ?, image_url = ? where id = ?").run(
           nextPeriod,
           qty,

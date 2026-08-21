@@ -1,0 +1,802 @@
+/**
+ * 界面文案字典（中 / 日 / 英，与作者其他项目一致的三语）。
+ *
+ * 范围约定：**只放界面自己的文案**。从 @COSME 抓来的内容（奖品名、品牌名、
+ * 文案、数量的原文如「計20名様現品」）一律原样展示，不翻译也不改写——
+ * 那些是数据不是 UI。
+ */
+export const LOCALES = ["zh", "ja", "en"] as const;
+export type Locale = (typeof LOCALES)[number];
+export const DEFAULT_LOCALE: Locale = "zh";
+
+export const LOCALE_NAMES: Record<Locale, string> = {
+  zh: "中文",
+  ja: "日本語",
+  en: "English",
+};
+
+/** 字典结构以中文为准，其余语言必须提供同样的键（类型会强制） */
+const zh = {
+  appName: "Cosme Vault",
+  appSub: "@COSME 抽奖辅助控制面",
+
+  nav: {
+    console: "控制台",
+    records: "记录",
+    diagnostics: "诊断",
+    settings: "设置",
+    back: "返回",
+  },
+
+  runner: {
+    title: "Runner",
+    online: "在线",
+    offline: "离线",
+    noHeartbeat: "尚未收到心跳",
+    busy: "执行中",
+    idle: "空闲",
+    lastSeen: (ago: string) => `最后心跳 ${ago}`,
+    offlineQueued: (n: number) => `${n} 个任务在排队，等 runner 上线才会开始。`,
+    diedMidJob:
+      "掉线时手上还有任务——那次投递有没有真的提交出去无从查证（@COSME 不标注「已应募」），" +
+      "已按超时回收并标成失败，请人工到原页面确认。",
+    startHint: "在 Mac mini 上跑 `npm run runner` 让它上线。",
+    stop: "终止排队",
+    stopping: "终止中…",
+    stopConfirm: "再点一次确认终止",
+    stopped: (n: number, running: number) =>
+      `已取消 ${n} 个排队任务` + (running ? `；另有 ${running} 个正在执行，会自己跑完` : ""),
+    stopHint: "终止只取消「排队中」的任务；正在执行的那一个会自己跑完（从控制面停不了浏览器）。奖品仍是待投递，下一轮继续。",
+    queuedNow: (n: number) => `排队中 ${n}`,
+    queueTitle: "任务队列",
+    queueHint:
+      "以你的操作为单位：「跑一轮」算一个，「单独重跑」算一个。取消只影响这一批还在排队的部分；" +
+      "正在执行的那一个会自己跑完（从控制面停不了浏览器）。",
+    batchRun: "跑一轮",
+    batchSingle: "单独重跑",
+    batchProgress: (done: number, total: number) => `${done} / ${total} 个奖品`,
+    batchFailed: (n: number) => `${n} 个失败`,
+    queueEmpty: "队列是空的。",
+    nowRunning: "正在执行",
+    cancelJob: "取消",
+    toTop: "置顶",
+    queueMore: (n: number) => `还有 ${n} 个未列出`,
+    run: "跑一轮",
+    running: "触发中…",
+    runHint: "跑一轮 = 给每个启用账号扫描奖品；扫完自动派发投递，奖品之间按人类速度随机间隔。",
+    queued: (n: number) => `已入队 ${n} 个扫描任务`,
+    runFailed: "触发失败",
+    autoRefresh: "此页每 4 秒自动更新一次（切到后台时暂停）。",
+  },
+
+  stat: {
+    presents: "奖品",
+    scanned: "已扫描",
+    drawn: "已投递",
+    thisAccount: "本账号",
+    pending: "待投递",
+    nextRound: "下一轮处理",
+    needsChoice: "待选择",
+    needsYou: "需要你",
+    total: "总计",
+    rows: "条记录",
+    failed: "失败",
+    needsReview: "需人工确认",
+    accounts: "账号",
+    configured: "已配置",
+  },
+
+  present: {
+    listTitle: "奖品",
+    name: "奖品",
+    type: "类型",
+    brand: "品牌",
+    quantity: "数量",
+    period: "期间",
+    status: "状态",
+    pattern: "模式",
+    applyPeriod: "应募期间",
+    quantityForm: "数量 / 形式",
+    tagline: "文案",
+    id: "奖品 ID",
+    lastScan: "最近扫描",
+    openOriginal: "打开 @COSME 原页面",
+    perAccountStatus: "各账号的投递状态",
+    noAccountRecord: "还没有任何账号的记录。",
+    relatedJobs: "相关任务",
+    emptyHint: "还没有奖品数据，点上面的「跑一轮」开始扫描。",
+    detail: "详情",
+  },
+
+  status: {
+    pending: "待投递",
+    drawn: "已投递",
+    needsChoice: "待选择",
+    skipped: "已跳过",
+    alreadyEntered: "站点已应募",
+    failed: "失败",
+    unknownPattern: "未知模式",
+  },
+
+  // 类型名在中文界面下给可读的中文说法，full 里保留站点原词（タイアップ 等），
+  // 这样既看得懂、又对得上 @COSME 页面上的字。日文界面则一律用原词。
+  source: {
+    normalShort: "新品合集",
+    normalFull: "ブランドコレクション · 品牌新品合集（每周三更新）",
+    fanClubShort: "粉丝俱乐部",
+    fanClubFull: "ブランドファンクラブ · 粉丝俱乐部限定（article 直链）",
+    fanClubViaBrandFull: "ブランドファンクラブ · 粉丝俱乐部限定（经品牌主页两跳）",
+    produceShort: "策划成员",
+    produceFull: "プロデュースメンバー · 策划成员限定（部分需消耗ビューティコイン）",
+    tieupShort: "PR 合作",
+    tieupFull: "タイアップ · 品牌付费 PR 企划（名额通常很大，500〜800名様）",
+  },
+
+  choice: {
+    title: "选择奖品",
+    submitted: "已提交",
+    submittedHint: "选择已保存，稍后会自动继续投递这个奖品。",
+    noNeed: "无需选择",
+    noNeedHint: (s: string) => `该奖品当前状态是 ${s}，可能已经处理过了。`,
+    pick: "请选择",
+    submit: "提交并继续投递",
+    submitting: "提交中…",
+    unanswered: (n: number) => `还有 ${n} 道题没选`,
+    missingAccount: "链接缺少 account 参数",
+    loadFailed: "读取失败",
+    submitFailed: "提交失败",
+    goChoose: "去选择",
+    needsChoiceTitle: "需要你选择",
+  },
+
+  diag: {
+    title: "诊断",
+    sub: "runner 遇到没见过的页面版式时会安全中止并回传现场（不会瞎点）。这里列出待处理的现场。",
+    none: "目前没有未识别的页面 —— 所有遇到的版式都有对应实现。",
+    unrecognizedSources: "列表来源未识别",
+    unknownFlows: "投递流程未识别",
+    stuckAt: "卡在",
+    pageTitle: "标题",
+    triedPatterns: "已试模式",
+    expandElements: (n: number) => `展开元素清单（${n}）`,
+    collapse: "收起",
+    copyElements: "复制元素清单",
+    copied: "已复制 ✓",
+    bodyExcerpt: "正文摘要",
+    noBundle: "（没有现场包 —— 可能是旧记录，或 runner 采集失败）",
+    tag: "标签",
+    kind: "类型",
+    selector: "建议选择器",
+    text: "文本",
+    banner: (n: number) => `有 ${n} 处未识别的页面版式`,
+    bannerHint: "runner 已安全中止并留下现场（没有瞎点）。到诊断页查看元素清单，据此补一个流程模式。",
+  },
+
+  records: {
+    title: "记录",
+    sub: "投递历史。@COSME 不标注「已应募」，这张表是唯一权威来源。",
+    detailTable: "明细",
+    account: "账号",
+    time: "时间",
+    empty: "还没有记录。回控制台点「跑一轮」。",
+  },
+
+  settings: {
+    title: "设置",
+    accounts: "cosme 账号",
+    accountsHint: "抽奖批次会按顺序轮抽这里启用的账号。凭证经 AES-256-GCM 加密存储，页面不会回显已保存的值。",
+    newLabel: "账号备注名（如：主号）",
+    add: "添加账号",
+    empty: "还没有账号，先添加一个。",
+    credConfigured: "凭证已配置",
+    credMissing: "凭证未配置",
+    enable: "启用",
+    disable: "停用",
+    fillCred: "填写凭证",
+    collapse: "收起",
+    delete: "删除",
+    credHint: "留空的字段保持原值不变。姓名 / 年龄 / 职业会被填进抽奖表单（对应日文栏位「名前」「年齢」「職業」）。",
+    email: "cosme 登录邮箱",
+    password: "cosme 登录密码",
+    realName: "姓名（名前）",
+    age: "年龄（年齢）",
+    job: "职业（職業，如 自営業/自由業）",
+    save: "保存凭证",
+    saving: "保存中…",
+    saved: (label: string) => `「${label}」的凭证已保存`,
+    saveFailed: "保存失败",
+    confirmDelete: (label: string) => `删除账号「${label}」及其全部抽取记录？此操作不可撤销。`,
+  },
+
+  login: {
+    username: "用户名",
+    password: "密码",
+    submit: "登录",
+    submitting: "登录中…",
+    failed: "登录失败",
+  },
+
+  draw: {
+    one: "投递这个",
+    confirm: "再点一次确认投递",
+    queueing: "入队中…",
+    queued: "已入队，runner 会尽快执行",
+    failed: "入队失败",
+    seeScene: "看现场",
+  },
+
+  log: { title: "运行日志", empty: "（暂无日志）" },
+  common: { loading: "读取中…", none: "—", jobs: "最近任务", noneYet: "暂无" },
+
+  /** 设计包的右上角工具（明暗切换、背景参数）也要跟着语言走 */
+  chrome: { auto: "跟随系统", light: "浅色", dark: "深色", localOnly: "仅本地保存" },
+
+  ago: {
+    justNow: "刚刚",
+    minutes: (n: number) => `${n} 分钟前`,
+    hours: (n: number) => `${n} 小时前`,
+    days: (n: number) => `${n} 天前`,
+  },
+
+  attention: {
+    needsConfirm: "需要你人工确认",
+    needsConfirmHint:
+      "runner 在投递过程中断了。重投是安全的——若其实已经应募过，runner 会在问卷页" +
+      "识别出来（那一页没有题目也没有送信按钮）并直接跳过，不会重复提交。" +
+      "只有连续中断多次才需要你亲自去原页面看。",
+    check: "去确认",
+  },
+
+  resolve: {
+    openSite: "看原页面",
+    wasDrawn: "直接记为已投递",
+    retry: "重投一次（推荐）",
+    markedDrawn: "已记为「已投递」，不会再派发",
+    requeued: "已重新入队，runner 上线后执行",
+    failed: "提交失败",
+  },
+
+  filter: {
+    search: "搜奖品名 / 品牌 / ID",
+    all: "全部",
+    byType: "类型",
+    byStatus: "状态",
+    shown: (n: number, total: number) => `显示 ${n} / ${total}`,
+    noMatch: "没有符合条件的奖品",
+    reset: "清空筛选",
+  },
+
+  /**
+   * 会被前端直接显示出来的 API 报错。
+   * 只收「用户看得见」的那几条——runner 端点的报错是给日志看的，不进这里。
+   */
+  api: {
+    badRequest: "请求格式非法",
+    badCredentials: "用户名或密码错误",
+    notLoggedIn: "未登录",
+    noRunnableAccount: "没有可跑的账号（需已启用且已配置凭证）",
+    missingAccountParam: "缺少 account 参数",
+    recordNotFound: "记录不存在",
+    badParams: "参数非法",
+    presentNotFound: "奖品不存在，无法派发",
+    alreadyResolved: "该奖品的选择已提交过",
+    jobNotQueued: "该任务不在排队中，无法操作",
+  },
+};
+
+/**
+ * 其余语言的类型必须与中文完全一致。
+ *
+ * ⚠️ **中文字典刻意不加 `as const`**：加了每个值都会变成字面量类型
+ * （`"控制台"` 而不是 `string`），日/英字典的每一条都会报「不能赋给该字面量」。
+ * 不加就自然收窄成 `string` / `(n: number) => string`，键的完整性仍由
+ * `const ja: Dict` 的标注强制（少一个键就编译报错）。
+ */
+type Dict = typeof zh;
+
+const ja: Dict = {
+  appName: "Cosme Vault",
+  appSub: "@COSME プレゼント応募コンソール",
+
+  nav: { console: "コンソール", records: "履歴", diagnostics: "診断", settings: "設定", back: "戻る" },
+
+  runner: {
+    title: "Runner",
+    online: "オンライン",
+    offline: "オフライン",
+    noHeartbeat: "ハートビート未受信",
+    busy: "実行中",
+    idle: "待機中",
+    lastSeen: (ago: string) => `最終ハートビート ${ago}`,
+    offlineQueued: (n: number) => `${n} 件のタスクが待機中。runner が起動するまで進みません。`,
+    diedMidJob:
+      "切断時にタスクを保持していました——その応募が実際に送信されたかは確認できません" +
+      "（@COSME は「応募済み」を表示しない）。タイムアウトとして回収し失敗扱いにしました。元ページで確認してください。",
+    startHint: "Mac mini で `npm run runner` を実行してください。",
+    stop: "キューを停止",
+    stopping: "停止中…",
+    stopConfirm: "もう一度押して停止",
+    stopped: (n: number, running: number) =>
+      `${n} 件のタスクをキャンセルしました` + (running ? `。実行中の ${running} 件はそのまま完了します` : ""),
+    stopHint:
+      "停止するのは「待機中」のタスクのみ。実行中の 1 件はそのまま完了します（コンソールからブラウザは止められません）。プレゼントは未応募のまま、次の周で続行します。",
+    queuedNow: (n: number) => `待機 ${n}`,
+    queueTitle: "タスクキュー",
+    queueHint:
+      "操作の単位で表示します：「一周まわす」で 1 件、「個別に再実行」で 1 件。キャンセルは待機中の分だけに効きます。" +
+      "実行中の 1 件はそのまま完了します（コンソールからブラウザは止められません）。",
+    batchRun: "一周まわす",
+    batchSingle: "個別に再実行",
+    batchProgress: (done: number, total: number) => `${done} / ${total} 件`,
+    batchFailed: (n: number) => `失敗 ${n}`,
+    queueEmpty: "キューは空です。",
+    nowRunning: "実行中",
+    cancelJob: "キャンセル",
+    toTop: "先頭へ",
+    queueMore: (n: number) => `他 ${n} 件`,
+    run: "一周まわす",
+    running: "起動中…",
+    runHint:
+      "一周まわす＝有効な各アカウントでプレゼントを走査し、完了後に応募を自動割り当て。応募間隔は人間相当のランダム待機。",
+    queued: (n: number) => `走査タスクを ${n} 件登録しました`,
+    runFailed: "起動に失敗しました",
+    autoRefresh: "このページは 4 秒ごとに自動更新されます（バックグラウンドでは停止）。",
+  },
+
+  stat: {
+    presents: "プレゼント",
+    scanned: "走査済み",
+    drawn: "応募済み",
+    thisAccount: "このアカウント",
+    pending: "未応募",
+    nextRound: "次の周で処理",
+    needsChoice: "選択待ち",
+    needsYou: "あなたの操作待ち",
+    total: "合計",
+    rows: "件",
+    failed: "失敗",
+    needsReview: "要確認",
+    accounts: "アカウント",
+    configured: "設定済み",
+  },
+
+  present: {
+    listTitle: "プレゼント",
+    name: "プレゼント",
+    type: "種別",
+    brand: "ブランド",
+    quantity: "当選数",
+    period: "期間",
+    status: "状態",
+    pattern: "フロー",
+    applyPeriod: "応募期間",
+    quantityForm: "当選数 / 形式",
+    tagline: "コピー",
+    id: "プレゼント ID",
+    lastScan: "最終走査",
+    openOriginal: "@COSME のページを開く",
+    perAccountStatus: "アカウントごとの応募状態",
+    noAccountRecord: "まだ記録がありません。",
+    relatedJobs: "関連タスク",
+    emptyHint: "データがありません。上の「一周まわす」で走査を開始してください。",
+    detail: "詳細",
+  },
+
+  status: {
+    pending: "未応募",
+    drawn: "応募済み",
+    needsChoice: "選択待ち",
+    skipped: "スキップ",
+    alreadyEntered: "応募済み（サイト判定）",
+    failed: "失敗",
+    unknownPattern: "未知のフロー",
+  },
+
+  source: {
+    normalShort: "コレクション",
+    normalFull: "ブランドコレクション（毎週水曜更新の新着）",
+    fanClubShort: "ファンクラブ",
+    fanClubFull: "ブランドファンクラブ限定（記事リンク直行）",
+    fanClubViaBrandFull: "ブランドファンクラブ限定（ブランドページ経由）",
+    produceShort: "プロデュース",
+    produceFull: "プロデュースメンバー限定（一部はビューティコインが必要）",
+    tieupShort: "タイアップ",
+    tieupFull: "タイアップ（ブランドとのPR企画。当選数が多い）",
+  },
+
+  choice: {
+    title: "プレゼントを選ぶ",
+    submitted: "送信しました",
+    submittedHint: "選択を保存しました。まもなく応募を続行します。",
+    noNeed: "選択は不要です",
+    noNeedHint: (s: string) => `現在の状態は ${s} です。すでに処理済みの可能性があります。`,
+    pick: "選択してください",
+    submit: "送信して応募を続ける",
+    submitting: "送信中…",
+    unanswered: (n: number) => `未回答が ${n} 件あります`,
+    missingAccount: "リンクに account パラメータがありません",
+    loadFailed: "読み込みに失敗しました",
+    submitFailed: "送信に失敗しました",
+    goChoose: "選択する",
+    needsChoiceTitle: "選択が必要です",
+  },
+
+  diag: {
+    title: "診断",
+    sub: "未知のページ版式に遭遇すると runner は安全に中止し、現場を回収します（推測でクリックしません）。",
+    none: "未識別のページはありません — 遭遇した版式はすべて対応済みです。",
+    unrecognizedSources: "一覧ソース未識別",
+    unknownFlows: "応募フロー未識別",
+    stuckAt: "停止位置",
+    pageTitle: "タイトル",
+    triedPatterns: "試したフロー",
+    expandElements: (n: number) => `要素一覧を開く（${n}）`,
+    collapse: "閉じる",
+    copyElements: "要素一覧をコピー",
+    copied: "コピーしました ✓",
+    bodyExcerpt: "本文抜粋",
+    noBundle: "（現場データなし — 旧レコードか、回収に失敗）",
+    tag: "タグ",
+    kind: "型",
+    selector: "推奨セレクタ",
+    text: "テキスト",
+    banner: (n: number) => `未識別のページ版式が ${n} 件`,
+    bannerHint: "runner は安全に中止し現場を残しました。診断ページで要素一覧を確認し、フローを追加してください。",
+  },
+
+  records: {
+    title: "履歴",
+    sub: "応募履歴。@COSME は「応募済み」を表示しないため、この表が唯一の正です。",
+    detailTable: "明細",
+    account: "アカウント",
+    time: "時刻",
+    empty: "記録がありません。コンソールで「一周まわす」を実行してください。",
+  },
+
+  settings: {
+    title: "設定",
+    accounts: "cosme アカウント",
+    accountsHint:
+      "有効なアカウントを順に処理します。認証情報は AES-256-GCM で暗号化保存し、保存済みの値は画面に戻しません。",
+    newLabel: "アカウント表示名（例：メイン）",
+    add: "アカウントを追加",
+    empty: "アカウントがありません。まず追加してください。",
+    credConfigured: "認証情報あり",
+    credMissing: "認証情報なし",
+    enable: "有効化",
+    disable: "無効化",
+    fillCred: "認証情報を入力",
+    collapse: "閉じる",
+    delete: "削除",
+    credHint: "空欄の項目は変更しません。名前 / 年齢 / 職業は応募フォームに入力されます。",
+    email: "cosme ログインメール",
+    password: "cosme ログインパスワード",
+    realName: "名前",
+    age: "年齢",
+    job: "職業（例：自営業・自由業）",
+    save: "認証情報を保存",
+    saving: "保存中…",
+    saved: (label: string) => `「${label}」の認証情報を保存しました`,
+    saveFailed: "保存に失敗しました",
+    confirmDelete: (label: string) => `アカウント「${label}」と全ての応募記録を削除しますか？元に戻せません。`,
+  },
+
+  login: { username: "ユーザー名", password: "パスワード", submit: "ログイン", submitting: "ログイン中…", failed: "ログインに失敗しました" },
+
+  draw: {
+    one: "これに応募",
+    confirm: "もう一度押して確定",
+    queueing: "登録中…",
+    queued: "登録しました。runner が順次実行します",
+    failed: "登録に失敗しました",
+    seeScene: "現場を見る",
+  },
+
+  log: { title: "実行ログ", empty: "（ログなし）" },
+  common: { loading: "読み込み中…", none: "—", jobs: "最近のタスク", noneYet: "なし" },
+
+  chrome: { auto: "システムに従う", light: "ライト", dark: "ダーク", localOnly: "この端末にのみ保存" },
+
+  ago: {
+    justNow: "たった今",
+    minutes: (n: number) => `${n} 分前`,
+    hours: (n: number) => `${n} 時間前`,
+    days: (n: number) => `${n} 日前`,
+  },
+
+  attention: {
+    needsConfirm: "手動での確認が必要",
+    needsConfirmHint:
+      "応募の途中で runner が中断しました。再応募は安全です——既に応募済みなら" +
+      "アンケートページ（設問も送信ボタンも無い状態）で runner が判定してスキップします。" +
+      "連続で中断した場合のみ、元ページの確認が必要です。",
+    check: "確認する",
+  },
+
+  resolve: {
+    openSite: "元ページを見る",
+    wasDrawn: "応募済みとして記録",
+    retry: "再応募する（推奨）",
+    markedDrawn: "「応募済み」として記録しました。今後は割り当てません",
+    requeued: "再登録しました。runner 起動後に実行します",
+    failed: "送信に失敗しました",
+  },
+
+  filter: {
+    search: "プレゼント名 / ブランド / ID で検索",
+    all: "すべて",
+    byType: "種別",
+    byStatus: "状態",
+    shown: (n: number, total: number) => `${n} / ${total} 件を表示`,
+    noMatch: "条件に一致するプレゼントがありません",
+    reset: "絞り込みを解除",
+  },
+
+  api: {
+    badRequest: "リクエストの形式が不正です",
+    badCredentials: "ユーザー名またはパスワードが違います",
+    notLoggedIn: "ログインしていません",
+    noRunnableAccount: "実行できるアカウントがありません（有効かつ認証情報の設定が必要）",
+    missingAccountParam: "account パラメータがありません",
+    recordNotFound: "レコードが存在しません",
+    badParams: "パラメータが不正です",
+    presentNotFound: "プレゼントが存在せず、割り当てできません",
+    alreadyResolved: "このプレゼントの選択は既に送信済みです",
+    jobNotQueued: "待機中のタスクではないため操作できません",
+  },
+};
+
+const en: Dict = {
+  appName: "Cosme Vault",
+  appSub: "@COSME giveaway console",
+
+  nav: { console: "Console", records: "Records", diagnostics: "Diagnostics", settings: "Settings", back: "Back" },
+
+  runner: {
+    title: "Runner",
+    online: "Online",
+    offline: "Offline",
+    noHeartbeat: "no heartbeat yet",
+    busy: "busy",
+    idle: "idle",
+    lastSeen: (ago: string) => `last heartbeat ${ago}`,
+    offlineQueued: (n: number) => `${n} job(s) queued — nothing runs until the runner is back.`,
+    diedMidJob:
+      "It still held a job when it dropped off — whether that entry actually got submitted cannot be verified " +
+      "(@COSME never marks “already entered”). It was reclaimed as timed out and marked failed; please check the original page.",
+    startHint: "Run `npm run runner` on the Mac mini to bring it back.",
+    stop: "Stop queue",
+    stopping: "Stopping…",
+    stopConfirm: "Click again to stop",
+    stopped: (n: number, running: number) =>
+      `Cancelled ${n} queued job(s)` + (running ? `; ${running} still running will finish on its own` : ""),
+    stopHint:
+      "Stopping cancels queued jobs only; the one already running finishes on its own (the console cannot stop the browser). Presents stay pending and continue next round.",
+    queuedNow: (n: number) => `${n} queued`,
+    queueTitle: "Job queue",
+    queueHint:
+      "Grouped by what you did: one entry per “run a round”, one per single retry. Cancelling affects only the queued part; " +
+      "the one already running finishes on its own (the console cannot stop the browser).",
+    batchRun: "Round",
+    batchSingle: "Single retry",
+    batchProgress: (done: number, total: number) => `${done} / ${total} presents`,
+    batchFailed: (n: number) => `${n} failed`,
+    queueEmpty: "The queue is empty.",
+    nowRunning: "Running",
+    cancelJob: "Cancel",
+    toTop: "To top",
+    queueMore: (n: number) => `${n} more not listed`,
+    run: "Run a round",
+    running: "Starting…",
+    runHint:
+      "A round scans presents for every enabled account; draws are dispatched automatically afterwards, with human-paced random gaps between presents.",
+    queued: (n: number) => `Queued ${n} scan job(s)`,
+    runFailed: "Failed to start",
+    autoRefresh: "This page refreshes itself every 4 seconds (paused while in the background).",
+  },
+
+  stat: {
+    presents: "Presents",
+    scanned: "scanned",
+    drawn: "Entered",
+    thisAccount: "this account",
+    pending: "Pending",
+    nextRound: "next round",
+    needsChoice: "Needs choice",
+    needsYou: "needs you",
+    total: "Total",
+    rows: "records",
+    failed: "Failed",
+    needsReview: "needs review",
+    accounts: "Accounts",
+    configured: "configured",
+  },
+
+  present: {
+    listTitle: "Presents",
+    name: "Present",
+    type: "Type",
+    brand: "Brand",
+    quantity: "Winners",
+    period: "Period",
+    status: "Status",
+    pattern: "Flow",
+    applyPeriod: "Entry period",
+    quantityForm: "Winners / form",
+    tagline: "Tagline",
+    id: "Present ID",
+    lastScan: "Last scan",
+    openOriginal: "Open on @COSME",
+    perAccountStatus: "Status per account",
+    noAccountRecord: "No records yet.",
+    relatedJobs: "Related jobs",
+    emptyHint: "No presents yet — hit “Run a round” above to scan.",
+    detail: "Details",
+  },
+
+  status: {
+    pending: "Pending",
+    drawn: "Entered",
+    needsChoice: "Needs choice",
+    skipped: "Skipped",
+    alreadyEntered: "Already entered",
+    failed: "Failed",
+    unknownPattern: "Unknown flow",
+  },
+
+  source: {
+    normalShort: "Collection",
+    normalFull: "Brand Collection — new arrivals, updated Wednesdays",
+    fanClubShort: "Fan Club",
+    fanClubFull: "Brand Fan Club exclusive (direct article link)",
+    fanClubViaBrandFull: "Brand Fan Club exclusive (two hops via the brand page)",
+    produceShort: "Produce",
+    produceFull: "Produce Member exclusive (some cost Beauty Coins)",
+    tieupShort: "PR",
+    tieupFull: "Tie-up — paid brand PR campaign (usually large quotas, 500–800 winners)",
+  },
+
+  choice: {
+    title: "Choose a present",
+    submitted: "Submitted",
+    submittedHint: "Your choice is saved; the entry will continue shortly.",
+    noNeed: "No choice needed",
+    noNeedHint: (s: string) => `Current status is ${s} — it may already be handled.`,
+    pick: "Please choose",
+    submit: "Submit and continue",
+    submitting: "Submitting…",
+    unanswered: (n: number) => `${n} question(s) still unanswered`,
+    missingAccount: "Link is missing the account parameter",
+    loadFailed: "Failed to load",
+    submitFailed: "Failed to submit",
+    goChoose: "Choose",
+    needsChoiceTitle: "Needs your choice",
+  },
+
+  diag: {
+    title: "Diagnostics",
+    sub: "When the runner meets an unknown page layout it stops safely and reports the scene — it never guesses clicks.",
+    none: "No unrecognised pages — every layout encountered is handled.",
+    unrecognizedSources: "Unrecognised list sources",
+    unknownFlows: "Unrecognised entry flows",
+    stuckAt: "Stuck at",
+    pageTitle: "Title",
+    triedPatterns: "Patterns tried",
+    expandElements: (n: number) => `Show elements (${n})`,
+    collapse: "Collapse",
+    copyElements: "Copy elements",
+    copied: "Copied ✓",
+    bodyExcerpt: "Body excerpt",
+    noBundle: "(No scene bundle — old record, or capture failed)",
+    tag: "Tag",
+    kind: "Type",
+    selector: "Suggested selector",
+    text: "Text",
+    banner: (n: number) => `${n} unrecognised page layout(s)`,
+    bannerHint: "The runner stopped safely and left the scene. Open Diagnostics for the element list and add a flow.",
+  },
+
+  records: {
+    title: "Records",
+    sub: "Entry history. @COSME never marks “already entered”, so this table is the only source of truth.",
+    detailTable: "Details",
+    account: "Account",
+    time: "Time",
+    empty: "No records yet. Go to the console and hit “Run a round”.",
+  },
+
+  settings: {
+    title: "Settings",
+    accounts: "cosme accounts",
+    accountsHint:
+      "Enabled accounts are processed in order. Credentials are stored AES-256-GCM encrypted and never echoed back.",
+    newLabel: "Account label (e.g. Main)",
+    add: "Add account",
+    empty: "No accounts yet — add one first.",
+    credConfigured: "credentials set",
+    credMissing: "credentials missing",
+    enable: "Enable",
+    disable: "Disable",
+    fillCred: "Enter credentials",
+    collapse: "Collapse",
+    delete: "Delete",
+    credHint: "Blank fields keep their current value. Name / age / job are filled into the entry form.",
+    email: "cosme login email",
+    password: "cosme login password",
+    realName: "Name",
+    age: "Age",
+    job: "Occupation",
+    save: "Save credentials",
+    saving: "Saving…",
+    saved: (label: string) => `Credentials saved for “${label}”`,
+    saveFailed: "Failed to save",
+    confirmDelete: (label: string) => `Delete account “${label}” and all its entry records? This cannot be undone.`,
+  },
+
+  login: { username: "Username", password: "Password", submit: "Sign in", submitting: "Signing in…", failed: "Sign-in failed" },
+
+  draw: {
+    one: "Enter this one",
+    confirm: "Click again to confirm",
+    queueing: "Queueing…",
+    queued: "Queued — the runner will pick it up",
+    failed: "Failed to queue",
+    seeScene: "View scene",
+  },
+
+  log: { title: "Runner log", empty: "(no logs yet)" },
+  common: { loading: "Loading…", none: "—", jobs: "Recent jobs", noneYet: "None" },
+
+  chrome: { auto: "Follow system", light: "Light", dark: "Dark", localOnly: "saved locally only" },
+
+  ago: {
+    justNow: "just now",
+    minutes: (n: number) => `${n} min ago`,
+    hours: (n: number) => `${n} h ago`,
+    days: (n: number) => `${n} d ago`,
+  },
+
+  attention: {
+    needsConfirm: "Needs your confirmation",
+    needsConfirmHint:
+      "The runner was interrupted mid-entry. Retrying is safe: if it was already entered, the runner " +
+      "detects it on the survey page (no questions, no submit button) and skips without submitting. " +
+      "Only repeated interruptions need you to check the original page yourself.",
+    check: "Check",
+  },
+
+  resolve: {
+    openSite: "Open site",
+    wasDrawn: "Just mark as entered",
+    retry: "Retry (recommended)",
+    markedDrawn: "Recorded as entered; it will not be dispatched again",
+    requeued: "Re-queued; runs once the runner is back",
+    failed: "Failed to submit",
+  },
+
+  filter: {
+    search: "Search name / brand / ID",
+    all: "All",
+    byType: "Type",
+    byStatus: "Status",
+    shown: (n: number, total: number) => `Showing ${n} of ${total}`,
+    noMatch: "No presents match the filter",
+    reset: "Clear filters",
+  },
+
+  api: {
+    badRequest: "Malformed request",
+    badCredentials: "Wrong username or password",
+    notLoggedIn: "Not signed in",
+    noRunnableAccount: "No runnable account (must be enabled and have credentials)",
+    missingAccountParam: "Missing account parameter",
+    recordNotFound: "Record not found",
+    badParams: "Invalid parameters",
+    presentNotFound: "Present not found — cannot dispatch",
+    alreadyResolved: "This present's choice was already submitted",
+    jobNotQueued: "That job is not queued, so it cannot be changed",
+  },
+};
+
+export const DICTS: Record<Locale, Dict> = { zh, ja, en };
+export type { Dict };

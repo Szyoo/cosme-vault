@@ -11,6 +11,7 @@ import { desc } from "drizzle-orm";
 import { enqueueJob } from "@/lib/queue.ts";
 import { requireUser } from "@/lib/auth.ts";
 import { db, schema } from "@/db/index.ts";
+import { publish } from "@/lib/events.ts";
 
 /** cron 容器无会话，用 CRON_TOKEN 调用；未配置该变量则一律拒绝，避免忘配变成公开端点 */
 function hasCronToken(req: Request): boolean {
@@ -41,6 +42,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
   const { kind, ...payload } = parsed.data;
   const id = enqueueJob(kind, payload, cron ? "cron" : "manual");
+  publish("queue");
   return NextResponse.json({ id, status: "queued" });
 }
 

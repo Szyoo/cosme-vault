@@ -11,6 +11,7 @@ import { checkRunnerAuth } from "@/lib/runner-auth.ts";
 import { applyReport } from "@/lib/queue.ts";
 import { notifyNeedsChoice, sendBark } from "@/lib/bark.ts";
 import { db, schema } from "@/db/index.ts";
+import { publish } from "@/lib/events.ts";
 
 export async function POST(req: Request): Promise<NextResponse> {
   const denied = checkRunnerAuth(req);
@@ -47,7 +48,8 @@ export async function POST(req: Request): Promise<NextResponse> {
     });
   }
 
-  return NextResponse.json({ ok: true, dispatchedDraws: effects.dispatchedDraws });
+  publish("report");
+    return NextResponse.json({ ok: true, dispatchedDraws: effects.dispatchedDraws });
 }
 
 /** 取账号名与奖品名用于通知文案 */
