@@ -51,6 +51,8 @@ const CONTENT_MARKERS = [
   "/media/monitor/", // brandcollection 的奖品图
   "/media/product/", // brandFanClub 的商品图（fitter.cosme.net）
   "/media/sku", // 商品 SKU 图
+  "/media/tieup_banner/", // タイアップ（PR 合作）奖品的横幅图，是内容图不是广告装饰
+  "/media/present/", // プロデュースメンバー限定奖品图
 ] as const;
 
 /** 把协议相对地址补成 https，并去掉查询串里无意义的缓存参数 */

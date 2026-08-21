@@ -19,6 +19,16 @@ export const SOURCE: Record<string, { short: string; full: string; pill: string 
     full: "ブランドファンクラブ限定（经品牌主页）",
     pill: "violet",
   },
+  produceMember: {
+    short: "プロデュース",
+    full: "プロデュースメンバー限定（部分需消耗ビューティコイン）",
+    pill: "amber",
+  },
+  tieupCampaign: {
+    short: "タイアップ",
+    full: "ブランドからの新着プレゼント（PR 合作，名额通常很大）",
+    pill: "green",
+  },
 };
 
 export function sourceOf(source: string): { short: string; full: string; pill: string } {

@@ -28,6 +28,25 @@ export const PresentSource = z.enum([
    * 入口是详情页的 `input[onclick]`。
    */
   "brandFanClubViaBrand",
+  /**
+   * `/present/` 上「現在募集中のプロデュースメンバー限定プレゼント！」那批。
+   * 路径是 `/present/detail/present_id/<ID>`（注意**不带** `/brandcollection` 前缀，
+   * ID 段也不同：19614 vs 12057）。
+   * ⚠️ 部分需要**ビューティコイン**（页面明示「スペシャルプレゼントのご応募には
+   * ビューティコインが必要です」）——会消耗账号积分，投递前要留意。
+   */
+  "produceMember",
+  /**
+   * `/present/` 上「ブランドからの新着プレゼント！」那批（タイアップ／PR 合作）。
+   *
+   * 与其他来源差别很大：卡片在 `ul.presentList` 里，链接是**外部追踪跳转**
+   * `https://c.w1.to/c?id=<N>`（不是 cosme.net 路径，按域名过滤会全漏掉），
+   * 落到 `/brands/<品牌ID>/tieup/<码>/page.html`（标着【PR】），
+   * 页上「今すぐ応募」再经一次追踪跳转，**最终汇入已支持的 `/enquete/confirm` 流程**。
+   *
+   * 名额通常很大（現品500〜800名様），比粉丝俱乐部那批（20名様）中奖率高得多。
+   */
+  "tieupCampaign",
 ]);
 export type PresentSource = z.infer<typeof PresentSource>;
 
@@ -126,7 +145,7 @@ export const ScanJob = z.object({
   kind: z.literal("scan"),
   id: z.string(),
   accountId: z.string(),
-  sources: z.array(PresentSource).default(["normal", "brandFanClub", "brandFanClubViaBrand"]),
+  sources: z.array(PresentSource).default(["normal", "brandFanClub", "brandFanClubViaBrand", "produceMember", "tieupCampaign"]),
 });
 
 /** 抽取任务：对某账号的某个奖品走完整抽奖流程 */
