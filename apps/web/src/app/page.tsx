@@ -1,23 +1,44 @@
 /**
  * 控制面首页：runner 状态 + 手动跑一轮 + 奖品与待处理项概览。
- * 样式一律用 @szyyw/design 的类（.glass / .stat-grid / .tbl / .pill / .term …），
+ * 样式一律用 @szyyw/design 的类（.glass / .stat-grid / .pill / .term …），
  * 不硬编码颜色——规范要求新颜色先进 tokens.css。
+ *
+ * 版面顺序（用户定的）：**导航在最上**，然后状态与统计，接着运行日志，
+ * 最后才是奖品列表。理由是奖品有 138 条、很长，放在最后才不会把日志和
+ * 操作按钮顶到看不见的地方；导航放底部则等于要滚完整页才能换页。
  */
+import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
+import { reclaimStaleJobs } from "@/lib/queue.ts";
 import { db, schema } from "@/db/index.ts";
-import { getHeartbeat, isRunnerOnline } from "@/lib/runner-state.ts";
+import { countQueuedJobs, getRunnerStatus } from "@/lib/runner-status.ts";
+import { loadQueue } from "@/lib/queue-view.ts";
+import { formatAgo } from "@/lib/ago.ts";
+import { fmtLogTime } from "@/lib/when.ts";
+import { getT } from "@/i18n/server.ts";
 import { RunButton } from "./run-button.tsx";
+import { StopButton } from "./stop-button.tsx";
+import { QueuePanel } from "./queue-panel.tsx";
 import { Nav } from "./nav.tsx";
 import { LiveRefresh } from "./live-refresh.tsx";
-import { sourceOf, statusOf } from "./labels.ts";
+import { PresentList } from "./present-list.tsx";
+import { ResolveButtons } from "./resolve-buttons.tsx";
+import { toItem } from "./present-item.ts";
 
 export const dynamic = "force-dynamic";
 
+export default async function Home() {
+  const t = await getT();
 
+  // ⚠️ 僵死任务的回收**不能只挂在 next-job 上**：那条路径要等 runner 来领任务才触发，
+  // 而 runner 崩掉时恰恰没人来领——任务就永远挂在 running，界面上永远显示「执行中」。
+  // 所以控制台每次渲染顺手回收一次（一条 UPDATE，绝大多数时候什么都不匹配）。
+  // 回收只把任务与奖品标成 failed + 「请人工确认」，**不会自动重投**（会重复应募）。
+  reclaimStaleJobs();
 
-export default function Home() {
-  const online = isRunnerOnline();
-  const hb = getHeartbeat();
+  const runner = getRunnerStatus();
+  const queued = countQueuedJobs();
+  const queue = loadQueue();
 
   const rows = db
     .select({
@@ -25,9 +46,11 @@ export default function Home() {
       accountId: schema.accountPresents.accountId,
       status: schema.accountPresents.status,
       pattern: schema.accountPresents.pattern,
+      error: schema.accountPresents.error,
       name: schema.presents.name,
       brand: schema.presents.brand,
       imageUrl: schema.presents.imageUrl,
+      link: schema.presents.link,
       period: schema.presents.period,
       quantity: schema.presents.quantity,
       source: schema.presents.source,
@@ -44,6 +67,8 @@ export default function Home() {
   }, {});
   const needsChoice = rows.filter((r) => r.status === "needsChoice");
   const unknown = rows.filter((r) => r.status === "unknownPattern");
+  // failed 多半是「投递中断、结果未知」——必须人工去原页面确认，不能埋在 138 条列表里
+  const needsConfirm = rows.filter((r) => r.status === "failed");
 
   // 最近一次扫描里有没有「来源版式没认出来」
   const lastScan = db
@@ -63,47 +88,100 @@ export default function Home() {
 
   return (
     <main className="page">
-      <h1 className="page-title grad-text">Cosme Vault</h1>
-      <p className="page-sub">@COSME 抽奖辅助控制面</p>
+      <Nav current="/" diagnosticsCount={diagnosticsCount} t={t} />
+
+      <h1 className="page-title grad-text">{t.appName}</h1>
+      <p className="page-sub">{t.appSub}</p>
 
       <section className="glass spot section">
         <div className="row spread">
           <div>
-            <div className="section-name">Runner</div>
+            <div className="section-name">{t.runner.title}</div>
+            {/* ⚠️ 「执行中」只在**在线**时才成立。心跳行里的 busyJobId 是上次心跳那一刻的
+                快照，离线时照抄它就会渲染出「离线 · 执行中」这种自相矛盾的一行（踩过）。 */}
             <p className="small">
-              {online ? "🟢 在线" : "⚪️ 离线"}
-              {hb ? ` · ${hb.location} · ${hb.busyJobId ? "执行中" : "空闲"}` : " · 尚未收到心跳"}
+              {runner.kind === "online" ? (
+                <>
+                  {`🟢 ${t.runner.online}${where(runner.location)} · `}
+                  {runner.busy ? t.runner.busy : t.runner.idle}
+                </>
+              ) : runner.kind === "offline" ? (
+                `⚪️ ${t.runner.offline}${where(runner.location)} · ${t.runner.lastSeen(
+                  formatAgo(runner.agoMs, t),
+                )}`
+              ) : (
+                `⚪️ ${t.runner.offline} · ${t.runner.noHeartbeat}`
+              )}
             </p>
           </div>
           <div className="row">
-            <LiveRefresh />
+            <StopButton queued={queued} />
             <RunButton />
           </div>
         </div>
-        <p className="tiny muted">
-          跑一轮 = 给每个启用账号扫描奖品；扫完自动派发投递，奖品之间按人类速度随机间隔。
-        </p>
+
+        {/* runner 不在的时候，光看「待投递 131」会以为在跑，实际什么都不会发生 */}
+        {runner.kind !== "online" && (
+          <p className="small warn-text">
+            {queued > 0 ? `${t.runner.offlineQueued(queued)} ` : ""}
+            {t.runner.startHint}
+          </p>
+        )}
+        {runner.kind === "offline" && runner.wasBusy && (
+          <p className="small warn-text">{t.runner.diedMidJob}</p>
+        )}
+
+        <p className="tiny muted">{t.runner.runHint}</p>
+        {/* 自动刷新是这一页的固有行为，用一句话说明，不给开关（见 live-refresh.tsx） */}
+        <p className="tiny muted">{t.runner.autoRefresh}</p>
+        <LiveRefresh />
       </section>
 
       <section className="stat-grid section">
-        <StatCard label="奖品" value={rows.length} sub="已扫描" />
-        <StatCard label="已投递" value={counts.drawn ?? 0} sub="本账号" />
-        <StatCard label="待投递" value={counts.pending ?? 0} sub="下一轮处理" />
-        <StatCard label="待选择" value={needsChoice.length} sub="需要你" />
+        <StatCard label={t.stat.presents} value={rows.length} sub={t.stat.scanned} />
+        <StatCard label={t.stat.drawn} value={counts.drawn ?? 0} sub={t.stat.thisAccount} />
+        <StatCard label={t.stat.pending} value={counts.pending ?? 0} sub={t.stat.nextRound} />
+        <StatCard label={t.stat.needsChoice} value={needsChoice.length} sub={t.stat.needsYou} />
       </section>
 
       {needsChoice.length > 0 && (
         <section className="glass section">
-          <div className="section-name">需要你选择</div>
+          <div className="section-name">{t.choice.needsChoiceTitle}</div>
           <div className="stack">
             {needsChoice.map((r) => (
-              <a key={`${r.accountId}-${r.presentId}`} className="inner row spread" href={`/choices/${r.presentId}?account=${r.accountId}`}>
+              <a
+                key={`${r.accountId}-${r.presentId}`}
+                className="inner row spread"
+                href={`/choices/${r.presentId}?account=${r.accountId}`}
+              >
                 <span>
                   {r.brand && <strong>{r.brand} · </strong>}
                   {r.name ?? r.presentId}
                 </span>
-                <span className="pill violet">去选择</span>
+                <span className="pill violet">{t.choice.goChoose}</span>
               </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {needsConfirm.length > 0 && (
+        <section className="glass section">
+          <div className="section-name">{t.attention.needsConfirm}</div>
+          <p className="tiny muted">{t.attention.needsConfirmHint}</p>
+          <div className="stack" style={{ marginTop: 10 }}>
+            {needsConfirm.map((r) => (
+              // 整块不能是 <a>：里面有按钮，嵌套交互元素点不准（奖品名单独给链接）
+              <div key={`${r.accountId}-${r.presentId}`} className="inner row spread">
+                <span style={{ minWidth: 0 }}>
+                  <Link href={`/presents/${r.presentId}`}>
+                    {r.brand && <strong>{r.brand} · </strong>}
+                    {r.name ?? r.presentId}
+                  </Link>
+                  {r.error && <span className="tiny muted"> — {r.error}</span>}
+                </span>
+                <ResolveButtons accountId={r.accountId} presentId={r.presentId} link={r.link} />
+              </div>
             ))}
           </div>
         </section>
@@ -111,100 +189,58 @@ export default function Home() {
 
       {diagnosticsCount > 0 && (
         <section className="glass section">
-          <div className="section-name">有 {diagnosticsCount} 处未识别的页面版式</div>
+          <div className="section-name">{t.diag.banner(diagnosticsCount)}</div>
           <p className="small">
-            runner 已安全中止并留下现场（没有瞎点）。到 <a href="/diagnostics">诊断页</a> 查看元素清单，据此补一个流程模式。
+            {t.diag.bannerHint} <a href="/diagnostics">{t.diag.title} →</a>
           </p>
         </section>
       )}
 
-      <section className="glass section">
-        <div className="section-name">奖品</div>
-        {rows.length === 0 ? (
-          <div className="empty">
-            <div>🎁</div>
-            <p>还没有奖品数据，点上面的「跑一轮」开始扫描。</p>
-          </div>
-        ) : (
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>奖品</th>
-                  <th>类型</th>
-                  <th>品牌</th>
-                  <th>数量</th>
-                  <th>期间</th>
-                  <th>状态</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => {
-                  const st = statusOf(r.status);
-                  const src = sourceOf(r.source ?? "");
-                  return (
-                    <tr key={`${r.accountId}-${r.presentId}`}>
-                      <td className="clip" title={r.name ?? r.presentId}>
-                        <a className="pz" href={`/presents/${r.presentId}`}>
-                          <Thumb src={r.imageUrl} alt={r.name ?? ""} />
-                          <span className="clip">{r.name ?? r.presentId}</span>
-                        </a>
-                      </td>
-                      <td>
-                        <span className={`pill ${src.pill}`} title={src.full}>
-                          {src.short}
-                        </span>
-                      </td>
-                      <td className="clip">{r.brand ?? "—"}</td>
-                      <td className="tiny num">{r.quantity ?? "—"}</td>
-                      <td className="num tiny">{r.period ?? "—"}</td>
-                      <td>
-                        <span className={`pill ${st.pill}`} title={r.pattern ?? ""}>
-                          {st.label}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <QueuePanel batches={queue.batches} hidden={queue.hidden} t={t} />
 
-      {/* 终端窗：设计规范第 9 节，日志刻意保持深色 */}
+      {/* 终端窗：设计规范第 9 节，日志刻意保持深色。放在奖品列表**之前**——
+          奖品有一百多条，日志排在后面就等于永远看不见。 */}
       <section className="term section">
         <div className="term-head">
-          <span className={`term-dot`} data-live={online ? "1" : "0"} />
-          <span className="term-title">运行日志</span>
+          <span className="term-dot" data-live={runner.kind === "online" ? "1" : "0"} />
+          <span className="term-title">{t.log.title}</span>
         </div>
         <div className="term-body">
-          {logs.length === 0 && <div className="term-line debug">（暂无日志）</div>}
+          {logs.length === 0 && <div className="term-line debug">{t.log.empty}</div>}
           {logs
             .slice()
             .reverse()
             .map((l) => (
               <div key={l.id} className={`term-line ${l.level}`}>
-                <span className="term-time">{l.at.replace("T", " ").slice(5, 19)}</span> {l.text}
+                <span className="term-time">{fmtLogTime(l.at)}</span> {l.text}
               </div>
             ))}
         </div>
       </section>
 
-      <Nav diagnosticsCount={diagnosticsCount} />
+      <section className="glass section">
+        <div className="section-name">{t.present.listTitle}</div>
+        {rows.length === 0 ? (
+          <div className="empty">
+            <div>🎁</div>
+            <p>{t.present.emptyHint}</p>
+          </div>
+        ) : (
+          <PresentList items={rows.map((r) => toItem(r, t))} />
+        )}
+      </section>
     </main>
   );
 }
 
 /**
- * 奖品缩略图。
- * 无图时画一个占位方块而不是留空——表格行高才不会跳。
- * 图片地址已在 runner 侧经 validateImageUrl 过滤，这里不会拿到占位图或站点图标。
+ * runner 所在位置。
+ * ⚠️ `unknown` 是 contract 里 `RUNNER_LOCATION` 未设时的**枚举默认值**，
+ * 原先被原样印成「🟢 在线 · unknown · 执行中」——内部枚举值不该给人看，
+ * 取不到位置就干脆不显示这一段（用户为此问过）。
  */
-function Thumb({ src, alt }: { src: string | null; alt: string }) {
-  if (!src) return <span className="thumb thumb-none" aria-hidden />;
-  // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image 优化
-  return <img className="thumb" src={src} alt={alt} loading="lazy" width={40} height={40} />;
+function where(location: string): string {
+  return location && location !== "unknown" ? ` · ${location}` : "";
 }
 
 function StatCard({ label, value, sub }: { label: string; value: number; sub: string }) {

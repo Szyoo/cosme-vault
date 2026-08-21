@@ -20,6 +20,7 @@
 import type { Page } from "playwright";
 import { selectors } from "@cosme/core";
 import { scanQuestions, applyDecisions } from "./survey-common.ts";
+import { clickAndSettle } from "../click.ts";
 import type { PendingChoice } from "@cosme/contract";
 import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from "./types.ts";
 import { fillAndSubmitSurvey } from "./is-enq-survey.ts";
@@ -124,7 +125,16 @@ async function answerBlogSurvey(page: Page, ctx: PatternContext): Promise<Patter
 
   const questions = await scanQuestions(page);
   if (questions.length === 0) {
-    await ctx.log("问卷页未解析到任何题目", "warn");
+    // 与 is-enq 同一个判据：**题目与提交控件都没有 = 站点表明已应募过**，
+    // 不是版式不认识。（is-enq 侧有实测证据，见那边的注释；present-blog 这条
+    // 路的已应募形态**尚未实测**，所以只在两者都缺时才敢这么判，宁可保守。）
+    const hasSubmit =
+      (await page.locator(`${PRESENT_BLOG.surveyForm} ${PRESENT_BLOG.surveySubmit}`).count()) > 0;
+    if (!hasSubmit) {
+      await ctx.log("问卷页没有任何题目与提交控件——站点表明已应募过，本次不提交任何内容", "warn");
+      return { status: "alreadyEntered" };
+    }
+    await ctx.log("问卷页未解析到任何题目（但有提交控件，版式可能变了）", "warn");
     return { status: "unknownPattern" };
   }
 
@@ -143,10 +153,19 @@ async function answerBlogSurvey(page: Page, ctx: PatternContext): Promise<Patter
     return { status: "unknownPattern" };
   }
   await ctx.log("提交问卷并应募");
-  await Promise.all([page.waitForLoadState("domcontentloaded"), submit.click()]);
-  await page.waitForTimeout(2500);
+  // ⚠️ 不能用 `Promise.all([waitForLoadState, click()])`：click() 自带「等已排定的导航」，
+  // 站点这一步跳转实测超过 30 秒 → click 抛超时 → 任务记失败，**而表单其实已经提交了**
+  // （2026-08-21 真实踩到，PB3653）。改成点完自己判断落地，见 cosme/click.ts。
+  await clickAndSettle(page, submit);
 
-  if ((await page.locator(PRESENT_BLOG.surveyForm).count()) > 0) {
+  // 判据是「有没有离开问卷表单」，不是点击有没有超时
+  let stillOnForm = (await page.locator(PRESENT_BLOG.surveyForm).count()) > 0;
+  if (stillOnForm) {
+    // 慢跳转再宽限一轮，别把「还在跳」当成「被退回」
+    await page.waitForTimeout(4000);
+    stillOnForm = (await page.locator(PRESENT_BLOG.surveyForm).count()) > 0;
+  }
+  if (stillOnForm) {
     const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
     const reason = /エラー|入力してください|選択してください|必須項目/.exec(body)?.[0] ?? "未知原因";
     await ctx.log(`问卷被退回（${reason}）`, "error");

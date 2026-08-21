@@ -36,6 +36,13 @@
       "when": 1787279388190,
       "tag": "0005_split_present_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787279389190,
+      "tag": "0006_job_batches",
+      "breakpoints": true
     }
   ]
 }

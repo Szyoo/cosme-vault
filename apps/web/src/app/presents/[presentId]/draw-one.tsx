@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useT } from "@/i18n/context.tsx";
 
 export function DrawOneButton({
   accountId,
@@ -18,6 +19,7 @@ export function DrawOneButton({
   presentId: string;
   presentLink: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,7 +39,7 @@ export function DrawOneButton({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ kind: "draw", accountId, presentId, presentLink }),
       });
-      setMsg(res.ok ? "已入队，runner 会尽快执行" : "入队失败");
+      setMsg(res.ok ? t.draw.queued : t.draw.failed);
       if (res.ok) router.refresh();
     } finally {
       setBusy(false);
@@ -54,7 +56,7 @@ export function DrawOneButton({
       onClick={go}
       disabled={busy}
     >
-      {busy ? "入队中…" : armed ? "再点一次确认投递" : "投递这个"}
+      {busy ? t.draw.queueing : armed ? t.draw.confirm : t.draw.one}
     </button>
   );
 }

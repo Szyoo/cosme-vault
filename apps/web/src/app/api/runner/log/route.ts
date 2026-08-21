@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { RunnerLog } from "@cosme/contract";
 import { checkRunnerAuth } from "@/lib/runner-auth.ts";
 import { db, schema } from "@/db/index.ts";
+import { publish } from "@/lib/events.ts";
 
 export async function POST(req: Request): Promise<NextResponse> {
   const denied = checkRunnerAuth(req);
@@ -16,5 +17,6 @@ export async function POST(req: Request): Promise<NextResponse> {
   db.insert(schema.runnerLogs)
     .values({ jobId: log.jobId, at: log.at, level: log.level, text: log.text })
     .run();
-  return NextResponse.json({ ok: true });
+  publish("log");
+    return NextResponse.json({ ok: true });
 }

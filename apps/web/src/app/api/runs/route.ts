@@ -11,6 +11,8 @@ import { desc } from "drizzle-orm";
 import { startRun } from "@/lib/dispatch.ts";
 import { requireUser } from "@/lib/auth.ts";
 import { db, schema } from "@/db/index.ts";
+import { getT } from "@/i18n/server.ts";
+import { publish } from "@/lib/events.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -20,22 +22,24 @@ function hasCronToken(req: Request): boolean {
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
+  const t = await getT();
   const cron = hasCronToken(req);
   if (!cron) {
     try {
       await requireUser();
     } catch {
-      return NextResponse.json({ error: "未登录" }, { status: 401 });
+      return NextResponse.json({ error: t.api.notLoggedIn }, { status: 401 });
     }
   }
 
   const started = startRun(cron ? "cron" : "manual");
   if (started.length === 0) {
     return NextResponse.json(
-      { error: "没有可跑的账号（需已启用且已配置凭证）", started: [] },
+      { error: t.api.noRunnableAccount, started: [] },
       { status: 409 },
     );
   }
+  publish("queue");
   return NextResponse.json({ started });
 }
 

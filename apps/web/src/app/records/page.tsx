@@ -3,17 +3,21 @@
  *
  * 服务端组件直接查库（无需 API）。因 @COSME 不标注「已应募」，
  * 这张表就是投递历史的唯一权威来源。
+ *
+ * 明细同样用「两行一条」的 PresentRow（原先 8 列表格在手机上横向溢出）。
  */
 import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
+import { getT } from "@/i18n/server.ts";
 import { Nav } from "../nav.tsx";
-import { sourceOf, statusOf } from "../labels.ts";
+import { PresentList } from "../present-list.tsx";
+import { toItem } from "../present-item.ts";
 
 export const dynamic = "force-dynamic";
 
+export default async function RecordsPage() {
+  const t = await getT();
 
-
-export default function RecordsPage() {
   const rows = db
     .select({
       presentId: schema.accountPresents.presentId,
@@ -26,7 +30,6 @@ export default function RecordsPage() {
       name: schema.presents.name,
       brand: schema.presents.brand,
       imageUrl: schema.presents.imageUrl,
-      link: schema.presents.link,
       period: schema.presents.period,
       quantity: schema.presents.quantity,
       source: schema.presents.source,
@@ -47,97 +50,58 @@ export default function RecordsPage() {
 
   return (
     <main className="page">
-      <h1 className="page-title">记录</h1>
-      <p className="page-sub">投递历史。@COSME 不标注「已应募」，这张表是唯一权威来源。</p>
+      <Nav current="/records" t={t} />
+
+      <h1 className="page-title">{t.records.title}</h1>
+      <p className="page-sub">{t.records.sub}</p>
 
       <section className="stat-grid section">
         <div className="stat-card">
-          <div className="stat-label">总计</div>
+          <div className="stat-label">{t.stat.total}</div>
           <div className="stat-value num">{rows.length}</div>
-          <div className="stat-sub">条记录</div>
+          <div className="stat-sub">{t.stat.rows}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">已投递</div>
+          <div className="stat-label">{t.stat.drawn}</div>
           <div className="stat-value num">{drawn.length}</div>
-          <div className="stat-sub">成功</div>
+          <div className="stat-sub">{t.status.drawn}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">失败</div>
+          <div className="stat-label">{t.stat.failed}</div>
           <div className="stat-value num">{counts.failed ?? 0}</div>
-          <div className="stat-sub">需人工确认</div>
+          <div className="stat-sub">{t.stat.needsReview}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">账号</div>
+          <div className="stat-label">{t.stat.accounts}</div>
           <div className="stat-value num">{accounts.length}</div>
-          <div className="stat-sub">已配置</div>
+          <div className="stat-sub">{t.stat.configured}</div>
         </div>
       </section>
 
       <section className="glass section">
-        <div className="section-name">明细</div>
+        <div className="section-name">{t.records.detailTable}</div>
         {rows.length === 0 ? (
           <div className="empty">
             <div>📋</div>
-            <p>
-              还没有记录。回<a href="/">控制台</a>点「跑一轮」。
-            </p>
+            <p>{t.records.empty}</p>
           </div>
         ) : (
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>状态</th>
-                  <th>类型</th>
-                  <th>品牌</th>
-                  <th>奖品</th>
-                  <th>期间</th>
-                  <th>账号</th>
-                  <th>模式</th>
-                  <th>时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => {
-                  const st = statusOf(r.status);
-                  const src = sourceOf(r.source ?? "");
-                  return (
-                    <tr key={`${r.accountId}-${r.presentId}`}>
-                      <td>
-                        <span className={`pill ${st.pill}`}>{st.label}</span>
-                        {r.error && <div className="tiny muted">{r.error.slice(0, 36)}</div>}
-                      </td>
-                      <td>
-                        <span className={`pill ${src.pill}`} title={src.full}>
-                          {src.short}
-                        </span>
-                      </td>
-                      <td className="clip">{r.brand ?? "—"}</td>
-                      <td className="clip" title={r.name ?? r.presentId}>
-                        <a className="pz" href={`/presents/${r.presentId}`}>
-                          {r.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img className="thumb" src={r.imageUrl} alt="" loading="lazy" width={40} height={40} />
-                          ) : (
-                            <span className="thumb thumb-none" aria-hidden />
-                          )}
-                          <span className="clip">{r.name ?? r.presentId}</span>
-                        </a>
-                      </td>
-                      <td className="num tiny">{r.period ?? "—"}</td>
-                      <td className="tiny">{labelOf(r.accountId)}</td>
-                      <td className="mono tiny">{r.pattern ?? "—"}</td>
-                      <td className="num tiny muted">{(r.drawnAt ?? r.updatedAt)?.replace("T", " ").slice(0, 16)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <PresentList
+            items={rows.map((r) =>
+              toItem(
+                {
+                  ...r,
+                  // 单账号时不重复显示账号名，参数行本来就挤
+                  accountLabel: accounts.length > 1 ? labelOf(r.accountId) : null,
+                  at: r.drawnAt ?? r.updatedAt,
+                },
+                t,
+              ),
+            )}
+          />
         )}
       </section>
 
-      <Nav current="/records" />
     </main>
   );
 }

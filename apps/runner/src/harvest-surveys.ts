@@ -4,8 +4,11 @@
  * 目的是给「自动作答」攒一份真实数据集，用来评估关键词库的覆盖率与误命中，
  * 而不是靠猜。产物是 `docs/research/surveys.json`。
  *
- * 用法：npm run harvest              采集所有奖品
- *      npm run harvest -- --limit 3  只采前 3 个（试跑）
+ * 用法：npm run harvest                  采集所有奖品
+ *      npm run harvest -- --limit 3      只采前 3 个（试跑）
+ *      npm run harvest -- --id <奖品ID>   只走某一个奖品
+ *      npm run harvest -- --drawn        只走**已投递过**的奖品
+ *                                        → 重复应募检测实验，见 ONLY_DRAWN 的注释
  *
  * ⚠️ 会产生的副作用（**不包含投递**）：
  * - 要到达问卷页必须 POST 一次确认页。实测确认过：POST 确认页**不等于投递**，
@@ -24,7 +27,42 @@ import { PACING, randomDelay, selectors } from "@cosme/core";
 const args = process.argv.slice(2);
 const limitArg = args.indexOf("--limit");
 const LIMIT = limitArg >= 0 ? Number(args[limitArg + 1]) : Infinity;
+const idArg = args.indexOf("--id");
+/** 只走指定奖品（做单点实验用） */
+const ONLY_ID = idArg >= 0 ? args[idArg + 1] : null;
+/**
+ * 只走**已投递过**的奖品。
+ *
+ * 用途是回答一个悬而未决的问题：**已经应募过的奖品，再走一遍流程会不会被站点拦住？**
+ * 已实测确认的是「详情页照样显示応募する、重走入口照样进确认页」——也就是**入口层面
+ * 完全看不出来**。但更靠里的问卷页会不会出现「既に応募済み」之类的提示，从来没验过
+ * （送信是不可逆动作，不能拿来做实验）。
+ *
+ * 本脚本只进到问卷页、绝不点送信，所以拿已投递的奖品来跑是安全的：
+ * 如果问卷页上真有「已应募」的痕迹，就能据此做自动去重，人工确认那一步就可以取消。
+ */
+const ONLY_DRAWN = args.includes("--drawn");
 const OUT = "../../docs/research";
+
+/** 可能表示「已经应募过」的字样。命中不代表就是——只用来把证据挑出来给人看。 */
+const DUPLICATE_HINTS = [
+  "既に応募",
+  "すでに応募",
+  "応募済み",
+  "重複",
+  "お一人様1回",
+  "1回限り",
+  "受付できません",
+  // ⚠️ 下面这批是补的：已应募时站点跳到的其实是**抽選相关**的页面，
+  // 原来那半张单子里一个「抽選」都没有，就算跑了也可能对不上（用户实际看到的是
+  // 「已抽选」的界面）。文案匹配只作旁证——**主判据是结构性的**：
+  // 问卷页既无题目也无送信控件（见 patterns/is-enq-survey.ts）。
+  "抽選",
+  "当選",
+  "発表",
+  "締め切",
+  "終了しました",
+];
 
 const pause = () => new Promise<void>((r) => setTimeout(r, randomDelay(PACING.betweenPresentsMs)));
 const step = () => new Promise<void>((r) => setTimeout(r, randomDelay(PACING.stepDelayMs)));
@@ -54,11 +92,45 @@ interface SurveyRecord {
   textInputs: { name: string; required: boolean }[];
   selects: { name: string; options: string[] }[];
   submitLabel: string | null;
+  /**
+   * 页面正文里命中的「可能已应募」字样（`DUPLICATE_HINTS`）。
+   * 拿已投递的奖品跑 `--drawn` 时看这一项：**非空就说明站点其实是有痕迹的**，
+   * 那么自动去重可行，人工确认那一步就能取消。
+   */
+  duplicateHints: string[];
+  /** 命中时前后的正文片段，供人工判断那句话到底在说什么 */
+  duplicateContext: string[];
   error?: string;
 }
 
+/**
+ * 抓「可能已应募」的字样。⚠️ 纯只读的正文匹配，不做任何判定——
+ * 命中只是把证据挑出来给人看，绝不据此自动跳过（选择器/文案没实测过就不能当依据）。
+ */
+async function findDuplicateHints(page: Page, hints: string[]): Promise<{ hits: string[]; context: string[] }> {
+  return page.evaluate((hs: string[]) => {
+    const text = (document.body?.innerText ?? "").replace(/\s+/g, " ");
+    const hits: string[] = [];
+    const context: string[] = [];
+    for (const h of hs) {
+      const at = text.indexOf(h);
+      if (at < 0) continue;
+      hits.push(h);
+      context.push(text.slice(Math.max(0, at - 60), at + 90));
+    }
+    return { hits, context };
+  }, hints);
+}
+
 /** 从当前页面提取问卷结构。⚠️ 只读，不填不点。 */
-async function extractSurvey(page: Page): Promise<Omit<SurveyRecord, "presentId" | "source" | "brand" | "name" | "flow">> {
+async function extractSurvey(
+  page: Page,
+): Promise<
+  Omit<
+    SurveyRecord,
+    "presentId" | "source" | "brand" | "name" | "flow" | "duplicateHints" | "duplicateContext"
+  >
+> {
   return page.evaluate(() => {
     const groups: Record<string, { type: string; value: string; label: string; required: boolean }[]> = {};
     for (const el of Array.from(
@@ -114,13 +186,29 @@ async function main(): Promise<void> {
   await mkdir(OUT, { recursive: true });
 
   const db = new Database("../web/data/cosme.db", { readonly: true });
+  const where = ONLY_ID
+    ? "where p.id = ?"
+    : ONLY_DRAWN
+      ? "where exists (select 1 from account_presents ap where ap.present_id = p.id and ap.status = 'drawn')"
+      : "";
   const presents = db
-    .prepare("select id, source, brand, name, link from presents order by source, id")
-    .all() as { id: string; source: string; brand: string | null; name: string; link: string }[];
+    .prepare(`select p.id, p.source, p.brand, p.name, p.link from presents p ${where} order by p.source, p.id`)
+    .all(...(ONLY_ID ? [ONLY_ID] : [])) as {
+    id: string;
+    source: string;
+    brand: string | null;
+    name: string;
+    link: string;
+  }[];
   db.close();
 
   const targets = presents.slice(0, LIMIT === Infinity ? undefined : LIMIT);
-  console.log(`[harvest] 准备采集 ${targets.length} / ${presents.length} 个奖品的问卷（只进页面，不提交）\n`);
+  const scope = ONLY_ID ? `奖品 ${ONLY_ID}` : ONLY_DRAWN ? "**已投递**的奖品（重复应募检测实验）" : "全部奖品";
+  console.log(`[harvest] 准备采集 ${targets.length} 个（${scope}）的问卷（只进页面，绝不提交）\n`);
+  if (targets.length === 0) {
+    console.log("[harvest] 没有符合条件的奖品，退出。");
+    return;
+  }
 
   const ctx = await chromium.launchPersistentContext(process.env.RUNNER_PROFILE_DIR ?? "./profile", {
     headless: process.env.RUNNER_HEADLESS !== "false",
@@ -181,10 +269,24 @@ async function main(): Promise<void> {
       }
 
       const survey = await extractSurvey(page);
-      records.push({ presentId: p.id, source: p.source, brand: p.brand, name: p.name, flow, ...survey });
+      const dup = await findDuplicateHints(page, DUPLICATE_HINTS);
+      records.push({
+        presentId: p.id,
+        source: p.source,
+        brand: p.brand,
+        name: p.name,
+        flow,
+        ...survey,
+        duplicateHints: dup.hits,
+        duplicateContext: dup.context,
+      });
       console.log(
         `${head}\n    流程=${flow}  题数=${survey.questions.length}  下拉=${survey.selects.length}  提交按钮=${survey.submitLabel ?? "—"}`,
       );
+      if (dup.hits.length > 0) {
+        console.log(`    🔎 命中「已应募」候选字样：${dup.hits.join("、")}`);
+        for (const c of dup.context) console.log(`       …${c}…`);
+      }
       if (survey.questions.length === 0) console.log(`    ⚠️ 未取到题目（可能已应募或已结束）URL=${survey.surveyUrl}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -200,13 +302,19 @@ async function main(): Promise<void> {
         textInputs: [],
         selects: [],
         submitLabel: null,
+        duplicateHints: [],
+        duplicateContext: [],
         error: message.slice(0, 200),
       });
     }
     await pause(); // 合规：奖品之间人类速度
   }
 
-  const file = `${OUT}/surveys.json`;
+  // ⚠️ 窄范围运行（--id / --drawn / --limit）**不许写主数据集**：
+  // 实测踩过——会话失效时一次 --drawn 只走通 1 条，把 138 个奖品的完整
+  // surveys.json 覆盖成了 953 字节。范围不全就换文件名。
+  const scoped = ONLY_ID ? `surveys-${ONLY_ID}` : ONLY_DRAWN ? "surveys-drawn" : LIMIT !== Infinity ? "surveys-partial" : "surveys";
+  const file = `${OUT}/${scoped}.json`;
   await writeFile(file, JSON.stringify({ harvestedAt: new Date().toISOString(), records }, null, 2));
   const totalQ = records.reduce((n, r) => n + r.questions.length, 0);
   console.log(`\n[harvest] 完成：${records.length} 个奖品，共 ${totalQ} 道题 → ${file}`);

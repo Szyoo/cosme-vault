@@ -6,6 +6,7 @@ export * from "./keywords.ts";
 export * from "./images.ts";
 export * from "./answering.ts";
 export * from "./period.ts";
+export * from "./quantity.ts";
 export * as selectors from "./selectors.ts";
 
 /** 抽奖节奏参数：合规底线要求「至少人类速度」，一切延迟随机化避免规律性 */

@@ -11,13 +11,15 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { PendingChoice } from "@cosme/contract";
+import { useT } from "@/i18n/context.tsx";
+import type { Dict } from "@/i18n/dict.ts";
 
 /** 顶部返回条。选择页有多个状态分支，各自都要有出口，故抽成组件。 */
-function BackRow() {
+function BackRow({ t }: { t: Dict }) {
   return (
     <nav className="back-row">
       <a className="chip" href="/">
-        ← 控制台
+        ← {t.nav.console}
       </a>
     </nav>
   );
@@ -32,13 +34,14 @@ interface Data {
 /** ⚠️ Next 16：useSearchParams() 必须在 Suspense 内，否则构建失败。 */
 export default function ChoicePage() {
   return (
-    <Suspense fallback={<main className="page">载入中…</main>}>
+    <Suspense fallback={<main className="page">…</main>}>
       <ChoiceInner />
     </Suspense>
   );
 }
 
 function ChoiceInner() {
+  const t = useT();
   const params = useParams<{ presentId: string }>();
   const search = useSearchParams();
   const router = useRouter();
@@ -55,26 +58,26 @@ function ChoiceInner() {
     const res = await fetch(`/api/choices/${presentId}?account=${encodeURIComponent(accountId)}`);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? "读取失败");
+      setError(body.error ?? t.choice.loadFailed);
       return;
     }
     setData((await res.json()) as Data);
-  }, [presentId, accountId]);
+  }, [presentId, accountId, t]);
 
   useEffect(() => {
     if (!accountId) {
-      setError("链接缺少 account 参数");
+      setError(t.choice.missingAccount);
       return;
     }
     void load();
-  }, [accountId, load]);
+  }, [accountId, load, t]);
 
   async function submit() {
     if (!data) return;
     // 每道题都必须选，否则提交上去 runner 还是会卡住
     const unanswered = data.choices.filter((c) => !selections[c.questionId]);
     if (unanswered.length > 0) {
-      setError(`还有 ${unanswered.length} 道题没选`);
+      setError(t.choice.unanswered(unanswered.length));
       return;
     }
     setBusy(true);
@@ -87,7 +90,7 @@ function ChoiceInner() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? "提交失败");
+        setError(body.error ?? t.choice.submitFailed);
         return;
       }
       setDone(true);
@@ -99,8 +102,8 @@ function ChoiceInner() {
   if (error && !data) {
     return (
       <main className="page narrow">
-      <BackRow />
-        <h1 className="page-title">选择奖品</h1>
+      <BackRow t={t} />
+        <h1 className="page-title">{t.choice.title}</h1>
         <p className="err-text">{error}</p>
       </main>
     );
@@ -108,19 +111,19 @@ function ChoiceInner() {
   if (!data) {
     return (
       <main className="page narrow">
-      <BackRow />
-        <p>读取中…</p>
+      <BackRow t={t} />
+        <p>{t.common.loading}</p>
       </main>
     );
   }
   if (done) {
     return (
       <main className="page narrow">
-      <BackRow />
-        <h1 className="page-title">已提交</h1>
-        <p>选择已保存，稍后会自动继续投递这个奖品。</p>
+      <BackRow t={t} />
+        <h1 className="page-title">{t.choice.submitted}</h1>
+        <p>{t.choice.submittedHint}</p>
         <button type="button" className="btn" onClick={() => router.push("/")}>
-          回首页
+          {t.nav.console}
         </button>
       </main>
     );
@@ -128,19 +131,17 @@ function ChoiceInner() {
   if (data.status !== "needsChoice") {
     return (
       <main className="page narrow">
-      <BackRow />
-        <h1 className="page-title">无需选择</h1>
-        <p>
-          该奖品当前状态是 <strong>{data.status}</strong>，可能已经处理过了。
-        </p>
+      <BackRow t={t} />
+        <h1 className="page-title">{t.choice.noNeed}</h1>
+        <p>{t.choice.noNeedHint(data.status)}</p>
       </main>
     );
   }
 
   return (
     <main className="page narrow">
-      <BackRow />
-      <h1 className="page-title">选择奖品</h1>
+      <BackRow t={t} />
+      <h1 className="page-title">{t.choice.title}</h1>
       {data.present && (
         <p className="page-sub">
           {data.present.brand && <strong>{data.present.brand} · </strong>}
@@ -150,7 +151,7 @@ function ChoiceInner() {
 
       {data.choices.map((c) => (
         <section key={c.questionId} className="glass section">
-          <div className="section-name">{c.prompt || "请选择"}</div>
+          <div className="section-name">{c.prompt || t.choice.pick}</div>
           <div className="stack">
             {c.options.map((o) => {
               const picked = selections[c.questionId] === o.id;
@@ -180,7 +181,7 @@ function ChoiceInner() {
         className="btn"
         style={{ width: "100%", marginTop: 18 }}
       >
-        {busy ? "提交中…" : "提交并继续投递"}
+        {busy ? t.choice.submitting : t.choice.submit}
       </button>
     </main>
   );

@@ -1,50 +1,57 @@
 /**
- * 展示用的文案与配色，三个页面共用（原先各写一份，容易漂移）。
+ * 展示用的文案与配色，各页面共用（原先各写一份，容易漂移）。
+ *
+ * 文案本身来自 i18n 字典，这里只负责「枚举值 → 字典键 + 配色」的映射。
+ * ⚠️ 注意区分：**类型名（コレクション / タイアップ 等）是站点自己的分类名词**，
+ * 三语字典里日文一律保留原词，中英文给可读的对应说法。
  */
+import type { Dict } from "@/i18n/dict.ts";
 
-/** 奖品类型（来源）。表格里用 short，详情页用 full。 */
-export const SOURCE: Record<string, { short: string; full: string; pill: string }> = {
-  normal: {
-    short: "コレクション",
-    full: "ブランドコレクション（每周三更新的品牌新品）",
-    pill: "cyan",
-  },
-  brandFanClub: {
-    short: "ファンクラブ",
-    full: "ブランドファンクラブ限定（article 直链）",
-    pill: "violet",
-  },
-  brandFanClubViaBrand: {
-    short: "ファンクラブ",
-    full: "ブランドファンクラブ限定（经品牌主页）",
-    pill: "violet",
-  },
-  produceMember: {
-    short: "プロデュース",
-    full: "プロデュースメンバー限定（部分需消耗ビューティコイン）",
-    pill: "amber",
-  },
-  tieupCampaign: {
-    short: "タイアップ",
-    full: "ブランドからの新着プレゼント（PR 合作，名额通常很大）",
-    pill: "green",
-  },
-};
+export interface Badge {
+  short: string;
+  full: string;
+  pill: string;
+}
 
-export function sourceOf(source: string): { short: string; full: string; pill: string } {
-  return SOURCE[source] ?? { short: source, full: source, pill: "" };
+/** 奖品类型（来源）。列表用 short，详情页用 full。 */
+export function sourceOf(source: string, t: Dict): Badge {
+  const s = t.source;
+  switch (source) {
+    case "normal":
+      return { short: s.normalShort, full: s.normalFull, pill: "cyan" };
+    case "brandFanClub":
+      return { short: s.fanClubShort, full: s.fanClubFull, pill: "violet" };
+    case "brandFanClubViaBrand":
+      return { short: s.fanClubShort, full: s.fanClubViaBrandFull, pill: "violet" };
+    case "produceMember":
+      return { short: s.produceShort, full: s.produceFull, pill: "amber" };
+    case "tieupCampaign":
+      return { short: s.tieupShort, full: s.tieupFull, pill: "green" };
+    default:
+      return { short: source, full: source, pill: "" };
+  }
 }
 
 /** 投递状态 */
-export const STATUS: Record<string, { label: string; pill: string }> = {
-  pending: { label: "待投递", pill: "" },
-  drawn: { label: "已投递", pill: "green" },
-  needsChoice: { label: "待选择", pill: "violet" },
-  skipped: { label: "已跳过", pill: "" },
-  failed: { label: "失败", pill: "red" },
-  unknownPattern: { label: "未知模式", pill: "amber" },
-};
-
-export function statusOf(status: string): { label: string; pill: string } {
-  return STATUS[status] ?? { label: status, pill: "" };
+export function statusOf(status: string, t: Dict): { label: string; pill: string } {
+  const s = t.status;
+  switch (status) {
+    case "pending":
+      return { label: s.pending, pill: "" };
+    case "drawn":
+      return { label: s.drawn, pill: "green" };
+    case "needsChoice":
+      return { label: s.needsChoice, pill: "violet" };
+    case "skipped":
+      return { label: s.skipped, pill: "" };
+    case "alreadyEntered":
+      // 结果上等于「已投递」，但来源不同（站点摊牌，不是我们提交的），故单列一档
+      return { label: s.alreadyEntered, pill: "green" };
+    case "failed":
+      return { label: s.failed, pill: "red" };
+    case "unknownPattern":
+      return { label: s.unknownPattern, pill: "amber" };
+    default:
+      return { label: status, pill: "" };
+  }
 }

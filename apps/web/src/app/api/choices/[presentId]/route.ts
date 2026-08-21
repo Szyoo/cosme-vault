@@ -10,6 +10,8 @@ import { and, eq } from "drizzle-orm";
 import { PendingChoice } from "@cosme/contract";
 import { db, schema } from "@/db/index.ts";
 import { dispatchResolvedDraw } from "@/lib/dispatch.ts";
+import { getT } from "@/i18n/server.ts";
+import { publish } from "@/lib/events.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +32,13 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ presentId: string }> },
 ): Promise<NextResponse> {
+  const t = await getT();
   const { presentId } = await params;
   const accountId = new URL(req.url).searchParams.get("account");
-  if (!accountId) return NextResponse.json({ error: "缺少 account 参数" }, { status: 400 });
+  if (!accountId) return NextResponse.json({ error: t.api.missingAccountParam }, { status: 400 });
 
   const row = loadRow(accountId, presentId);
-  if (!row) return NextResponse.json({ error: "记录不存在" }, { status: 404 });
+  if (!row) return NextResponse.json({ error: t.api.recordNotFound }, { status: 404 });
 
   const present = db.select().from(schema.presents).where(eq(schema.presents.id, presentId)).get();
   const choices = row.pendingChoices
@@ -59,15 +62,16 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ presentId: string }> },
 ): Promise<NextResponse> {
+  const t = await getT();
   const { presentId } = await params;
   const parsed = Body.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "参数非法" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: t.api.badParams }, { status: 400 });
 
   const { accountId, selections } = parsed.data;
   const row = loadRow(accountId, presentId);
-  if (!row) return NextResponse.json({ error: "记录不存在" }, { status: 404 });
+  if (!row) return NextResponse.json({ error: t.api.recordNotFound }, { status: 404 });
   if (row.status !== "needsChoice") {
-    return NextResponse.json({ error: `该奖品当前状态为 ${row.status}，无需选择` }, { status: 409 });
+    return NextResponse.json({ error: t.choice.noNeedHint(row.status) }, { status: 409 });
   }
 
   // 记下选择并回到 pending，随后派发带 resolvedChoices 的 draw
@@ -82,6 +86,7 @@ export async function POST(
     .run();
 
   const jobId = dispatchResolvedDraw(accountId, presentId, selections);
-  if (!jobId) return NextResponse.json({ error: "奖品不存在，无法派发" }, { status: 404 });
-  return NextResponse.json({ ok: true, jobId });
+  if (!jobId) return NextResponse.json({ error: t.api.presentNotFound }, { status: 404 });
+  publish("queue");
+    return NextResponse.json({ ok: true, jobId });
 }
