@@ -23,6 +23,43 @@ export const LIST_URLS = {
    * 拿到品牌链接就以为那是推广卡片）。
    */
   brandFanClubViaBrand: "https://www.cosme.net/brandfanclub/present",
+  /** プロデュースメンバー限定：/present/ 导航页上那两三个（路径不带 brandcollection） */
+  produceMember: "https://www.cosme.net/present/",
+  /** タイアップ（PR）キャンペーン：同一页的 ul.presentList 区块 */
+  tieupCampaign: "https://www.cosme.net/present/",
+} as const;
+
+/**
+ * `/present/` 页上两批奖品的卡片结构（2026-08-21 实测）。
+ */
+export const PRESENT_INDEX = {
+  /**
+   * プロデュースメンバー限定。
+   * ⚠️ **必须严格按 pathname 前缀判断**：`a[href*="/present/detail/present_id/"]`
+   * 会同时匹配 `/brandcollection/present/detail/present_id/`，把别的来源串进来（踩过）。
+   * 卡片结构：`li.clearfix` > `p.photo`(图) / `dt>a`(品牌) / `dt>span>a`(标题)
+   *          / `dd>p`(文案) / `.prize-point`(数量)
+   */
+  produceMemberPathPrefix: "/present/detail/present_id/",
+  produceMemberCard: "li.clearfix",
+  produceMemberImage: "p.photo img",
+  produceMemberBrand: "dt > a",
+  produceMemberTitle: "dt span a",
+  produceMemberQty: ".prize-point",
+  /**
+   * タイアップ区块。
+   * ⚠️ 链接是外部追踪跳转 `https://c.w1.to/c?id=<N>`——**按 cosme.net 域名过滤会全部漏掉**
+   * （踩过：我按域名筛链接，这批 6 个奖品因此一个都没进来）。
+   */
+  tieupList: "ul.presentList",
+  tieupItem: "li",
+  tieupTrackingHost: "c.w1.to",
+  /** 期间在这个 span 里（如 `8/19～9/15`） */
+  tieupPeriod: "span.pink02",
+  /** 文案（含「現品500名様に」等） */
+  tieupCopy: "span.small",
+  /** 图片是 tieup_banner，属内容图，validateImageUrl 的白名单需含它 */
+  tieupImage: "p.image02 img",
 } as const;
 
 /** 品牌主页（多跳路径的中间站）。注意 `/brands/<id>/` 会超时，要用这个形式。 */

@@ -92,20 +92,26 @@ apps/
 - **brandFanClub 的奖品 id 用 `bfc-<articleId>` 前缀**（它没有 present_id），避免与 brandcollection 的数字 id 撞号。
 - **图片抓取有专门防护**：`@cosme/core` 的 `validateImageUrl`，四类实测陷阱——站点头部图标（`common_headers/`）、`onerror` 换上的占位图（`psnt_noimg`）、按 ID 构造 URL 想当然（**12053 是 .jpg 不是 .png**）、协议相对地址过不了 `z.string().url()`。策略是白名单（`/media/monitor/`、`/media/product/`、`/media/sku`）+ 占位与装饰黑名单，**宁可留空也不存错的**。
 - **选择器校验工具已就绪**：`npm run recon -- <url> [--form]` 列出页面全部可交互元素与建议选择器（只读、不提交表单，对账号零风险）；需登录态的页面先跑 `npm run login`。登录相关选择器已实测填入，`PRESENT` 与 `SURVEY` 仍是 TODO(recon)，待建立会话后继续。
-- **奖品来源共三个**（2026-08-21 实测，三种均已跑通真实投递）：
+- **奖品来源共五个**（2026-08-21 实测，站上共约 138 个在募集）：
 
-  | 来源 | 列表页 | 数量 | 入口形态 | 走的模式 |
+  | 来源 | 位置 | 数量 | 入口形态 | 走的模式 |
   | --- | --- | --- | --- | --- |
+  | `tieupCampaign` | `/present/` 的 `ul.presentList` | **81** | **外部追踪链 `c.w1.to/c?id=<N>`** | is-enq-survey |
+  | `brandFanClubViaBrand` | `/brandfanclub/present` | 42 | 两跳：卡片→品牌主页→奖品 | is-enq → 接力 present-blog |
+  | `brandFanClub` | 同上 | 10 | `/beautist/article/<ID>` 直链 | present-blog |
   | `normal` | `/brandcollection/present/` | 3 | 详情页 `a[onclick]` | is-enq-survey |
-  | `brandFanClub` | `/brandfanclub/present` | 10 | `/beautist/article/<ID>` 直链 | present-blog |
-  | `brandFanClubViaBrand` | 同上 | 35 | **两跳**：卡片→品牌主页→奖品 | is-enq → 接力 present-blog |
+  | `produceMember` | `/present/` | 2 | `/present/detail/present_id/<ID>` | is-enq-survey |
 
-  ⚠️ **`brandFanClubViaBrand` 的桌面入口要多跳一次**：`/brandfanclub/present` 上这批卡片
-  只链到 `/brand/brand_id/<品牌ID>/top`，得再进品牌主页才拿到
-  `/brands/<品牌ID>/present/<奖品ID>/`。一度误判成「只有手机版 `s.cosme.net` 才有」——
-  其实桌面入口一直都在，当时只取了卡片里的第一个链接（品牌链接）就以为那是推广卡片。
-  **命名也别按「从哪抓到的」来取**（曾叫 `mobileAll`，是坏名字）。
-  注意品牌主页要用 `/brand/brand_id/<id>/top`，`/brands/<id>/` 会超时。
+  ⚠️ **`tieupCampaign` 是奖品的大头，也是最容易漏的**：它的链接是**外部追踪跳转**
+  `https://c.w1.to/c?id=<N>`，不是 cosme.net 路径——**按域名过滤链接会把这 81 个全漏掉**
+  （踩过两轮）。而页面上的「キャンペーン中」「詳しくはこちら」都是**图片**（`alt` 属性），
+  用 innerText 查也查不到。追踪链最终汇入已支持的 `/enquete/confirm`，故投递侧无需新模式。
+  这批名额通常很大（現品500〜800名様），比粉丝俱乐部那批（20名様）中奖率高一两个数量级。
+
+  ⚠️ **`produceMember` 必须按 pathname 前缀严格判断**：`a[href*="/present/detail/present_id/"]`
+  会同时匹配 `/brandcollection/present/detail/present_id/`，把别的来源串进来、字段全错位（踩过）。
+  这批部分**需要消耗ビューティコイン**，页面有明示。
+
 - **跨模式接力**：入口页与后续页可能属于不同模式——`/brands/<id>/present/<id>/` 详情页的入口是
   `isauth/addinfo`（归 is-enq），但跳过去落在 `/present/<id>/confirm/`（present-blog 的地盘）。
   `draw.ts` 因此支持**一次接力**：第一个模式返回 unknownPattern 且别的模式认得当前页，就交棒继续。

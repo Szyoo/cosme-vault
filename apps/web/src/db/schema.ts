@@ -24,7 +24,7 @@ export const presents = sqliteTable(
   {
     id: text("id").primaryKey(),
     // 与 contract 的 PresentSource 保持一致；mobileAll 是手机版全量列表（奖品的大头）
-    source: text("source", { enum: ["normal", "brandFanClub", "brandFanClubViaBrand"] }).notNull(),
+    source: text("source", { enum: ["normal", "brandFanClub", "brandFanClubViaBrand", "produceMember", "tieupCampaign"] }).notNull(),
     link: text("link").notNull(),
     name: text("name").notNull(),
     brand: text("brand"),

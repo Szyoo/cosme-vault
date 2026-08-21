@@ -28,6 +28,18 @@ interface RawCard {
   imageRaw: string | null;
 }
 
+/** 浏览器上下文里构造卡片用的形状（page.evaluate 里看不到 interface 声明） */
+type RawCardShape = {
+  siteId: string;
+  link: string;
+  title: string;
+  brand: string | null;
+  period: string | null;
+  quantity: string | null;
+  tagline: string | null;
+  imageRaw: string | null;
+};
+
 export interface ScanOutcome {
   presents: Present[];
   report: ScanSourceReport;
@@ -185,10 +197,121 @@ async function parseBrandFanClubViaBrand(page: Page, pace: () => Promise<void>):
   return result;
 }
 
+
+/**
+ * produceMember：`/present/` 上「プロデュースメンバー限定プレゼント」那批。
+ *
+ * ⚠️ 必须按 **pathname 前缀**严格判断：`a[href*="/present/detail/present_id/"]`
+ * 会把 `/brandcollection/present/detail/present_id/` 也匹配进来（踩过：12057/12054
+ * 被串成了本来源，且字段全错位）。
+ */
+async function parseProduceMember(page: Page): Promise<RawCard[]> {
+  return page.evaluate(() => {
+    const PREFIX = "/present/detail/present_id/";
+    const seen = new Map<string, RawCardShape>();
+
+    for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))) {
+      let path: string;
+      try {
+        path = new URL(a.href).pathname;
+      } catch {
+        continue;
+      }
+      if (!path.startsWith(PREFIX)) continue;
+      const id = path.slice(PREFIX.length).replace(/\/.*$/, "");
+      if (!/^\d+$/.test(id) || seen.has(id)) continue;
+
+      const card = a.closest("li.clearfix") ?? a.closest("li") ?? a.parentElement;
+      if (!card) continue;
+
+      const brand = card.querySelector("dt > a")?.textContent?.replace(/\s+/g, " ").trim() || null;
+      const title =
+        card.querySelector("dt span a")?.textContent?.replace(/\s+/g, " ").trim() ||
+        card.querySelector("p.photo img")?.getAttribute("alt")?.trim() ||
+        "";
+      const qty = card.querySelector(".prize-point")?.textContent?.replace(/\s+/g, " ").trim() || null;
+      // 文案在 dd>p 里，但那段也含数量，去掉数量部分
+      const ddText = card.querySelector("dd p")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const tagline = (qty ? ddText.replace(qty, "") : ddText).trim() || null;
+
+      if (!title) continue;
+      seen.set(id, {
+        siteId: id,
+        link: `https://www.cosme.net/present/detail/present_id/${id}`,
+        brand,
+        title,
+        period: null,
+        quantity: qty,
+        tagline,
+        imageRaw: card.querySelector("p.photo img")?.getAttribute("src") ?? null,
+      });
+    }
+    return Array.from(seen.values());
+  });
+}
+
+/**
+ * tieupCampaign：`/present/` 上「ブランドからの新着プレゼント」那批（タイアップ／PR）。
+ *
+ * ⚠️ 链接是**外部追踪跳转** `https://c.w1.to/c?id=<N>`，不是 cosme.net 路径——
+ * 按域名过滤链接会把这批奖品全部漏掉（踩过）。
+ * 追踪链最终汇入已支持的 `/enquete/confirm` 流程，故 draw 侧不需要新模式。
+ */
+async function parseTieupCampaign(page: Page): Promise<RawCard[]> {
+  return page.evaluate(() => {
+    const seen = new Map<string, RawCardShape>();
+    for (const li of Array.from(document.querySelectorAll<HTMLElement>("ul.presentList li"))) {
+      const a = li.querySelector<HTMLAnchorElement>('a[href*="c.w1.to"]');
+      if (!a) continue;
+      const id = a.getAttribute("href")?.match(/id=(\d+)/)?.[1];
+      if (!id || seen.has(id)) continue;
+
+      const brand =
+        Array.from(li.querySelectorAll<HTMLAnchorElement>("p.text02 a"))
+          .map((x) => (x.textContent ?? "").trim())
+          .find((t) => t.length > 0) ?? null;
+      const copy = li.querySelector("span.small")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const period = li.querySelector("span.pink02")?.textContent?.replace(/\s+/g, " ").trim() || null;
+      const quantity = copy.match(/(?:現品)?\s*\d+\s*名様/)?.[0]?.replace(/\s+/g, "") ?? null;
+
+      // 期间已过的直接跳过，别把过期奖品扫进来白占一次投递
+      if (period) {
+        const end = period.match(/[～~]\s*(\d{1,2})\/(\d{1,2})/);
+        if (end) {
+          const now = new Date();
+          const endDate = new Date(now.getFullYear(), Number(end[1]) - 1, Number(end[2]), 23, 59);
+          // 跨年时（12月→1月）结束月小于当前月，按次年算
+          if (Number(end[1]) < now.getMonth() + 1 - 6) endDate.setFullYear(now.getFullYear() + 1);
+          if (endDate < now) continue;
+        }
+      }
+
+      seen.set(id, {
+        siteId: id,
+        // 追踪链本身就是入口，直接存它——runner 打开后会被一路重定向到确认页
+        link: `https://c.w1.to/c?id=${id}`,
+        brand,
+        title: copy || brand || `タイアップ ${id}`,
+        period,
+        quantity,
+        tagline: copy || null,
+        // 图片：优先 p.image02，退回卡片里任意 img（个别条目版式略有差异）
+        imageRaw:
+          li.querySelector("p.image02 img")?.getAttribute("src") ??
+          li.querySelector("img")?.getAttribute("src") ??
+          null,
+      });
+    }
+    return Array.from(seen.values());
+  });
+}
+
 /** 单跳解析器（只看列表页） */
 const SIMPLE_PARSERS: Partial<Record<PresentSource, (page: Page) => Promise<RawCard[]>>> = {
   normal: parseNormal,
   brandFanClub: parseBrandFanClub,
+  produceMember: parseProduceMember,
+  tieupCampaign: parseTieupCampaign,
 };
 
 /**
@@ -200,6 +323,8 @@ function presentId(source: PresentSource, siteId: string): string {
   if (source === "brandFanClub") return `bfc-${siteId}`;
   // 这批的 id 段（31774…）与 brandcollection（12057…）不重叠，但仍加前缀防将来撞号
   if (source === "brandFanClubViaBrand") return `bp-${siteId}`;
+  if (source === "produceMember") return `pm-${siteId}`;
+  if (source === "tieupCampaign") return `tu-${siteId}`;
   return siteId;
 }
 
