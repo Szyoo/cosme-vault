@@ -13,8 +13,16 @@ import { db, schema } from "@/db/index.ts";
 import { decryptJson, encryptJson } from "@/lib/crypto.ts";
 
 /** 从密文推导「哪些字段已填」，解不开时降级为未配置而不是抛错（避免换密钥后整页打不开） */
+const EMPTY: CredentialStatus = {
+  configured: false,
+  filledFields: [],
+  email: "",
+  hasPassword: false,
+  profile: { name: "", age: "", job: "" },
+};
+
 function statusOf(enc: string | null): CredentialStatus {
-  if (!enc) return { configured: false, filledFields: [] };
+  if (!enc) return EMPTY;
   try {
     const c = decryptJson<AccountCredentials>(enc);
     const filled: string[] = [];
@@ -23,9 +31,16 @@ function statusOf(enc: string | null): CredentialStatus {
     if (c.profile?.name) filled.push("profile.name");
     if (c.profile?.age) filled.push("profile.age");
     if (c.profile?.job) filled.push("profile.job");
-    return { configured: filled.includes("email") && filled.includes("password"), filledFields: filled };
+    return {
+      configured: filled.includes("email") && filled.includes("password"),
+      filledFields: filled,
+      // 用户要求：配置完点开要能看见存了什么（否则没法核对）。密码除外。
+      email: c.email ?? "",
+      hasPassword: !!c.password,
+      profile: { name: c.profile?.name ?? "", age: c.profile?.age ?? "", job: c.profile?.job ?? "" },
+    };
   } catch {
-    return { configured: false, filledFields: [] };
+    return EMPTY;
   }
 }
 
@@ -45,7 +60,7 @@ export function listAccounts(): AccountSummary[] {
 export function createAccount(label: string): AccountSummary {
   const id = randomUUID();
   db.insert(schema.accounts).values({ id, label }).run();
-  return { id, label, enabled: true, credentials: { configured: false, filledFields: [] } };
+  return { id, label, enabled: true, credentials: EMPTY };
 }
 
 export function updateAccount(id: string, patch: { label?: string; enabled?: boolean }): boolean {

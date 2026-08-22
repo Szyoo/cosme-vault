@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
 import { Nav } from "../nav.tsx";
+import { BarkSection } from "./bark-section.tsx";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 
@@ -110,6 +111,8 @@ export default function SettingsPage() {
         {message && <p className="ok-text">{message}</p>}
       </section>
 
+      <BarkSection />
+
     </main>
   );
 }
@@ -128,7 +131,16 @@ function AccountCard({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", name: "", age: "", job: "" });
+  // 预填已存的值（用户要求：配置完点开要能看见，否则没法核对）。
+  // 密码刻意不回显也不预填：placeholder 提示「已设置，留空不改」。
+  const c0 = account.credentials;
+  const [form, setForm] = useState({
+    email: c0.email,
+    password: "",
+    name: c0.profile.name,
+    age: c0.profile.age,
+    job: c0.profile.job,
+  });
   const [saving, setSaving] = useState(false);
 
   async function save(e: React.FormEvent) {
@@ -144,8 +156,8 @@ function AccountCard({
           profile: { name: form.name, age: form.age, job: form.job },
         }),
       });
-      // 提交后立刻清空表单，避免明文停留在页面上
-      setForm({ email: "", password: "", name: "", age: "", job: "" });
+      // 只清密码输入（避免明文停留在页面上）；其余字段就是当前配置，保留显示
+      setForm((f) => ({ ...f, password: "" }));
       setOpen(false);
       await onSaved(res.ok ? t.settings.saved(account.label) : t.settings.saveFailed);
     } finally {
@@ -186,7 +198,7 @@ function AccountCard({
           <input
             className="field"
             type="password"
-            placeholder={t.settings.password}
+            placeholder={c.hasPassword ? t.settings.passwordSet : t.settings.password}
             autoComplete="new-password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}

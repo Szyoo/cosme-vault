@@ -135,3 +135,15 @@ export const runnerState = sqliteTable("runner_state", {
   at: text("at").notNull(),
   busyJobId: text("busy_job_id"),
 });
+
+/**
+ * 应用设置（键值对）。目前放 Bark 推送配置。
+ *
+ * 为什么进库而不是只靠 .env：用户要求**在网页里就能配**（不用登进服务器改环境变量
+ * 再重启）。读取顺序：库里有值用库里的，没有回落到环境变量——已有的 .env 部署不受影响。
+ */
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+});

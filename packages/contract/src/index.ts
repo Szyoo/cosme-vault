@@ -131,10 +131,22 @@ export const AccountCredentials = z.object({
 });
 export type AccountCredentials = z.infer<typeof AccountCredentials>;
 
-/** 凭证配置状态：只告诉前端「哪些字段已填」，绝不回显值 */
+/**
+ * 凭证配置状态。
+ *
+ * 2026-08-21 语义放宽（用户要求）：**除密码外的字段回显明文**——配置好之后
+ * 点开看不见存的是什么，没法核对也没法发现填错（此前只报「哪些字段已填」）。
+ * 密码仍然绝不回显：`hasPassword` 只说有没有。
+ */
 export const CredentialStatus = z.object({
   configured: z.boolean(),
   filledFields: z.array(z.string()),
+  /** 已存的邮箱（明文回显；未配置为空串） */
+  email: z.string().default(""),
+  /** 是否已存密码（值永不回显） */
+  hasPassword: z.boolean().default(false),
+  /** 个人资料（明文回显） */
+  profile: z.object({ name: z.string(), age: z.string(), job: z.string() }).default({ name: "", age: "", job: "" }),
 });
 export type CredentialStatus = z.infer<typeof CredentialStatus>;
 
