@@ -85,7 +85,15 @@ apps/
 - **幂等性是硬要求**：重扫**绝不能**把已投递记录重置为 pending（`queue.ts` 里只对不存在的 account_presents 插入）。因为 @COSME 不标注「已应募」，这张表是防重复投递的唯一防线。
 - **流程模式注册表（重要架构）**：`apps/runner/src/cosme/patterns/`。@COSME 奖品分多类别、每类多模式、DOM 各不相同，故每个模式是一个实现 `FlowPattern` 的模块，自己回答「这一页是不是我认识的」。加新模式只需写一个文件 + 加进 `patterns/index.ts` 的 `PATTERNS` 数组（顺序即优先级）。
 - **未知模式反馈机制**：所有模式都不认领时，**以及模式在执行中途遇到未预期页面时**（两条路径都要采集——后者曾漏采，导致首次实测 present-blog 落到 `/survey/` 页时诊断包是空的），**安全中止、绝不瞎点**，返回 `status: 'unknownPattern'` 并附 `PatternDiagnostics`（URL / 标题 / 全部可交互元素与建议选择器 / 正文摘要 / 各模式的拒绝原因），同时存截图与 HTML 快照，落库到 `account_presents.diagnostics`。据此补 pattern 基本不用再上站点复现。
-- **已实现两个模式**：
+- **已实现三个模式**（`tieup-campaign` 2026-08-23 依据 81 个真实诊断包补写，
+  首轮全量投递时整类落进未知模式——教训：**「追踪链最终汇入 is-enq」不等于「有模式认识
+  追踪链的落点页」**，入口跳转本身就是模式职责的一部分）：
+  - `tieup-campaign`：`/brands/<id>/tieup/<code>/page.html` PR 页 →「今すぐ応募」→ 接力 is-enq。
+    ⚠️ PR 页上有十几条 `c.w1.to` 追踪链（购物/口碑/详情…全是广告位），**只有文本含
+    「応募」的那条是应募入口**，按 href 一把抓会点去购物页；「今すぐ応募」是真文本可过滤。
+  - is-enq 的确认页有**第三种版式** `/present/confirm/<ID>`（produceMember 实测走到）：
+    结构与 present-blog 确认页同款（act=submit + 応募する 钮），点了即完成、后面没有问卷。
+
   - `is-enq-survey`（brandcollection）：详情页 onclick 入口 → `/enquete/confirm` → `is-enq.cosme.net` PHP 问卷 → `input[name=send]` 送信。
   - `present-blog`（brandFanClub 限定，**已完整实测跑通**）：`/beautist/article/<ID>` 的普通 href 入口 → `/brands/<品牌ID>/present-blog/<PB码>/confirm/`（POST，表单只有 token + act=submit）→ **自家问卷页 `/present-blog/<PB码>/survey/`**（不是 is-enq 引擎）→ 「アンケートに回答して応募する」。
     - 问卷字段命名是 `id[13116]`（radio）/ `id[13117][]`（checkbox），与 is-enq 的 `q001_*` 完全不同；**没有 `prof_*` 个人资料字段**（确认页已核对过登记信息）。
