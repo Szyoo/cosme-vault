@@ -357,7 +357,8 @@
   align-items: flex-start;
   justify-content: center;
   padding: 5vh 16px 16px;
-  overflow-y: auto;
+  /* 滚动在面板内部（.modal-body），遮罩自己不滚 */
+  overflow: hidden;
   /* 遮罩用包里的 --overlay-bg 再加深一档（用户反馈原先太浅）；
      加深用叠 token 自身而不是硬编码颜色 */
   background: color-mix(in srgb, var(--overlay-bg) 100%, rgb(0 0 0 / 0.25));
@@ -375,6 +376,11 @@
   position: relative;
   width: 100%;
   max-width: 760px;
+  /* 限高 + 内部滚动：内容超高时在面板里滚，而不是把面板撑到比视口还高
+     （撑高会带着整页滚，modal 的意义就没了——用户报过） */
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
   padding: 22px 20px 20px;
   border-radius: 18px;
   /* 面板要接近实底（用户反馈玻璃底太透，叠在正文上看不清）：
@@ -407,11 +413,42 @@
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
+.modal-body {
+  overflow-y: auto;
+  min-height: 0;
+  /* 滚动条贴边好看一点 */
+  padding-right: 4px;
+}
+
 /* 面板里第一个标题不要再顶一段外边距，右侧留出关闭按钮的位置 */
 .modal-body > .page-title:first-child {
   margin-top: 0;
   padding-right: 40px;
   font-size: 1.35rem;
+}
+
+/* modal 里嵌整页组件（选择页带着自己的 .page.narrow 手机版式）时：
+   铺满 modal 宽度、去掉整页的留白与顶部返回条（关闭键就是出口） */
+.modal-body .page,
+.modal-body .page.narrow {
+  max-width: 100%;
+  padding: 0;
+}
+.modal-body .back-row {
+  display: none;
+}
+.modal-body .page-title {
+  margin-top: 0;
+  padding-right: 40px;
+  font-size: 1.35rem;
+}
+
+/* modal 里的参考图放大：铺满宽度，但单张限高，绝不高过面板 */
+.modal-body .ref-img {
+  max-height: 52vh;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 @media (max-width: 520px) {
