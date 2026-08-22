@@ -40,3 +40,36 @@ export function getBarkConfig(): {
   if (envServer && envKey) return { server: envServer, deviceKey: envKey, source: "env" };
   return { server: dbServer ?? envServer, deviceKey: dbKey ?? envKey, source: "none" };
 }
+
+import { PACING } from "@cosme/core";
+import type { RunnerConfig } from "@cosme/contract";
+
+/** 节奏配置：库优先、core 默认值兜底。给设置页与 /api/runner/config 共用。 */
+export function getPacingConfig(): RunnerConfig {
+  const read = (key: string, fallback: number): number => {
+    const v = Number(getSetting(key));
+    return Number.isFinite(v) && v >= 0 ? v : fallback;
+  };
+  const cfg = {
+    stepDelayMs: {
+      min: read("pacing.step.min", PACING.stepDelayMs.min),
+      max: read("pacing.step.max", PACING.stepDelayMs.max),
+    },
+    betweenPresentsMs: {
+      min: read("pacing.between.min", PACING.betweenPresentsMs.min),
+      max: read("pacing.between.max", PACING.betweenPresentsMs.max),
+    },
+  };
+  // min > max 视为配置写反了，交换而不是报错——runner 靠它跑，宁可容错
+  for (const r of [cfg.stepDelayMs, cfg.betweenPresentsMs]) {
+    if (r.min > r.max) [r.min, r.max] = [r.max, r.min];
+  }
+  return cfg;
+}
+
+export function setPacingConfig(cfg: RunnerConfig): void {
+  setSetting("pacing.step.min", String(cfg.stepDelayMs.min));
+  setSetting("pacing.step.max", String(cfg.stepDelayMs.max));
+  setSetting("pacing.between.min", String(cfg.betweenPresentsMs.min));
+  setSetting("pacing.between.max", String(cfg.betweenPresentsMs.max));
+}

@@ -6,13 +6,13 @@
  */
 import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
-import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat } from "./control-plane.ts";
+import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat, fetchRunnerConfig } from "./control-plane.ts";
 import { closeBrowser, newPage } from "./browser.ts";
 import { captureArtifacts } from "./artifacts.ts";
 import { drawOnce } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
 import { scanSources } from "./cosme/scan.ts";
-import { PACING, randomDelay } from "@cosme/core";
+import { betweenPresentsDelay, stepDelay, updatePacing } from "./pacing.ts";
 
 let currentJobId: string | null = null;
 let stopping = false;
@@ -24,6 +24,8 @@ function nowIso(): string {
 async function heartbeatLoop(): Promise<void> {
   while (!stopping) {
     await sendHeartbeat({ location: config.location, at: nowIso(), busyJobId: currentJobId });
+    // 顺路拉节奏配置：设置页改完 ≤15 秒生效（拉不到就沿用旧值）
+    updatePacing(await fetchRunnerConfig());
     await sleep(15_000);
   }
 }
@@ -62,7 +64,7 @@ async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "fini
       job.sources,
       (text, level = "info") => pushLog({ jobId: job.id, at: nowIso(), level, text }),
       // 两跳解析器要逐个访问品牌主页，用较短的步进停顿而非奖品间隔
-      () => new Promise((r) => setTimeout(r, randomDelay(PACING.stepDelayMs))),
+      () => new Promise((r) => setTimeout(r, stepDelay())),
     );
 
     // 有来源没认出版式 → 留现场，便于补解析器
@@ -140,7 +142,7 @@ async function mainLoop(): Promise<void> {
       // 合规底线：奖品之间要有人类速度的随机间隔。
       // 放在这里而不是控制面，可保证无论任务怎么入队都不会连珠炮式投递。
       if (job.kind === "draw") {
-        const gap = randomDelay(PACING.betweenPresentsMs);
+        const gap = betweenPresentsDelay();
         console.log(`[runner] 距下一个奖品等待 ${Math.round(gap / 1000)} 秒（合规节奏）`);
         await sleep(gap);
       }
