@@ -23,10 +23,13 @@ interface BarkOptions {
   call?: boolean;
 }
 
-/** 发送一条 Bark 通知；未配置 BARK_SERVER/BARK_DEVICE_KEY 时静默跳过 */
+import { getBarkConfig } from "@/lib/settings.ts";
+
+/** 发送一条 Bark 通知；未配置（网页设置与环境变量都空）时静默跳过 */
 export async function sendBark(opts: BarkOptions): Promise<boolean> {
-  const server = process.env.BARK_SERVER?.replace(/\/$/, "");
-  const deviceKey = process.env.BARK_DEVICE_KEY;
+  const cfg = getBarkConfig();
+  const server = cfg.server.replace(/\/$/, "");
+  const deviceKey = cfg.deviceKey;
   if (!server || !deviceKey) return false;
 
   const payload: Record<string, string> = {
