@@ -46,12 +46,18 @@ export function QueuePanel({
                   <span className="qpos num">{b.running > 0 ? "▶" : i + 1}</span>
                   <span className="qmain">
                     <span className="qlabel">
-                      {b.kind === "run" ? t.runner.batchRun : t.runner.batchSingle}
+                      {b.kind === "run"
+                        ? t.runner.batchRun
+                        : b.kind === "scan"
+                          ? t.runner.batchScan
+                          : b.kind === "draw"
+                            ? t.runner.batchDraw
+                            : t.runner.batchSingle}
                       {b.label && <span className="qsub"> · {b.label}</span>}
                     </span>
 
-                    {/* 一轮才有进度可言；单个任务显示进度条没有信息量 */}
-                    {b.kind === "run" && b.total > 1 && (
+                    {/* 多任务的批次才有进度可言；单个任务显示进度条没有信息量 */}
+                    {b.total > 1 && (
                       <span className="qbar" aria-label={`${finished}/${b.total}`}>
                         <span className="qbar-fill" style={{ width: `${pct}%` }} />
                       </span>
@@ -59,13 +65,13 @@ export function QueuePanel({
 
                     <span className="qmeta">
                       {b.running > 0 && <span className="pill amber">{t.runner.nowRunning}</span>}
-                      {b.kind === "run" && b.total > 1 && (
+                      {b.total > 1 && (
                         <span className="prow-tag num">{t.runner.batchProgress(finished, b.total)}</span>
                       )}
                       {b.failed > 0 && <span className="prow-tag err">{t.runner.batchFailed(b.failed)}</span>}
                       <span className="prow-tag muted">{b.trigger}</span>
                       <span className="prow-tag muted num">{fmtDateTime(b.firstAt)}</span>
-                      {b.currentLabel && b.kind === "run" && (
+                      {b.currentLabel && b.kind !== "single" && (
                         <span className="prow-tag">{b.currentLabel}</span>
                       )}
                     </span>

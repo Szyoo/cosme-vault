@@ -90,8 +90,13 @@ export const jobs = sqliteTable("jobs", {
    * 用户想的是「一轮」算一个任务、「单独点重跑」算一个任务。
    */
   batchId: text("batch_id"),
-  /** 'run' = 跑一轮（scan + 它派发出的 draw）；'single' = 手动点的单个奖品 */
-  batchKind: text("batch_kind", { enum: ["run", "single"] }),
+  /**
+   * 'run'    = 跑一轮（scan + 它派发出的 draw）
+   * 'scan'   = 仅检测（只扫描，**不**自动派发投递——applyReport 据此跳过 dispatch）
+   * 'draw'   = 仅抽取（不扫描，直接派发现有的待投递）
+   * 'single' = 手动点的单个奖品
+   */
+  batchKind: text("batch_kind", { enum: ["run", "scan", "draw", "single"] }),
   result: text("result"), // JobReport 的 JSON
   error: text("error"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

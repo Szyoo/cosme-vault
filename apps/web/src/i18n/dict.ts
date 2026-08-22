@@ -53,6 +53,8 @@ const zh = {
       "以你的操作为单位：「跑一轮」算一个，「单独重跑」算一个。取消只影响这一批还在排队的部分；" +
       "正在执行的那一个会自己跑完（从控制面停不了浏览器）。",
     batchRun: "跑一轮",
+    batchScan: "仅检测",
+    batchDraw: "仅抽取",
     batchSingle: "单独重跑",
     batchProgress: (done: number, total: number) => `${done} / ${total} 个奖品`,
     batchFailed: (n: number) => `${n} 个失败`,
@@ -62,9 +64,14 @@ const zh = {
     toTop: "置顶",
     queueMore: (n: number) => `还有 ${n} 个未列出`,
     run: "跑一轮",
+    scanOnly: "仅检测",
+    drawOnly: "仅抽取",
     running: "触发中…",
-    runHint: "跑一轮 = 给每个启用账号扫描奖品；扫完自动派发投递，奖品之间按人类速度随机间隔。",
+    runHint:
+      "跑一轮 = 检测 + 抽取连着做；仅检测 = 只扫奖品不投递；仅抽取 = 不扫描，直接投递现有的待投递。" +
+      "投递一律按人类速度随机间隔。",
     queued: (n: number) => `已入队 ${n} 个扫描任务`,
+    dispatched: (n: number) => `已派发 ${n} 个投递`,
     runFailed: "触发失败",
     autoRefresh: "此页每 4 秒自动更新一次（切到后台时暂停）。",
   },
@@ -281,6 +288,7 @@ const zh = {
     presentNotFound: "奖品不存在，无法派发",
     alreadyResolved: "该奖品的选择已提交过",
     jobNotQueued: "该任务不在排队中，无法操作",
+    nothingToDraw: "没有可抽取的奖品（待投递的都已在队列里，或已全部投完）",
   },
 };
 
@@ -326,6 +334,8 @@ const ja: Dict = {
       "操作の単位で表示します：「一周まわす」で 1 件、「個別に再実行」で 1 件。キャンセルは待機中の分だけに効きます。" +
       "実行中の 1 件はそのまま完了します（コンソールからブラウザは止められません）。",
     batchRun: "一周まわす",
+    batchScan: "検出のみ",
+    batchDraw: "応募のみ",
     batchSingle: "個別に再実行",
     batchProgress: (done: number, total: number) => `${done} / ${total} 件`,
     batchFailed: (n: number) => `失敗 ${n}`,
@@ -335,10 +345,14 @@ const ja: Dict = {
     toTop: "先頭へ",
     queueMore: (n: number) => `他 ${n} 件`,
     run: "一周まわす",
+    scanOnly: "検出のみ",
+    drawOnly: "応募のみ",
     running: "起動中…",
     runHint:
-      "一周まわす＝有効な各アカウントでプレゼントを走査し、完了後に応募を自動割り当て。応募間隔は人間相当のランダム待機。",
+      "一周まわす＝検出と応募を続けて実行。検出のみ＝走査だけで応募しない。応募のみ＝走査せず未応募分だけ応募。" +
+      "応募間隔は常に人間相当のランダム待機。",
     queued: (n: number) => `走査タスクを ${n} 件登録しました`,
+    dispatched: (n: number) => `${n} 件の応募を割り当てました`,
     runFailed: "起動に失敗しました",
     autoRefresh: "このページは 4 秒ごとに自動更新されます（バックグラウンドでは停止）。",
   },
@@ -543,6 +557,7 @@ const ja: Dict = {
     presentNotFound: "プレゼントが存在せず、割り当てできません",
     alreadyResolved: "このプレゼントの選択は既に送信済みです",
     jobNotQueued: "待機中のタスクではないため操作できません",
+    nothingToDraw: "応募できるプレゼントがありません（未応募分はすべてキュー済みか、応募完了）",
   },
 };
 
@@ -578,6 +593,8 @@ const en: Dict = {
       "Grouped by what you did: one entry per “run a round”, one per single retry. Cancelling affects only the queued part; " +
       "the one already running finishes on its own (the console cannot stop the browser).",
     batchRun: "Round",
+    batchScan: "Scan only",
+    batchDraw: "Draw only",
     batchSingle: "Single retry",
     batchProgress: (done: number, total: number) => `${done} / ${total} presents`,
     batchFailed: (n: number) => `${n} failed`,
@@ -587,10 +604,14 @@ const en: Dict = {
     toTop: "To top",
     queueMore: (n: number) => `${n} more not listed`,
     run: "Run a round",
+    scanOnly: "Scan only",
+    drawOnly: "Draw only",
     running: "Starting…",
     runHint:
-      "A round scans presents for every enabled account; draws are dispatched automatically afterwards, with human-paced random gaps between presents.",
+      "A round = scan then draw. Scan only finds presents without entering; draw only enters what is already pending, no scanning. " +
+      "Entries always keep human-paced random gaps.",
     queued: (n: number) => `Queued ${n} scan job(s)`,
+    dispatched: (n: number) => `Dispatched ${n} draw(s)`,
     runFailed: "Failed to start",
     autoRefresh: "This page refreshes itself every 4 seconds (paused while in the background).",
   },
@@ -795,6 +816,7 @@ const en: Dict = {
     presentNotFound: "Present not found — cannot dispatch",
     alreadyResolved: "This present's choice was already submitted",
     jobNotQueued: "That job is not queued, so it cannot be changed",
+    nothingToDraw: "Nothing to draw — pending presents are already queued, or everything is entered",
   },
 };
 
