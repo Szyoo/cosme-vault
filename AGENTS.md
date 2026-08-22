@@ -203,7 +203,13 @@ apps/
   `t.runner.autoRefresh` 说明，控件一个都不给。切到后台时用 `visibilityState` 暂停。
 - **诊断页是反馈闭环的最后一环**：`/api/diagnostics` 汇总两类未识别项——`account_presents.diagnostics`（draw 的未知模式）与最近 scan 结果里 `recognized=false` 的来源报告。元素清单可一键复制，拿去直接写选择器，通常不必再上站点复现。
 - **DB 迁移**用 `drizzle-kit generate/migrate`，迁移文件进 `apps/web/drizzle/`（首版 `0000_sticky_kate_bishop.sql` 已生成并跑通）。drizzle-kit 直连 DB 不经 `src/db/index.ts`，故 `db:migrate` 脚本里带 `mkdir -p data`。
-- **部署已就绪**（见 [docs/deploy.md](docs/deploy.md)）：`apps/web/Dockerfile`（Next standalone，容器启动跑迁移）+ `deploy/vps/compose.yml`（不 publish 端口、只挂 Caddy `ingress`，含 cron sidecar 每 12 小时打 `/api/runs`）+ `apps/runner/install.sh`（Mac mini 的 launchd 常驻）。
+- **已实际部署（2026-08-22）**：web 在 VPS `/opt/cosme-vault`（compose 构建，容器 `cosme-vault` +
+  `cosme-vault-cron` 每 12h 打一轮），Caddy 已加 `cosme.szyyw.xyz` 块，portal 首页已挂卡片；
+  runner 在 Mac mini 以 launchd 常驻（`xyz.szyyw.cosme-runner`，指向 https://cosme.szyyw.xyz）。
+  本地 dev 与终端 runner 已停用。数据库已用 sqlite backup API 快照迁移（141 个奖品 + 凭证 + 设置）。
+  ⚠️ Dockerfile 别拷 `apps/web/node_modules`——workspaces 提升后容器里没有这个目录（VPS 实测）。
+  Bark 配置进了 `app_settings`（网页可改、.env 兜底），服务器复用 jppost 的自建 bark（bark.szyyw.xyz）。
+- **部署蓝图**（见 [docs/deploy.md](docs/deploy.md)）：`apps/web/Dockerfile`（Next standalone，容器启动跑迁移）+ `deploy/vps/compose.yml`（不 publish 端口、只挂 Caddy `ingress`，含 cron sidecar 每 12 小时打 `/api/runs`）+ `apps/runner/install.sh`（Mac mini 的 launchd 常驻）。
   - ⚠️ **monorepo 下 Next standalone 产物在 `apps/web/.next/standalone`**（不是仓库根的 `.next/`），入口是其内部的 `apps/web/server.js`。已实测确认，Dockerfile 的 COPY 路径按此写。
   - ⚠️ **`useSearchParams()` 必须包在 `Suspense` 里**，否则 `next build` 直接失败（dev 模式不报）。登录页与选择页都已按此拆分。
 
