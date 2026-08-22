@@ -16,8 +16,10 @@ RUN apk add --no-cache python3 make g++ && npm ci
 FROM node:26-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# ⚠️ 只拷根 node_modules：npm workspaces 会把依赖提升到根，
+# apps/web/node_modules 在容器里**不存在**（本地有是因为版本冲突时 npm 才就近放），
+# 硬 COPY 会直接构建失败（VPS 实测踩过：failed to compute cache key）。
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 # 构建期不需要真密钥，但 lib/crypto.ts 在缺失时会抛——给占位值绕过构建期求值
 ENV SESSION_SECRET="0000000000000000000000000000000000000000000000000000000000000000"
