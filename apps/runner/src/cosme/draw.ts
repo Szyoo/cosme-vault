@@ -7,7 +7,7 @@
 import type { Page } from "playwright";
 import type { AccountCredentials, DrawResult } from "@cosme/contract";
 import { stepDelay } from "../pacing.ts";
-import { selectPattern, collectDiagnostics } from "./patterns/index.ts";
+import { selectPattern, collectDiagnostics , type PatternContext } from "./patterns/index.ts";
 
 export interface DrawDeps {
   log: (text: string, level?: "info" | "warn" | "error") => Promise<void>;
@@ -45,7 +45,7 @@ export async function drawOnce(
   const bodyNow = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").slice(0, 2000));
   if (/募集(は)?終了|受付(は)?終了|終了しました|受付を終了/.test(bodyNow)) {
     await deps.log("该奖品已结束募集，跳过");
-    return { kind: "draw", status: "skipped", pattern: null, pendingChoices: [], diagnostics: null };
+    return { kind: "draw", status: "skipped", pattern: null, pendingChoices: [], diagnostics: null, surveyCapture: null };
   }
 
   // ── 3. 识别模式（入口形态各异，交给各模式自己认） ──
@@ -58,6 +58,7 @@ export async function drawOnce(
       pattern: null,
       pendingChoices: [],
       diagnostics: picked.diagnostics,
+      surveyCapture: null,
     };
   }
 
@@ -70,7 +71,9 @@ export async function drawOnce(
   // 但跳过去落在 `/present/<id>/confirm/`，那是 present-blog 模式的地盘。
   // 让第一个模式跑完后，如果它「没认出落点」而**别的模式认得**，就交棒继续，
   // 而不是直接判未知——否则这类跨模式流程永远走不通。
-  const ctx = {
+  // 显式标注 PatternContext：可选槽位（optionImageUrls / surveyCapture）
+  // 由各模式沿途写入，字面量推断会丢掉这些属性
+  const ctx: PatternContext = {
     profile: params.credentials.profile,
     resolvedChoices: params.resolvedChoices,
     log: deps.log,
@@ -104,5 +107,6 @@ export async function drawOnce(
     pattern: usedPattern.name,
     pendingChoices: outcome.pendingChoices ?? [],
     diagnostics,
+    surveyCapture: ctx.surveyCapture ?? null,
   };
 }

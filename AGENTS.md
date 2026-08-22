@@ -71,7 +71,10 @@ apps/
 改任何跨进程数据形状，只改 `packages/contract/src/index.ts`，三端 import 同一份 zod schema，漂移在编译期报错。
 
 - **任务（web → runner）**：`Job` = `ScanJob | DrawJob | InspectJob`（discriminated union，判别键 `kind`）
-- **结果（runner → web）**：`JobReport { ok, outcome, error, artifacts }`，`outcome` = `ScanResult | DrawResult | InspectResult`
+- **结果（runner → web）**：`JobReport { ok, outcome, error, artifacts }`，`outcome` = `ScanResult | DrawResult | InspectResult`。
+  `DrawResult.surveyCapture` 是做题时顺手采下的问卷结构（题号在 field 里/题干/选项），
+  applyReport 落进 `survey_captures` 表（每奖品最新一份），`GET /api/survey-captures` 全量导出——
+  为**重建关键词匹配库**积累真实题库，零额外页面访问
 - **人工介入**：`DrawResult.status = 'needsChoice'` 时带 `PendingChoice[]`，用户在网页选完 → 以 `resolvedChoices` 恢复 `DrawJob` 重跑
 - **运行配置（web → runner）**：`RunnerConfig`（节奏参数），runner GET `/api/runner/config`
   每次心跳后拉取——**节奏在设置页可改，保存 ≤15 秒生效**（用户要求这类数值可看可改，

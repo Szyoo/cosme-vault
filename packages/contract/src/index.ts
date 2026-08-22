@@ -309,6 +309,27 @@ export const ScanResult = z.object({
 });
 export type ScanResult = z.infer<typeof ScanResult>;
 
+/**
+ * 做题现场采集的一道题（题号藏在 field 里：is-enq 是 `q<序号>_<问卷ID>_…`，
+ * present-blog 是 `id[<数字>]`）。用途：为后续**重新开发匹配库**积累真实题库——
+ * 顺手采集，零额外页面访问（就是作答前扫描到的那份结构）。
+ */
+export const CapturedQuestion = z.object({
+  field: z.string(),
+  type: z.string(),
+  prompt: z.string(),
+  required: z.boolean(),
+  options: z.array(z.object({ value: z.string(), label: z.string() })),
+});
+export type CapturedQuestion = z.infer<typeof CapturedQuestion>;
+
+export const SurveyCapture = z.object({
+  /** 问卷页 URL（含 enq_id 等） */
+  url: z.string(),
+  questions: z.array(CapturedQuestion),
+});
+export type SurveyCapture = z.infer<typeof SurveyCapture>;
+
 export const DrawResult = z.object({
   kind: z.literal("draw"),
   status: DrawStatus,
@@ -318,6 +339,8 @@ export const DrawResult = z.object({
   pendingChoices: z.array(PendingChoice).default([]),
   /** status 为 unknownPattern 时必填：现场诊断包 */
   diagnostics: PatternDiagnostics.nullable().default(null),
+  /** 做题时顺手采下的问卷结构（题号/题干/选项），供重建匹配库；没走到问卷则 null */
+  surveyCapture: SurveyCapture.nullable().default(null),
 });
 export type DrawResult = z.infer<typeof DrawResult>;
 

@@ -273,6 +273,26 @@ export function applyReport(report: JobReport): ReportEffects {
       if (!job) return;
       const p = JSON.parse(job.payload) as { accountId?: string; presentId?: string };
       if (!p.accountId || !p.presentId) return;
+      // 顺手采下的问卷题库落库（每奖品保留最新一份），供重建匹配库
+      if (outcome.surveyCapture && outcome.surveyCapture.questions.length > 0) {
+        tx.insert(schema.surveyCaptures)
+          .values({
+            presentId: p.presentId,
+            url: outcome.surveyCapture.url,
+            questions: JSON.stringify(outcome.surveyCapture.questions),
+            capturedAt: new Date().toISOString(),
+          })
+          .onConflictDoUpdate({
+            target: schema.surveyCaptures.presentId,
+            set: {
+              url: outcome.surveyCapture.url,
+              questions: JSON.stringify(outcome.surveyCapture.questions),
+              capturedAt: new Date().toISOString(),
+            },
+          })
+          .run();
+      }
+
       const prev = tx
         .select({ drawnAt: schema.accountPresents.drawnAt })
         .from(schema.accountPresents)
