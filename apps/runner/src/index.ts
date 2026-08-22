@@ -76,7 +76,7 @@ async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "fini
       artifacts: unrecognized ? await captureArtifacts(page, job.id) : null,
     };
   } finally {
-    await page.close().catch(() => undefined);
+    await closePageSafely(page);
   }
 }
 
@@ -103,7 +103,7 @@ async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "fini
 
     return { ok: outcome.status !== "failed", outcome, error: null, artifacts };
   } finally {
-    await page.close().catch(() => undefined);
+    await closePageSafely(page);
   }
 }
 
@@ -121,8 +121,23 @@ async function handleInspect(job: InspectJob): Promise<Omit<JobReport, "jobId" |
       artifacts: await captureArtifacts(page, job.id),
     };
   } finally {
-    await page.close().catch(() => undefined);
+    await closePageSafely(page);
   }
+}
+
+/**
+ * 关页面但不赌它会返回。
+ *
+ * ⚠️ 2026-08-23 实测：3 个 tieup 任务在**投递成功后**吊死在 `page.close()` 上
+ * （PR 页载着一堆广告追踪脚本，close 等渲染进程应答等不到），各白吃 10 分钟
+ * 看门狗。close 输给 5 秒计时就放着让它自生自灭——留一个僵尸标签页的代价
+ * 远小于阻塞主循环；看门狗仍是最终兜底。
+ */
+async function closePageSafely(page: { close: () => Promise<void> }): Promise<void> {
+  await Promise.race([
+    page.close().catch(() => undefined),
+    new Promise<void>((r) => setTimeout(r, 5_000)),
+  ]);
 }
 
 /** 单个任务的最长执行时间。正常 draw 连问卷不到 2 分钟，10 分钟只可能是吊死。 */

@@ -26,9 +26,10 @@ function authHeaders(): Record<string, string> {
 /** 长轮询领取下一个任务；控制面在超时窗口内无任务则返回 { job: null } */
 export async function fetchNextJob(signal?: AbortSignal): Promise<NextJobResponse> {
   const res = await fetch(url("/api/runner/next-job"), {
+    // 长轮询：服务端最多挂 pollTimeoutMs，客户端多给 15 秒余量
+    signal: signal ?? AbortSignal.timeout(config.pollTimeoutMs + 15_000),
     method: "GET",
     headers: authHeaders(),
-    signal,
   });
   if (!res.ok) throw new Error(`领取任务失败：HTTP ${res.status}`);
   return NextJobResponse.parse(await res.json());
@@ -37,6 +38,8 @@ export async function fetchNextJob(signal?: AbortSignal): Promise<NextJobRespons
 /** 上报任务最终结果 */
 export async function reportJob(report: JobReport): Promise<void> {
   const res = await fetch(url("/api/runner/report"), {
+    // 无超时的 fetch 是吊死点（close 那次的教训举一反三）
+    signal: AbortSignal.timeout(20_000),
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(report),
@@ -48,6 +51,8 @@ export async function reportJob(report: JobReport): Promise<void> {
 export async function pushLog(log: RunnerLog): Promise<void> {
   try {
     await fetch(url("/api/runner/log"), {
+    // 无超时的 fetch 是吊死点（close 那次的教训举一反三）
+    signal: AbortSignal.timeout(20_000),
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify(log),
@@ -61,6 +66,8 @@ export async function pushLog(log: RunnerLog): Promise<void> {
 export async function sendHeartbeat(hb: RunnerHeartbeat): Promise<void> {
   try {
     await fetch(url("/api/runner/heartbeat"), {
+    // 无超时的 fetch 是吊死点（close 那次的教训举一反三）
+    signal: AbortSignal.timeout(20_000),
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify(hb),
@@ -81,6 +88,8 @@ export async function sendHeartbeat(hb: RunnerHeartbeat): Promise<void> {
 export async function fetchRunnerConfig(): Promise<RunnerConfig | null> {
   try {
     const res = await fetch(url("/api/runner/config"), {
+    // 无超时的 fetch 是吊死点（close 那次的教训举一反三）
+    signal: AbortSignal.timeout(20_000),
       headers: { authorization: `Bearer ${config.runnerToken}` },
     });
     if (!res.ok) return null;
@@ -94,6 +103,7 @@ export async function fetchCredentials(accountId: string): Promise<AccountCreden
   const res = await fetch(url(`/api/runner/credentials?accountId=${encodeURIComponent(accountId)}`), {
     method: "GET",
     headers: authHeaders(),
+    signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) throw new Error(`取凭证失败：HTTP ${res.status}`);
   const body = (await res.json()) as { credentials: unknown };

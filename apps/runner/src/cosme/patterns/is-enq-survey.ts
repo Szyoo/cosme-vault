@@ -17,6 +17,7 @@
 import type { Page } from "playwright";
 import { scanQuestions, applyDecisions } from "./survey-common.ts";
 import { clickAndSettle } from "../click.ts";
+import type { PendingChoice } from "@cosme/contract";
 import type { FlowPattern, PatternContext, PatternOutcome, Recognition } from "./types.ts";
 
 /** 问卷引擎主机名 */
@@ -37,6 +38,40 @@ const PRESENT_CONFIRM_SUBMIT = 'input[type="submit"][value*="応募"]';
  * 手机版全量列表里的 `/brands/<id>/present/<id>/` 页是 **`input[onclick]`**（实测）。
  */
 const APPLY_ANCHOR = '[onclick*="isauth/addinfo"]';
+
+/**
+ * 从（被退回的）问卷表单上摘出**整组未作答**的选择题，转成 PendingChoice。
+ * 只看结构不看文案：radio/checkbox 按 name 分组，组内一个都没选中的就是漏网的。
+ */
+async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
+  return page.evaluate(() => {
+    const groups = new Map<string, { label: string; value: string; checked: boolean }[]>();
+    for (const el of Array.from(
+      document.querySelectorAll<HTMLInputElement>('input[type="radio"], input[type="checkbox"]'),
+    )) {
+      if (!/^q\d+_/.test(el.name) && !/^id\[\d+\]/.test(el.name)) continue;
+      const label =
+        (el.closest("label")?.textContent ?? el.parentElement?.textContent ?? "").replace(/\s+/g, " ").trim();
+      const list = groups.get(el.name) ?? [];
+      list.push({ label, value: el.value, checked: el.checked });
+      groups.set(el.name, list);
+    }
+    const out: { questionId: string; prompt: string; options: { id: string; text: string }[] }[] = [];
+    for (const [name, opts] of groups) {
+      if (opts.some((o) => o.checked)) continue; // 已作答的组跳过
+      // 题干：往上找包含这组控件的问题块文本（去掉选项自身文本）
+      const first = document.querySelector<HTMLInputElement>(`input[name="${CSS.escape(name)}"]`);
+      let prompt = (first?.closest("div.qa, dl, li, tr")?.textContent ?? "").replace(/\s+/g, " ").trim();
+      for (const o of opts) if (o.label) prompt = prompt.replace(o.label, "");
+      out.push({
+        questionId: name,
+        prompt: prompt.slice(0, 200) || name,
+        options: opts.map((o) => ({ id: o.value, text: o.label || o.value })),
+      });
+    }
+    return out;
+  });
+}
 
 export const isEnqSurveyPattern: FlowPattern = {
   name: "is-enq-survey",
@@ -211,7 +246,17 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
   if (stillOnForm) {
     const body = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " "));
     const reason = /エラー|入力してください|選択してください/.exec(body)?.[0] ?? "未知原因";
-    await ctx.log(`送信被退回（${reason}）`, "error");
+
+    // ⚠️ 被退回 ≠ 死路（2026-08-23 实测 3 例）：站点在送信后校验出**我们没识别到的必选题**
+    //（关键词没命中、也没被判成需人工——多为纯偏好题）。此前直接记 failed，
+    // 用户无从补救。正确动作：把仍未作答的题摘出来转 needsChoice，
+    // 手机上选完带着 resolvedChoices 重跑即可，和「ご希望の…」那条路完全一致。
+    const unanswered = await collectUnanswered(page);
+    if (unanswered.length > 0) {
+      await ctx.log(`送信被退回（${reason}），${unanswered.length} 道题需人工选择，挂起等待`, "warn");
+      return { status: "needsChoice", pendingChoices: unanswered };
+    }
+    await ctx.log(`送信被退回（${reason}），且找不到未作答的题`, "error");
     return { status: "failed" };
   }
   await ctx.log("送信完成");
