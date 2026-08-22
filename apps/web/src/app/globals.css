@@ -381,8 +381,13 @@
   max-height: 88vh;
   display: flex;
   flex-direction: column;
-  padding: 22px 20px 20px;
+  /* 水平内边距放在 .modal-body 里而不是面板上：滚动条长在滚动容器右缘，
+     若面板留 20px 内边距，滚动条就悬在内容区右侧、正好和关闭键重叠（用户报过）。
+     挪进去之后滚动条贴面板最外缘，与 12px 处的关闭键错开。 */
+  padding: 22px 0 16px;
   border-radius: 18px;
+  /* 圆角要裁住贴边的滚动条 */
+  overflow: hidden;
   /* 面板要接近实底（用户反馈玻璃底太透，叠在正文上看不清）：
      以 --bg 为基、掺一点前景色做“抬升面”，明暗两套都成立 */
   background: color-mix(in srgb, var(--bg) 93%, var(--text) 7%);
@@ -416,8 +421,7 @@
 .modal-body {
   overflow-y: auto;
   min-height: 0;
-  /* 滚动条贴边好看一点 */
-  padding-right: 4px;
+  padding: 0 20px;
 }
 
 /* 面板里第一个标题不要再顶一段外边距，右侧留出关闭按钮的位置 */
