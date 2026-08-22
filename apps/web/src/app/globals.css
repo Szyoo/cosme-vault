@@ -594,3 +594,10 @@
   border-radius: 10px;
   border: 1px solid var(--glass-border);
 }
+
+/* 详情页「你的选择」里的参考图：比选择页收敛些，单张限高即可 */
+.ref-imgs-compact .ref-img {
+  max-height: 34vh;
+  width: auto;
+  max-width: 100%;
+}
