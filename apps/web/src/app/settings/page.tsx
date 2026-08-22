@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
 import { Nav } from "../nav.tsx";
 import { BarkSection } from "./bark-section.tsx";
+import { PacingSection } from "./pacing-section.tsx";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 
@@ -112,6 +113,8 @@ export default function SettingsPage() {
       </section>
 
       <BarkSection />
+
+      <PacingSection />
 
     </main>
   );

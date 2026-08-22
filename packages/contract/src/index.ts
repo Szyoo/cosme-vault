@@ -102,6 +102,24 @@ export const DrawStatus = z.enum([
 ]);
 export type DrawStatus = z.infer<typeof DrawStatus>;
 
+/** 毫秒随机区间 */
+export const MsRange = z.object({ min: z.number().int().min(0), max: z.number().int().min(0) });
+export type MsRange = z.infer<typeof MsRange>;
+
+/**
+ * runner 的运行配置（GET /api/runner/config，Bearer RUNNER_TOKEN）。
+ *
+ * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，用户要求**在设置页可看可改**
+ * （而不是要从对话里察觉再追问）。runner 每次心跳后拉取一次，改完即生效、无需重启。
+ */
+export const RunnerConfig = z.object({
+  /** 单步操作后的随机停顿 */
+  stepDelayMs: MsRange,
+  /** 两个奖品之间的随机停顿 */
+  betweenPresentsMs: MsRange,
+});
+export type RunnerConfig = z.infer<typeof RunnerConfig>;
+
 /* ────────────────────────────────────────────────────────────
  * cosme 账号凭证与个人资料
  * 加密后存 accounts.credentials_enc；明文只在两处出现：

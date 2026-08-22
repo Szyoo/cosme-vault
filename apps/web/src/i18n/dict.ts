@@ -285,6 +285,20 @@ const zh = {
     notConfigured: "未配置：需要选择的奖品只能在网页上看到，手机不会收到通知。",
   },
 
+  pacing: {
+    title: "投递节奏",
+    hint:
+      "runner 的人类速度模拟参数，保存后 ≤15 秒生效（runner 每次心跳顺路拉取，无需重启）。" +
+      "这是合规的核心：间隔越短越像机器，风险自负。",
+    step: "单步停顿（毫秒，页面内每一步操作之间）",
+    between: "奖品间隔（毫秒，投完一个到开下一个）",
+    min: "最小",
+    max: "最大",
+    save: "保存",
+    saving: "保存中…",
+    saved: "已保存，runner 将在下一次心跳后用新值",
+  },
+
   filter: {
     search: "搜奖品名 / 品牌 / ID",
     all: "全部",
@@ -580,6 +594,20 @@ const ja: Dict = {
     notConfigured: "未設定：選択待ちはウェブでしか確認できず、スマホに通知されません。",
   },
 
+  pacing: {
+    title: "応募ペース",
+    hint:
+      "人間らしい速度を再現するパラメータ。保存後 15 秒以内に反映（runner がハートビートごとに取得、再起動不要）。" +
+      "間隔が短いほど機械的に見えます。",
+    step: "ステップ間隔（ミリ秒、ページ内の操作間）",
+    between: "プレゼント間隔（ミリ秒、応募と応募の間）",
+    min: "最小",
+    max: "最大",
+    save: "保存",
+    saving: "保存中…",
+    saved: "保存しました。次のハートビートから新しい値になります",
+  },
+
   filter: {
     search: "プレゼント名 / ブランド / ID で検索",
     all: "すべて",
@@ -859,6 +887,20 @@ const en: Dict = {
     testFailed: "Push failed — check server URL and device key",
     fromEnv: "Current values come from server env vars (saving switches to these)",
     notConfigured: "Not configured: choice-needed presents only show on the web, no phone notification.",
+  },
+
+  pacing: {
+    title: "Entry pacing",
+    hint:
+      "Human-speed simulation parameters. Take effect within 15s of saving (fetched on each runner heartbeat, no restart). " +
+      "Shorter gaps look more robotic — your call.",
+    step: "Step delay (ms, between in-page actions)",
+    between: "Gap between presents (ms)",
+    min: "Min",
+    max: "Max",
+    save: "Save",
+    saving: "Saving…",
+    saved: "Saved — the runner picks it up on its next heartbeat",
   },
 
   filter: {

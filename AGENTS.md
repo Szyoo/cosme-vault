@@ -73,7 +73,10 @@ apps/
 - **任务（web → runner）**：`Job` = `ScanJob | DrawJob | InspectJob`（discriminated union，判别键 `kind`）
 - **结果（runner → web）**：`JobReport { ok, outcome, error, artifacts }`，`outcome` = `ScanResult | DrawResult | InspectResult`
 - **人工介入**：`DrawResult.status = 'needsChoice'` 时带 `PendingChoice[]`，用户在网页选完 → 以 `resolvedChoices` 恢复 `DrawJob` 重跑
-- **传输层**：runner GET `/api/runner/next-job`（长轮询）、POST `/api/runner/{report,log,heartbeat}`，全部 Bearer `RUNNER_TOKEN`
+- **运行配置（web → runner）**：`RunnerConfig`（节奏参数），runner GET `/api/runner/config`
+  每次心跳后拉取——**节奏在设置页可改，保存 ≤15 秒生效**（用户要求这类数值可看可改，
+  不许埋在代码里）。`@cosme/core` 的 `PACING` 只是默认值兜底。
+- **传输层**：runner GET `/api/runner/next-job`（长轮询）、POST `/api/runner/{report,log,heartbeat}`、GET `/api/runner/config`，全部 Bearer `RUNNER_TOKEN`
 
 ## 已知现状与待办
 
@@ -266,7 +269,9 @@ apps/
 ## 批次编排与人工介入（已实现并实测）
 
 - **事件驱动，不做状态机**：「跑一轮」＝`POST /api/runs` 给每个启用账号入队 scan；scan 上报成功后 `applyReport` 自动派发该账号 pending 奖品的 draw（`lib/dispatch.ts`）。控制面不维护「批次进行到第几步」，崩溃重启不会留半吊子批次。
-- **合规节奏放在 runner 侧**：领完一个 draw 会等 `PACING.betweenPresentsMs` 再取下一个，这样无论任务怎么入队都不会连珠炮式投递。
+- **合规节奏放在 runner 侧**：领完一个 draw 会等「奖品间隔」再取下一个，这样无论任务怎么入队都不会连珠炮式投递。
+  **节奏参数在设置页「投递节奏」可改**（存 app_settings，runner 心跳后拉取 ≤15 秒生效）；
+  `PACING` 只是默认值（奖品间隔 1~4 秒，2026-08-22 按用户决定从 4~12 秒调低）。
   **单批数量上限（原 30）已按用户决定取消（2026-08-22）**——合规靠节奏不靠批次大小；
   一次「仅抽取/跑一轮」会派发全部待投递，cron 每 12h 的自动轮同理。
 - **人工选择闭环**：runner 返回 `needsChoice` → `/api/runner/report` 发 Bark（`url` 深链接到 `/choices/<presentId>?account=<id>`）→ 用户在手机上选 → `POST /api/choices/:presentId` 记录选择、状态回 pending、派发带 `resolvedChoices` 的新 draw → runner 重跑完成。重复提交返回 409。
@@ -296,8 +301,11 @@ apps/
   - 判据**只用结构、不用文案**：题目为 0 且无送信控件 → `alreadyEntered`，什么都不提交。
     文案（`DUPLICATE_HINTS`，含「抽選」「当選」等）只作旁证记进研究数据，不参与判定。
     原来那半张单子里一个「抽選」都没有，光靠文案本来就会漏。
-  - present-blog 那条路的已应募形态**尚未实测**，所以只在「题目与提交控件都缺」时才判，
-    有提交控件而无题目仍走 `unknownPattern`（保守）。
+  - **present-blog 路线：问卷再次出现 = 上一次确实没投出去**（用户确认的领域事实，
+    2026-08-22）。PB3653 于 08-21 点击超时后我曾推断「表单其实已提交」——**错了**：
+    08-22 重投时确认页、问卷原样可走并提交成功，按上述事实即 08-21 那次是真失败。
+    推论：present-blog 重跑不存在重复应募风险（已应募的不会再给问卷）；
+    判定维持「题目与提交控件都缺 → alreadyEntered」，有提交控件就照常投。
 - **因此「投递中断」默认自动重排，不再必须人工确认**（`reclaimStaleJobs`，策略 08-21 改过）：
   重跑最多提交一次——崩在送信前则补完，崩在送信后则落到空问卷页判成 `alreadyEntered`。
   - 唯一要防的是**崩溃循环**（同一奖品反复把 runner 打挂 → 反复走确认页 POST）：

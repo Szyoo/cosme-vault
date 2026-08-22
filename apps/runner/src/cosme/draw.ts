@@ -6,7 +6,7 @@
  */
 import type { Page } from "playwright";
 import type { AccountCredentials, DrawResult } from "@cosme/contract";
-import { PACING, randomDelay } from "@cosme/core";
+import { stepDelay } from "../pacing.ts";
 import { selectPattern, collectDiagnostics } from "./patterns/index.ts";
 
 export interface DrawDeps {
@@ -29,7 +29,8 @@ export async function drawOnce(
   },
   deps: DrawDeps,
 ): Promise<DrawResult> {
-  const pace = () => new Promise<void>((r) => setTimeout(r, randomDelay(PACING.stepDelayMs)));
+  // 步进停顿用动态节奏（设置页可改）
+  const pace = () => new Promise<void>((r) => setTimeout(r, stepDelay()));
 
   // ── 1. 打开奖品入口页（详情页或 article 页） ──
   await deps.log(`打开奖品详情页 ${params.presentLink}`);

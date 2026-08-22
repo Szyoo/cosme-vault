@@ -8,6 +8,7 @@ import {
   type JobReport,
   type RunnerHeartbeat,
   type RunnerLog,
+  RunnerConfig,
 } from "@cosme/contract";
 import { config } from "./config.ts";
 
@@ -73,6 +74,22 @@ export async function sendHeartbeat(hb: RunnerHeartbeat): Promise<void> {
  * 按需取某账号的解密凭证。
  * 刻意走独立端点而非任务载荷——后者会把明文写进 jobs 表并留在历史里。
  */
+/**
+ * 拉运行配置（节奏参数）。失败时返回 null，调用方沿用上一次的值——
+ * 配置拉不到不该让 runner 停摆。
+ */
+export async function fetchRunnerConfig(): Promise<RunnerConfig | null> {
+  try {
+    const res = await fetch(url("/api/runner/config"), {
+      headers: { authorization: `Bearer ${config.runnerToken}` },
+    });
+    if (!res.ok) return null;
+    return RunnerConfig.parse(await res.json());
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchCredentials(accountId: string): Promise<AccountCredentials> {
   const res = await fetch(url(`/api/runner/credentials?accountId=${encodeURIComponent(accountId)}`), {
     method: "GET",
