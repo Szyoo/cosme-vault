@@ -47,7 +47,12 @@ import type { RunnerConfig } from "@cosme/contract";
 /** 节奏配置：库优先、core 默认值兜底。给设置页与 /api/runner/config 共用。 */
 export function getPacingConfig(): RunnerConfig {
   const read = (key: string, fallback: number): number => {
-    const v = Number(getSetting(key));
+    const raw = getSetting(key);
+    // ⚠️ 必须先判空再 Number()：`Number(null) === 0`，0 又能通过合法性检查，
+    // 于是没配置过时端点会返回全 0——0 毫秒间隔等于机关枪速度（实测踩过，
+    // 幸亏当时队列是空的）。空值必须落到默认值。
+    if (raw === null || raw.trim() === "") return fallback;
+    const v = Number(raw);
     return Number.isFinite(v) && v >= 0 ? v : fallback;
   };
   const cfg = {
