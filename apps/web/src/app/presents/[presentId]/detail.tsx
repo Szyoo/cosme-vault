@@ -146,6 +146,43 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
             })}
           </div>
         )}
+        {/* 用户做过的选择：把 resolvedChoices 的选项 ID 对着 pendingChoices 快照翻译成文本 */}
+        {links.map((l) => {
+          if (!l.resolvedChoices) return null;
+          let picked: { prompt: string; text: string }[] = [];
+          try {
+            const sel = JSON.parse(l.resolvedChoices) as Record<string, string>;
+            const qs = l.pendingChoices
+              ? (JSON.parse(l.pendingChoices) as {
+                  questionId: string;
+                  prompt: string;
+                  options: { id: string; text: string }[];
+                }[])
+              : [];
+            picked = Object.entries(sel).map(([qid, oid]) => {
+              const q = qs.find((x) => x.questionId === qid);
+              const o = q?.options.find((x) => x.id === oid);
+              return { prompt: q?.prompt ?? qid, text: o?.text ?? oid };
+            });
+          } catch {
+            return null;
+          }
+          if (picked.length === 0) return null;
+          const account = accounts.find((a) => a.id === l.accountId);
+          return (
+            <div key={`choice-${l.id}`} className="inner" style={{ marginTop: 10 }}>
+              <div className="tiny muted">
+                {t.choice.yourChoice}
+                {accounts.length > 1 && account ? `（${account.label}）` : ""}
+              </div>
+              {picked.map((c, i) => (
+                <p key={i} className="small" style={{ margin: "6px 0 0" }}>
+                  {c.text}
+                </p>
+              ))}
+            </div>
+          );
+        })}
         {links.some((l) => l.error) && (
           <p className="small" style={{ marginTop: 10 }}>
             {links.find((l) => l.error)?.error}

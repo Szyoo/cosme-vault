@@ -12,6 +12,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { PendingChoice } from "@cosme/contract";
 import { useT } from "@/i18n/context.tsx";
+import { useInModal } from "../../modal-shell.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 
 /** 顶部返回条。选择页有多个状态分支，各自都要有出口，故抽成组件。 */
@@ -42,6 +43,7 @@ export default function ChoicePage() {
 
 export function ChoiceInner() {
   const t = useT();
+  const inModal = useInModal();
   const params = useParams<{ presentId: string }>();
   const search = useSearchParams();
   const router = useRouter();
@@ -52,7 +54,6 @@ export function ChoiceInner() {
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/choices/${presentId}?account=${encodeURIComponent(accountId)}`);
@@ -93,7 +94,10 @@ export function ChoiceInner() {
         setError(body.error ?? t.choice.submitFailed);
         return;
       }
-      setDone(true);
+      // 提交成功不弹「已提交」确认屏（用户嫌多余）：modal 直接关、
+      // 整页（手机 Bark 深链接）跳回控制台——队列里能实时看到重投在跑
+      if (inModal) router.back();
+      else router.push("/");
     } finally {
       setBusy(false);
     }
@@ -113,18 +117,6 @@ export function ChoiceInner() {
       <main className="page narrow">
       <BackRow t={t} />
         <p>{t.common.loading}</p>
-      </main>
-    );
-  }
-  if (done) {
-    return (
-      <main className="page narrow">
-      <BackRow t={t} />
-        <h1 className="page-title">{t.choice.submitted}</h1>
-        <p>{t.choice.submittedHint}</p>
-        <button type="button" className="btn" onClick={() => router.push("/")}>
-          {t.nav.console}
-        </button>
       </main>
     );
   }

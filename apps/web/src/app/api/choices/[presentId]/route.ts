@@ -74,12 +74,14 @@ export async function POST(
     return NextResponse.json({ error: t.choice.noNeedHint(row.status) }, { status: 409 });
   }
 
-  // 记下选择并回到 pending，随后派发带 resolvedChoices 的 draw
+  // 记下选择并回到 pending，随后派发带 resolvedChoices 的 draw。
+  // ⚠️ pendingChoices **刻意保留**：它是题目与选项文本的唯一快照——
+  // resolvedChoices 里只有选项 ID，清掉快照后「历史里看自己选了什么」
+  // 就只剩一串 ID 没法翻译成人话（用户要求能回看）。
   db.update(schema.accountPresents)
     .set({
       resolvedChoices: JSON.stringify(selections),
       status: "pending",
-      pendingChoices: null,
       updatedAt: new Date().toISOString(),
     })
     .where(eq(schema.accountPresents.id, row.id))

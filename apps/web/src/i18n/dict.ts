@@ -158,6 +158,7 @@ const zh = {
     submitFailed: "提交失败",
     goChoose: "去选择",
     refImagesHint: "奖品参考图（选项与图的对应关系见图内说明）",
+    yourChoice: "你的选择",
     needsChoiceTitle: "需要你选择",
   },
 
@@ -474,6 +475,7 @@ const ja: Dict = {
     submitFailed: "送信に失敗しました",
     goChoose: "選択する",
     refImagesHint: "プレゼント参考画像（選択肢との対応は画像内の説明を参照）",
+    yourChoice: "あなたの選択",
     needsChoiceTitle: "選択が必要です",
   },
 
@@ -770,6 +772,7 @@ const en: Dict = {
     submitFailed: "Failed to submit",
     goChoose: "Choose",
     refImagesHint: "Prize reference images (see labels inside the images for which option is which)",
+    yourChoice: "Your choice",
     needsChoiceTitle: "Needs your choice",
   },
 

@@ -11,8 +11,14 @@
  */
 "use client";
 
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+
+/** 子组件用它判断自己是否被嵌在 modal 里（提交成功后是关弹层还是跳页，行为不同） */
+const InModalCtx = createContext(false);
+export function useInModal(): boolean {
+  return useContext(InModalCtx);
+}
 
 export function ModalShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -46,7 +52,9 @@ export function ModalShell({ children }: { children: ReactNode }) {
         <button type="button" className="modal-close" onClick={close} aria-label="close">
           ✕
         </button>
-        <div className="modal-body">{children}</div>
+        <div className="modal-body">
+          <InModalCtx.Provider value={true}>{children}</InModalCtx.Provider>
+        </div>
       </div>
     </div>
   );
