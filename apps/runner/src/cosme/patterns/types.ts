@@ -21,6 +21,12 @@ export interface PatternContext {
   log: (text: string, level?: "info" | "warn" | "error") => Promise<void>;
   /** 人类速度的随机停顿 */
   pace: () => Promise<void>;
+  /**
+   * 流程沿途采到的「奖品选项配图」（有序）。tieup 模式在 PR 页上按
+   * `present_img_<NN>` 模板采集；问卷侧组装 needsChoice 时若
+   * 图片数与选项数一致则一一对应挂上（见 ChoiceOption.imageUrl 的说明）。
+   */
+  optionImageUrls?: string[];
 }
 
 /** pattern 的识别结果 */

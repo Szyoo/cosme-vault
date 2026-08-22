@@ -151,7 +151,7 @@ export default async function Home() {
           <div className="section-name">{t.choice.needsChoiceTitle}</div>
           <div className="stack">
             {needsChoice.map((r) => (
-              <a
+              <Link
                 key={`${r.accountId}-${r.presentId}`}
                 className="inner row spread"
                 href={`/choices/${r.presentId}?account=${r.accountId}`}
@@ -161,7 +161,7 @@ export default async function Home() {
                   {r.name ?? r.presentId}
                 </span>
                 <span className="pill violet">{t.choice.goChoose}</span>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

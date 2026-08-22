@@ -521,3 +521,17 @@
 .pace-field .field {
   width: 7em;
 }
+
+/* 选择页的选项配图：图在文字上方，撑满选项卡宽度（原图 850px 宽的横幅） */
+.opt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.opt-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}

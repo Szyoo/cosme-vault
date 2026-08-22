@@ -6,6 +6,7 @@
  * 抓来的内容（奖品名、品牌、文案、数量原文如「計20名様現品」）一律原样展示，
  * 不翻译——那是数据不是界面文案。
  */
+import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db, schema } from "@/db/index.ts";
@@ -123,9 +124,9 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
                   </span>
                   <span className="row" style={{ gap: 8 }}>
                     {l.status === "needsChoice" && (
-                      <a className="btn-ghost btn-small" href={`/choices/${present.id}?account=${l.accountId}`}>
+                      <Link className="btn-ghost btn-small" href={`/choices/${present.id}?account=${l.accountId}`}>
                         {t.choice.goChoose}
-                      </a>
+                      </Link>
                     )}
                     {l.status === "unknownPattern" && (
                       <a className="btn-ghost btn-small" href="/diagnostics">

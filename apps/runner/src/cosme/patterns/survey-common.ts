@@ -88,7 +88,7 @@ export async function applyDecisions(
       pending.push({
         questionId: q.field,
         prompt: q.prompt || q.field,
-        options: q.options.map((o) => ({ id: o.value, text: o.label })),
+        options: q.options.map((o) => ({ id: o.value, text: o.label, imageUrl: null })),
       });
       continue;
     }

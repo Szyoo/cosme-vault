@@ -102,11 +102,11 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
     const toChoice = (name: string, opts: Opt[]) => ({
       questionId: name,
       prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
-      options: opts.map((o) => ({ id: o.value, text: o.label || o.value })),
+      options: opts.map((o) => ({ id: o.value, text: o.label || o.value, imageUrl: null as string | null })),
     });
 
     // 1. 整组未选的 radio —— 真正会卡「選択してください」的
-    const out: { questionId: string; prompt: string; options: { id: string; text: string }[] }[] = [];
+    const out: { questionId: string; prompt: string; options: { id: string; text: string; imageUrl: string | null }[] }[] = [];
     for (const [name, opts] of radios) {
       if (!opts.some((o) => o.checked)) out.push(toChoice(name, opts));
     }
@@ -120,12 +120,25 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
         out.push({
           questionId: `family:${opts[0]!.name}`,
           prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
-          options: opts.map((o) => ({ id: o.name, text: o.label || o.name })),
+          options: opts.map((o) => ({ id: o.name, text: o.label || o.name, imageUrl: null as string | null })),
         });
       }
     }
     return out;
   });
+}
+
+/**
+ * 把 PR 页采到的选项配图挂到 pendingChoices 上。
+ * 只在「恰好一道题且图片数 == 选项数」时挂——PR 页图片命名没有通用规律，
+ * 数目对不上宁可不挂（挂错图会误导用户选错奖品，比没图糟得多）。
+ */
+function attachOptionImages(pending: PendingChoice[], ctx: PatternContext): PendingChoice[] {
+  const imgs = ctx.optionImageUrls ?? [];
+  if (imgs.length === 0 || pending.length !== 1) return pending;
+  const q = pending[0]!;
+  if (q.options.length !== imgs.length) return pending;
+  return [{ ...q, options: q.options.map((o, i) => ({ ...o, imageUrl: imgs[i]! })) }];
 }
 
 export const isEnqSurveyPattern: FlowPattern = {
@@ -241,7 +254,7 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
   const { pending, applied } = await applyDecisions(page, questions, ctx);
   if (pending.length > 0) {
     await ctx.log(`${questions.length} 题中有 ${pending.length} 题需要人工决定，挂起等待`, "warn");
-    return { status: "needsChoice", pendingChoices: pending };
+    return { status: "needsChoice", pendingChoices: attachOptionImages(pending, ctx) };
   }
 
   // 个人资料字段（prof_*）—— 只有 is-enq 问卷有，present-blog 的确认页已核对过
@@ -309,7 +322,7 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
     const unanswered = await collectUnanswered(page);
     if (unanswered.length > 0) {
       await ctx.log(`送信被退回（${reason}），${unanswered.length} 道题需人工选择，挂起等待`, "warn");
-      return { status: "needsChoice", pendingChoices: unanswered };
+      return { status: "needsChoice", pendingChoices: attachOptionImages(unanswered, ctx) };
     }
     await ctx.log(`送信被退回（${reason}），且找不到未作答的题`, "error");
     return { status: "failed" };

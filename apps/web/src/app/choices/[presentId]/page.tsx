@@ -40,7 +40,7 @@ export default function ChoicePage() {
   );
 }
 
-function ChoiceInner() {
+export function ChoiceInner() {
   const t = useT();
   const params = useParams<{ presentId: string }>();
   const search = useSearchParams();
@@ -146,6 +146,10 @@ function ChoiceInner() {
         <p className="page-sub">
           {data.present.brand && <strong>{data.present.brand} · </strong>}
           {data.present.name}
+          {"　"}
+          <a href={data.present.link} target="_blank" rel="noreferrer">
+            {t.resolve.openSite} ↗
+          </a>
         </p>
       )}
 
@@ -164,7 +168,15 @@ function ChoiceInner() {
                     checked={picked}
                     onChange={() => setSelections((s) => ({ ...s, [c.questionId]: o.id }))}
                   />
-                  <span>{o.text}</span>
+                  <span className="opt-body">
+                    {/* 选项配图：只有 PR 页的 present_img 模板与选项数目对上时才有，
+                        宁可没图也不挂错图（见 ChoiceOption.imageUrl） */}
+                    {o.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图
+                      <img className="opt-img" src={o.imageUrl} alt="" loading="lazy" />
+                    )}
+                    <span>{o.text}</span>
+                  </span>
                 </label>
               );
             })}

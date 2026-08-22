@@ -223,6 +223,14 @@ export type InspectJob = z.infer<typeof InspectJob>;
 export const ChoiceOption = z.object({
   id: z.string(), // 选项标识（通常是 input 的 value 或序号）
   text: z.string(), // 选项展示文本
+  /**
+   * 选项配图（可选）。目前只有一个可靠来源：タイアップ PR 页的
+   * `present_img_<NN>.png` 模板图（NN 与选项序号对应）。
+   * ⚠️ 该模板**并非所有多选一页面都有**（实测 3 个选择型里只有 1 个有），
+   * 且各家 PR 页图片命名毫无规律——因此只在「图片数 == 选项数」时才挂，
+   * 宁可没图也不挂错图（与 validateImageUrl 同一原则）。
+   */
+  imageUrl: z.string().url().nullable().default(null),
 });
 export type ChoiceOption = z.infer<typeof ChoiceOption>;
 
