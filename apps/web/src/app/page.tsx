@@ -22,6 +22,7 @@ import { QueuePanel } from "./queue-panel.tsx";
 import { Nav } from "./nav.tsx";
 import { LiveRefresh } from "./live-refresh.tsx";
 import { PresentList } from "./present-list.tsx";
+import { TermLog } from "./term-log.tsx";
 import { ResolveButtons } from "./resolve-buttons.tsx";
 import { toItem } from "./present-item.ts";
 
@@ -201,24 +202,20 @@ export default async function Home() {
       <QueuePanel batches={queue.batches} hidden={queue.hidden} t={t} />
 
       {/* 终端窗：设计规范第 9 节，日志刻意保持深色。放在奖品列表**之前**——
-          奖品有一百多条，日志排在后面就等于永远看不见。 */}
-      <section className="term section">
-        <div className="term-head">
-          <span className="term-dot" data-live={runner.kind === "online" ? "1" : "0"} />
-          <span className="term-title">{t.log.title}</span>
-        </div>
-        <div className="term-body">
-          {logs.length === 0 && <div className="term-line debug">{t.log.empty}</div>}
-          {logs
-            .slice()
-            .reverse()
-            .map((l) => (
-              <div key={l.id} className={`term-line ${l.level}`}>
-                <span className="term-time">{fmtLogTime(l.at)}</span> {l.text}
-              </div>
-            ))}
-        </div>
-      </section>
+          奖品有一百多条，日志排在后面就等于永远看不见。
+          复制/贴底跟随在客户端组件里（行已在服务端格式化好，字典函数不跨界）。 */}
+      <TermLog
+        live={runner.kind === "online"}
+        title={t.log.title}
+        emptyText={t.log.empty}
+        copyLabel={t.log.copy}
+        copiedLabel={t.log.copied}
+        toBottomLabel={t.log.toBottom}
+        lines={logs
+          .slice()
+          .reverse()
+          .map((l) => ({ key: l.id, time: fmtLogTime(l.at) ?? "", level: l.level, text: l.text }))}
+      />
 
       <section className="glass section">
         <div className="section-name">{t.present.listTitle}</div>
