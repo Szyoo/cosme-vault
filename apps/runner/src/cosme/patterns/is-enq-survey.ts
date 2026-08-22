@@ -24,6 +24,14 @@ const ENQ_HOST = "is-enq.cosme.net";
 /** 确认页表单 */
 const CONFIRM_FORM = 'form[action*="/enquete/confirm"]';
 /**
+ * 确认页的第三种版式（2026-08-23 依据 produceMember 的诊断包补）：
+ * `/present/confirm/<ID>`——addinfo 之后不去 /enquete/confirm，而是落在这里。
+ * 表单结构与 present-blog 的确认页同款：hidden act=submit + 「応募する」提交钮，
+ * 页面显示登记住址。点「応募する」即完成应募（后面没有问卷）。
+ */
+const PRESENT_CONFIRM_URL = /\/present\/confirm\/\d+/;
+const PRESENT_CONFIRM_SUBMIT = 'input[type="submit"][value*="応募"]';
+/**
  * 详情页上的应募入口（跳转地址藏在 onclick 里）。
  * ⚠️ 两种标签都出现过：brandcollection 是 `a[onclick]`，
  * 手机版全量列表里的 `/brands/<id>/present/<id>/` 页是 **`input[onclick]`**（实测）。
@@ -37,6 +45,7 @@ export const isEnqSurveyPattern: FlowPattern = {
   async recognize(page: Page): Promise<Recognition> {
     const url = page.url();
     if (url.includes(ENQ_HOST)) return { matched: true };
+    if (PRESENT_CONFIRM_URL.test(url)) return { matched: true };
     if ((await page.locator(CONFIRM_FORM).count()) > 0) return { matched: true };
     // 还停在 brandcollection 详情页、但页面上有 addinfo 入口，也归本模式
     // （入口跳转由本模式的 execute 负责，编排层不该有模式专属逻辑）
@@ -71,6 +80,30 @@ export const isEnqSurveyPattern: FlowPattern = {
         page.waitForLoadState("domcontentloaded"),
         page.locator(`${CONFIRM_FORM} input[type="submit"]`).first().click(),
       ]);
+    }
+
+    // ── 1.5 第三种确认页 /present/confirm/<ID>：点「応募する」即完成，没有问卷 ──
+    if (PRESENT_CONFIRM_URL.test(page.url())) {
+      const submit = page.locator(PRESENT_CONFIRM_SUBMIT).first();
+      if ((await submit.count()) === 0) {
+        await ctx.log("确认页（/present/confirm/）上没有応募按钮", "warn");
+        return { status: "unknownPattern" };
+      }
+      await ctx.log("提交应募确认（/present/confirm/ 版式，无问卷）");
+      await ctx.pace();
+      await clickAndSettle(page, submit);
+      // 成败只看「有没有离开确认页」（全站统一判据；慢跳转再宽限一轮）
+      let still = PRESENT_CONFIRM_URL.test(page.url()) && (await page.locator(PRESENT_CONFIRM_SUBMIT).count()) > 0;
+      if (still) {
+        await page.waitForTimeout(4000);
+        still = PRESENT_CONFIRM_URL.test(page.url()) && (await page.locator(PRESENT_CONFIRM_SUBMIT).count()) > 0;
+      }
+      if (still) {
+        await ctx.log("提交后仍停在确认页", "error");
+        return { status: "failed" };
+      }
+      await ctx.log("投递完成");
+      return { status: "drawn" };
     }
 
     // ⚠️ 确认页 POST 后有**客户端跳转**：点击后那一刻 URL 仍是 /enquete/confirm，

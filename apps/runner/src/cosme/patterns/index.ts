@@ -9,6 +9,7 @@ import type { PatternDiagnostics } from "@cosme/contract";
 import { inspectPage } from "../inspect.ts";
 import { isEnqSurveyPattern } from "./is-enq-survey.ts";
 import { presentBlogPattern } from "./present-blog.ts";
+import { tieupCampaignPattern } from "./tieup-campaign.ts";
 import type { FlowPattern } from "./types.ts";
 
 /**
@@ -17,7 +18,8 @@ import type { FlowPattern } from "./types.ts";
  * present-blog 放在前面：它的识别条件更窄（URL 形态 + present-blog 表单），
  * 而 is-enq-survey 的识别条件里包含「页面有 /enquete/confirm 表单」这种较宽的判断。
  */
-export const PATTERNS: readonly FlowPattern[] = [presentBlogPattern, isEnqSurveyPattern];
+// tieup 放最前：它按 URL 精确匹配 /brands/<id>/tieup/…，绝不会误认别人的页面
+export const PATTERNS: readonly FlowPattern[] = [tieupCampaignPattern, presentBlogPattern, isEnqSurveyPattern];
 
 export interface PatternMatch {
   pattern: FlowPattern;
