@@ -150,6 +150,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         {links.map((l) => {
           if (!l.resolvedChoices) return null;
           let picked: { prompt: string; text: string }[] = [];
+          let refImages: string[] = [];
           try {
             const sel = JSON.parse(l.resolvedChoices) as Record<string, string>;
             const qs = l.pendingChoices
@@ -157,6 +158,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
                   questionId: string;
                   prompt: string;
                   options: { id: string; text: string }[];
+                  referenceImages?: string[];
                 }[])
               : [];
             picked = Object.entries(sel).map(([qid, oid]) => {
@@ -164,6 +166,8 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
               const o = q?.options.find((x) => x.id === oid);
               return { prompt: q?.prompt ?? qid, text: o?.text ?? oid };
             });
+            // 参考图跟着快照一起回看（选的时候看的什么图，历史里就摆什么图）
+            refImages = qs.flatMap((q) => q.referenceImages ?? []);
           } catch {
             return null;
           }
@@ -180,6 +184,14 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
                   {c.text}
                 </p>
               ))}
+              {refImages.length > 0 && (
+                <div className="ref-imgs ref-imgs-compact">
+                  {refImages.map((src) => (
+                    // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图
+                    <img key={src} className="ref-img" src={src} alt="" loading="lazy" />
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
