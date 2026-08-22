@@ -40,34 +40,89 @@ const PRESENT_CONFIRM_SUBMIT = 'input[type="submit"][value*="応募"]';
 const APPLY_ANCHOR = '[onclick*="isauth/addinfo"]';
 
 /**
- * 从（被退回的）问卷表单上摘出**整组未作答**的选择题，转成 PendingChoice。
- * 只看结构不看文案：radio/checkbox 按 name 分组，组内一个都没选中的就是漏网的。
+ * 从（被退回的）问卷表单上摘出真正卡住送信的题，转成 PendingChoice。
+ *
+ * ⚠️ 第一版按 name 分组把页面所有未勾选控件都算成「题」，结果 27 个未勾的
+ * checkbox **选项**被当成 27 道单选项题（is-enq 的 checkbox 是**每个选项一个
+ * 独立 name**：`q001_185985_002_c` = 第 1 题第 2 个选项），选择页还会逼用户
+ * 全部作答——等于强迫乱勾（2026-08-23 实测，tu-10695）。
+ *
+ * 修正后的规则：
+ * - **radio**（共享 name 的正规组）整组未选 → 这才是「選択してください」的元凶
+ *   （实测案例即 Q6「ご希望のセットを1つお選びください」）。
+ * - checkbox 家族（`q<题号>_<问卷ID>_<选项号>_c`）整族未勾的**只在没有任何
+ *   未选 radio 时**才作为兜底纳入（多数是可选题，纳入只会逼用户乱勾）。
+ * - 题干沿 DOM 往前找带「ください / 希望 / 選び / 必須 / *」的说明行，
+ *   找不到就用选项文本自明（Q6 的两个套装描述本身就说明了在选什么）。
  */
 async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
   return page.evaluate(() => {
-    const groups = new Map<string, { label: string; value: string; checked: boolean }[]>();
+    type Opt = { label: string; value: string; checked: boolean; name: string };
+    const radios = new Map<string, Opt[]>();
+    const checkFamilies = new Map<string, Opt[]>();
+
     for (const el of Array.from(
       document.querySelectorAll<HTMLInputElement>('input[type="radio"], input[type="checkbox"]'),
     )) {
       if (!/^q\d+_/.test(el.name) && !/^id\[\d+\]/.test(el.name)) continue;
       const label =
         (el.closest("label")?.textContent ?? el.parentElement?.textContent ?? "").replace(/\s+/g, " ").trim();
-      const list = groups.get(el.name) ?? [];
-      list.push({ label, value: el.value, checked: el.checked });
-      groups.set(el.name, list);
+      const opt: Opt = { label, value: el.value, checked: el.checked, name: el.name };
+      if (el.type === "radio") {
+        const list = radios.get(el.name) ?? [];
+        list.push(opt);
+        radios.set(el.name, list);
+      } else {
+        // checkbox 家族键：去掉末段选项号（q001_185985_002_c → q001_185985）
+        const fam = el.name.replace(/_\d+_c$/, "");
+        const list = checkFamilies.get(fam) ?? [];
+        list.push(opt);
+        checkFamilies.set(fam, list);
+      }
     }
-    const out: { questionId: string; prompt: string; options: { id: string; text: string }[] }[] = [];
-    for (const [name, opts] of groups) {
-      if (opts.some((o) => o.checked)) continue; // 已作答的组跳过
-      // 题干：往上找包含这组控件的问题块文本（去掉选项自身文本）
+
+    /** 沿祖先链往前找题干说明行 */
+    const findPrompt = (name: string): string => {
       const first = document.querySelector<HTMLInputElement>(`input[name="${CSS.escape(name)}"]`);
-      let prompt = (first?.closest("div.qa, dl, li, tr")?.textContent ?? "").replace(/\s+/g, " ").trim();
-      for (const o of opts) if (o.label) prompt = prompt.replace(o.label, "");
-      out.push({
-        questionId: name,
-        prompt: prompt.slice(0, 200) || name,
-        options: opts.map((o) => ({ id: o.value, text: o.label || o.value })),
-      });
+      let node: Element | null = first?.parentElement ?? null;
+      for (let depth = 0; node && depth < 6; depth++) {
+        let sib: Element | null = node.previousElementSibling;
+        for (let hops = 0; sib && hops < 8; hops++) {
+          const t = (sib.textContent ?? "").replace(/\s+/g, " ").trim();
+          if (t && t.length < 300 && /ください|希望|選び|必須|＊|\*/.test(t) && !sib.querySelector("input")) {
+            return t;
+          }
+          sib = sib.previousElementSibling;
+        }
+        node = node.parentElement;
+      }
+      return "";
+    };
+
+    const toChoice = (name: string, opts: Opt[]) => ({
+      questionId: name,
+      prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
+      options: opts.map((o) => ({ id: o.value, text: o.label || o.value })),
+    });
+
+    // 1. 整组未选的 radio —— 真正会卡「選択してください」的
+    const out: { questionId: string; prompt: string; options: { id: string; text: string }[] }[] = [];
+    for (const [name, opts] of radios) {
+      if (!opts.some((o) => o.checked)) out.push(toChoice(name, opts));
+    }
+    if (out.length > 0) return out;
+
+    // 2. 兜底：整族未勾的 checkbox 家族（把一族合并成一道多选题）。
+    // ⚠️ 选项 id 用**各自的完整 name**（is-enq 的 checkbox 每个选项独立 name），
+    // 回填时 answering.ts 按「resolvedChoices 的 value 命中我的 field」反查勾选。
+    for (const opts of checkFamilies.values()) {
+      if (!opts.some((o) => o.checked)) {
+        out.push({
+          questionId: `family:${opts[0]!.name}`,
+          prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
+          options: opts.map((o) => ({ id: o.name, text: o.label || o.name })),
+        });
+      }
     }
     return out;
   });
