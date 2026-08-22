@@ -156,6 +156,17 @@ export function ChoiceInner() {
       {data.choices.map((c) => (
         <section key={c.questionId} className="glass section">
           <div className="section-name">{c.prompt || t.choice.pick}</div>
+          {/* 奖品参考图：整组原样展示，不与选项一一对应（PR 页多为合成图，
+              图内自带「or」等说明；对应关系让用户自己看图判断） */}
+          {c.referenceImages?.length > 0 && (
+            <div className="ref-imgs">
+              {c.referenceImages.map((src) => (
+                // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图
+                <img key={src} className="ref-img" src={src} alt="" loading="lazy" />
+              ))}
+              <p className="tiny muted">{t.choice.refImagesHint}</p>
+            </div>
+          )}
           <div className="stack">
             {c.options.map((o) => {
               const picked = selections[c.questionId] === o.id;

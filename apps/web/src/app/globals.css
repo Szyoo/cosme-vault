@@ -535,3 +535,18 @@
   border-radius: 10px;
   border: 1px solid var(--glass-border);
 }
+
+/* 选择页的奖品参考图组：整组原样展示（多为带「or」的合成横幅），
+   不与选项一一对应——对应关系由图内说明传达 */
+.ref-imgs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.ref-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}
