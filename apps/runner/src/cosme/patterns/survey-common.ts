@@ -89,6 +89,7 @@ export async function applyDecisions(
         questionId: q.field,
         prompt: q.prompt || q.field,
         options: q.options.map((o) => ({ id: o.value, text: o.label, imageUrl: null })),
+        referenceImages: [],
       });
       continue;
     }

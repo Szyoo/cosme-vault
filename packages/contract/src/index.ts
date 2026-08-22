@@ -223,13 +223,7 @@ export type InspectJob = z.infer<typeof InspectJob>;
 export const ChoiceOption = z.object({
   id: z.string(), // 选项标识（通常是 input 的 value 或序号）
   text: z.string(), // 选项展示文本
-  /**
-   * 选项配图（可选）。目前只有一个可靠来源：タイアップ PR 页的
-   * `present_img_<NN>.png` 模板图（NN 与选项序号对应）。
-   * ⚠️ 该模板**并非所有多选一页面都有**（实测 3 个选择型里只有 1 个有），
-   * 且各家 PR 页图片命名毫无规律——因此只在「图片数 == 选项数」时才挂，
-   * 宁可没图也不挂错图（与 validateImageUrl 同一原则）。
-   */
+  /** 选项自己的配图（当前无可靠来源，保留字段；奖品参考图见 PendingChoice.referenceImages） */
   imageUrl: z.string().url().nullable().default(null),
 });
 export type ChoiceOption = z.infer<typeof ChoiceOption>;
@@ -238,6 +232,15 @@ export const PendingChoice = z.object({
   questionId: z.string(), // 问题标识
   prompt: z.string(), // 问题文本（如「ご希望の商品をお選びください」）
   options: z.array(ChoiceOption),
+  /**
+   * 奖品参考图（整组原样展示，**不与选项一一对应**）。
+   * 实测教训（tu-10695）：PR 页的 `present_img_01/02` 是两张**合成图**——
+   * 每张里左右各摆一个系列（图内还画着「or」），选项 1 = 两图的左半、
+   * 选项 2 = 两图的右半。按「一图对一选项」挂会精确地误导用户选错。
+   * 各奖品版式还都不一样，所以不猜对应关系：整组图放在题目上方当参考资料，
+   * 对应关系让用户自己从图里看（图内通常自带说明）。
+   */
+  referenceImages: z.array(z.string().url()).default([]),
 });
 export type PendingChoice = z.infer<typeof PendingChoice>;
 
