@@ -124,6 +124,8 @@ async function answerBlogSurvey(page: Page, ctx: PatternContext): Promise<Patter
   await ctx.pace();
 
   const questions = await scanQuestions(page);
+  // 顺手采题（present-blog 的字段是 id[<数字>]），与 is-enq 侧同一用途
+  ctx.surveyCapture = { url: page.url(), questions };
   if (questions.length === 0) {
     // 与 is-enq 同一个判据：**题目与提交控件都没有 = 站点表明已应募过**，
     // 不是版式不认识。（is-enq 侧有实测证据，见那边的注释；present-blog 这条

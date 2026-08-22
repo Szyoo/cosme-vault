@@ -147,3 +147,15 @@ export const appSettings = sqliteTable("app_settings", {
   value: text("value").notNull(),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 });
+
+/**
+ * 做题时顺手采下的问卷题库（CapturedQuestion[] 的 JSON）。
+ * 用途：为重建关键词匹配库积累真实题目——runner 作答前扫描到的结构原样落库，
+ * 零额外页面访问。每奖品存最新一份（问卷内容基本不变）。
+ */
+export const surveyCaptures = sqliteTable("survey_captures", {
+  presentId: text("present_id").primaryKey(),
+  url: text("url").notNull(),
+  questions: text("questions").notNull(),
+  capturedAt: text("captured_at").notNull(),
+});

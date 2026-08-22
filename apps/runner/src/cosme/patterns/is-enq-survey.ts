@@ -238,6 +238,8 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
   await ctx.pace();
 
   const questions = await scanQuestions(page);
+  // 顺手采题（题号在 field 里）：给后续重建匹配库攒真实题库，零额外访问
+  ctx.surveyCapture = { url: page.url(), questions };
 
   // ⚠️ **已应募的判定放在最前面**，而且是结构性的、不看文案。
   //

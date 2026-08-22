@@ -9,7 +9,7 @@
  * 全都不认识则**安全中止**并回传诊断包（见 `PatternDiagnostics`），绝不瞎点。
  */
 import type { Page } from "playwright";
-import type { AccountProfile, DrawResult, PendingChoice } from "@cosme/contract";
+import type { AccountProfile, CapturedQuestion, DrawResult, PendingChoice } from "@cosme/contract";
 
 /** pattern 执行时可用的上下文 */
 export interface PatternContext {
@@ -27,6 +27,8 @@ export interface PatternContext {
    * 图片数与选项数一致则一一对应挂上（见 ChoiceOption.imageUrl 的说明）。
    */
   optionImageUrls?: string[];
+  /** 做题时顺手采下的问卷结构（url + 全部题目），由问卷路径写入、drawOnce 带回 */
+  surveyCapture?: { url: string; questions: CapturedQuestion[] };
 }
 
 /** pattern 的识别结果 */
