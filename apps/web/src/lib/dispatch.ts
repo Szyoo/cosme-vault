@@ -21,8 +21,17 @@ import { nextStamp } from "@/lib/stamp.ts";
  */
 type DbLike = Pick<typeof db, "select" | "insert" | "update" | "delete">;
 
-/** 给所有启用账号入队扫描任务，返回入队的 jobId 列表 */
-export function startRun(trigger: "cron" | "manual"): { accountId: string; jobId: string }[] {
+/**
+ * 给所有启用账号入队扫描任务，返回入队的 jobId 列表。
+ *
+ * `scanOnly=true` 时批次标成 'scan'：applyReport 看到这个标记就**不会**在
+ * 扫描完成后自动派发投递——这就是「仅检测」与「跑一轮」的全部区别，
+ * runner 侧完全无感（跨进程契约不动）。
+ */
+export function startRun(
+  trigger: "cron" | "manual",
+  scanOnly = false,
+): { accountId: string; jobId: string }[] {
   const accounts = db.select().from(schema.accounts).where(eq(schema.accounts.enabled, true)).all();
   const created: { accountId: string; jobId: string }[] = [];
   // 一次「跑一轮」= 一个批次。scan 与它稍后派发出的 draw 共享这个 id，
@@ -42,12 +51,27 @@ export function startRun(trigger: "cron" | "manual"): { accountId: string; jobId
         trigger,
         createdAt: nextStamp(),
         batchId,
-        batchKind: "run",
+        batchKind: scanOnly ? "scan" : "run",
       })
       .run();
     created.push({ accountId: a.id, jobId });
   }
   return created;
+}
+
+/**
+ * 「仅抽取」：不扫描，直接给每个启用账号派发现有的待投递奖品。
+ * 每账号仍受 PACING.maxPresentsPerRun 限制（合规节奏与「跑一轮」相同）。
+ */
+export function startDrawOnly(trigger: "cron" | "manual"): { accountId: string; dispatched: number }[] {
+  const accounts = db.select().from(schema.accounts).where(eq(schema.accounts.enabled, true)).all();
+  const out: { accountId: string; dispatched: number }[] = [];
+  for (const a of accounts) {
+    if (!a.credentialsEnc) continue;
+    const n = dispatchPendingDraws(a.id, trigger, db, { id: randomUUID(), kind: "draw" }).length;
+    out.push({ accountId: a.id, dispatched: n });
+  }
+  return out;
 }
 
 /**
@@ -63,7 +87,7 @@ export function dispatchPendingDraws(
   trigger: "cron" | "manual",
   tx: DbLike = db,
   /** 继承触发它的 scan 的批次，这样一轮里的 draw 会归到同一条队列项下 */
-  batch?: { id: string; kind: "run" | "single" },
+  batch?: { id: string; kind: "run" | "scan" | "draw" | "single" },
 ): string[] {
   const pending = tx
     .select({ presentId: schema.accountPresents.presentId })

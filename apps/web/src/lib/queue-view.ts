@@ -15,7 +15,7 @@
  */
 import { db, schema } from "@/db/index.ts";
 
-export type BatchKind = "run" | "single";
+export type BatchKind = "run" | "scan" | "draw" | "single";
 
 export interface QueueBatch {
   batchId: string;

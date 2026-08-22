@@ -243,8 +243,9 @@ export function applyReport(report: JobReport): ReportEffects {
         }
       }
 
-      // 事件驱动：扫描完成即派发该账号的待抽任务，无需外层状态机
-      if (accountId) {
+      // 事件驱动：扫描完成即派发该账号的待抽任务，无需外层状态机。
+      // 「仅检测」（batchKind='scan'）刻意不派发——那正是它和「跑一轮」的区别。
+      if (accountId && scanJob?.batchKind !== "scan") {
         const trigger = (scanJob?.trigger ?? "manual") as "cron" | "manual";
         // 一轮里派发出的 draw 继承 scan 的批次，界面上才是一条队列项
         effects.dispatchedDraws = dispatchPendingDraws(
@@ -252,7 +253,7 @@ export function applyReport(report: JobReport): ReportEffects {
           trigger,
           tx,
           scanJob?.batchId
-            ? { id: scanJob.batchId, kind: (scanJob.batchKind ?? "run") as "run" | "single" }
+            ? { id: scanJob.batchId, kind: (scanJob.batchKind ?? "run") as "run" | "scan" | "draw" | "single" }
             : undefined,
         ).length;
       }
