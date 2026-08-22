@@ -492,3 +492,16 @@
   color: var(--text-dim);
   font-weight: 400;
 }
+
+/* 投递类操作的确认条：把整组按钮换成说明 + 确认/取消。
+   不用「再点一次」的隐式确认——文字突变 + 隐形时限，实测把用户卡住了。 */
+.confirm-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+}
