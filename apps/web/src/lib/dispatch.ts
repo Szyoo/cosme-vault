@@ -6,12 +6,12 @@
  * （见 queue.ts 的 applyReport）。这样控制面不必维护「批次进行到第几步」的状态，
  * 崩溃重启也不会有半吊子批次。
  *
- * 合规：单账号低频。每轮派发数量受 `PACING.maxPresentsPerRun` 限制，
- * 任务之间的人类速度停顿由 runner 侧保证（它领完一个 draw 会等 betweenPresentsMs）。
+ * 合规：单账号低频。任务之间的人类速度停顿由 runner 侧保证
+ * （它领完一个 draw 会等 betweenPresentsMs）。单批数量上限已按用户决定取消——
+ * 合规靠节奏，不靠批次大小。
  */
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
-import { PACING } from "@cosme/core";
 import { db, schema } from "@/db/index.ts";
 import { nextStamp } from "@/lib/stamp.ts";
 
@@ -61,7 +61,7 @@ export function startRun(
 
 /**
  * 「仅抽取」：不扫描，直接给每个启用账号派发现有的待投递奖品。
- * 每账号仍受 PACING.maxPresentsPerRun 限制（合规节奏与「跑一轮」相同）。
+ * 一次派发全部待投递（单批上限已取消）；合规节奏由 runner 的随机停顿保证。
  */
 export function startDrawOnly(trigger: "cron" | "manual"): { accountId: string; dispatched: number }[] {
   const accounts = db.select().from(schema.accounts).where(eq(schema.accounts.enabled, true)).all();
@@ -80,7 +80,6 @@ export function startDrawOnly(trigger: "cron" | "manual"): { accountId: string; 
  * 幂等要点：
  * - 只取 status='pending' 的记录（drawn/needsChoice/skipped 一律不动）
  * - 已有 queued/running 的 draw 任务的奖品要跳过，避免同一奖品被派两次
- * - 单轮上限 PACING.maxPresentsPerRun
  */
 export function dispatchPendingDraws(
   accountId: string,
@@ -116,7 +115,6 @@ export function dispatchPendingDraws(
 
   const created: string[] = [];
   for (const row of pending) {
-    if (created.length >= PACING.maxPresentsPerRun) break;
     if (busy.has(row.presentId)) continue;
 
     const present = tx
