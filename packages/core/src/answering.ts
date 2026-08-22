@@ -84,6 +84,13 @@ export function decideQuestion(
   if (resolved) {
     return { action: "select", values: [resolved], reason: "用户已选" };
   }
+  // 1b. checkbox 家族的反查：is-enq 的 checkbox 每个选项是独立 name（各自成一个 q），
+  // 选择页上一族合并成一道题、用户选中的**选项 name** 存进了 resolvedChoices 的 value。
+  // 因此「某个选择的 value 等于本题 field」＝ 用户点的就是这个选项 → 勾上。
+  if (Object.values(resolvedChoices).includes(q.field)) {
+    const v = q.options[0]?.value ?? "1";
+    return { action: "select", values: [v], reason: "用户已选（checkbox 家族反查）" };
+  }
 
   // 2. 需要人工决定的题（题干也要正规化后再判断）
   if (needsManualChoiceNormalized(q.prompt)) {
