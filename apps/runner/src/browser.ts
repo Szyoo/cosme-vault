@@ -59,3 +59,28 @@ export async function closeBrowser(): Promise<void> {
   await context?.close();
   context = null;
 }
+
+/**
+ * 硬重启浏览器：给看门狗用。
+ *
+ * ⚠️ 不能只 `context.close()`——僵死场景里 close 本身也可能永不返回，
+ * 所以 close 也套 5 秒超时，超了就直接 SIGKILL 底层 Chrome 进程，
+ * 再清残留的 Singleton 锁。下一次 getContext() 会惰性拉起新实例。
+ */
+export async function restartBrowser(): Promise<void> {
+  const ctx = context;
+  context = null;
+  if (ctx) {
+    const closed = await Promise.race([
+      ctx.close().then(() => true).catch(() => true),
+      new Promise<boolean>((r) => setTimeout(() => r(false), 5_000)),
+    ]);
+    if (!closed) {
+      // close 也僵住了：按 profile 目录精确杀掉这个 Chrome 实例
+      // （--user-data-dir 参数里带着 profileDir，pkill -f 能唯一匹配）
+      const { execFile } = await import("node:child_process");
+      await new Promise<void>((r) => execFile("pkill", ["-9", "-f", config.profileDir], () => r()));
+    }
+  }
+  await clearStaleLocks();
+}

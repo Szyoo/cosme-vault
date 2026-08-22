@@ -7,7 +7,7 @@
 import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
 import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat, fetchRunnerConfig } from "./control-plane.ts";
-import { closeBrowser, newPage } from "./browser.ts";
+import { closeBrowser, newPage, restartBrowser } from "./browser.ts";
 import { captureArtifacts } from "./artifacts.ts";
 import { drawOnce } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
@@ -125,6 +125,20 @@ async function handleInspect(job: InspectJob): Promise<Omit<JobReport, "jobId" |
   }
 }
 
+/** 单个任务的最长执行时间。正常 draw 连问卷不到 2 分钟，10 分钟只可能是吊死。 */
+const JOB_TIMEOUT_MS = 10 * 60 * 1000;
+
+/** Promise 竞速超时。⚠️ 输了的那个 Promise 仍在后台悬着——调用方必须重启浏览器善后。 */
+function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    p.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 /* ── 主循环 ── */
 
 async function mainLoop(): Promise<void> {
@@ -136,7 +150,21 @@ async function mainLoop(): Promise<void> {
       const { job } = await fetchNextJob();
       if (!job) continue; // 长轮询窗口内无任务，直接下一轮
       currentJobId = job.id;
-      const report = await runJob(job);
+      // ⚠️ 任务级看门狗（2026-08-23 实测教训）：一个 draw 曾把整个主循环吊死一小时——
+      // Playwright 的个别调用在页面/浏览器进入坏状态时会永不返回，进程活着、心跳照跳
+      //（界面上还显示「在线·执行中」），但 80 个排队任务没人领。控制面 15 分钟就把任务
+      // 回收了，runner 自己却不会醒。超时后把浏览器整个杀掉重启（僵死的是页面级调用，
+      // 只放弃 Promise 不够——底下的 Chrome 还占着 profile 锁），然后上报失败继续跑。
+      let report: JobReport;
+      try {
+        report = await withTimeout(runJob(job), JOB_TIMEOUT_MS, `任务 ${job.id} 超过 ${JOB_TIMEOUT_MS / 60000} 分钟未完成`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[runner] 看门狗触发：${msg}，重启浏览器`);
+        await pushLog({ jobId: job.id, at: nowIso(), level: "error", text: `看门狗：${msg}，浏览器已重启` }).catch(() => undefined);
+        await restartBrowser().catch(() => undefined);
+        report = { jobId: job.id, finishedAt: nowIso(), ok: false, outcome: null, error: msg, artifacts: null };
+      }
       await reportJob(report);
 
       // 合规底线：奖品之间要有人类速度的随机间隔。
