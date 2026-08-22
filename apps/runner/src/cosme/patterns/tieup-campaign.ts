@@ -39,6 +39,20 @@ export const tieupCampaignPattern: FlowPattern = {
       return { status: "unknownPattern" };
     }
 
+    // 顺路采「奖品选项配图」：部分多选一页面用 present_img_<NN> 模板（NN=选项序号）。
+    // 实测并非全都有（3 个选择型里 1 个有），没有就算了——挂图与否由问卷侧按数目匹配决定。
+    ctx.optionImageUrls = await page.evaluate(() => {
+      const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="present_img_"]'))
+        .map((i) => {
+          const m = (i.getAttribute("src") ?? "").match(/present_img_(\d+)/);
+          return m ? { n: Number(m[1]), src: i.src } : null;
+        })
+        .filter((x): x is { n: number; src: string } => !!x)
+        .sort((a, b) => a.n - b.n);
+      return imgs.map((x) => x.src);
+    });
+    if (ctx.optionImageUrls.length > 0) await ctx.log(`PR 页采到 ${ctx.optionImageUrls.length} 张奖品选项配图`);
+
     await ctx.log("点击「今すぐ応募」追踪链，进入应募流程");
     await ctx.pace();
     // 追踪链是多重 302，最终落到 cosme 的 addinfo/确认页；等它落地
