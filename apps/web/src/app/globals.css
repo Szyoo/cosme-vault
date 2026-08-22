@@ -358,9 +358,11 @@
   justify-content: center;
   padding: 5vh 16px 16px;
   overflow-y: auto;
-  background: color-mix(in srgb, var(--bg, #000) 55%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* 遮罩用包里的 --overlay-bg 再加深一档（用户反馈原先太浅）；
+     加深用叠 token 自身而不是硬编码颜色 */
+  background: color-mix(in srgb, var(--overlay-bg) 100%, rgb(0 0 0 / 0.25));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   animation: modal-in 0.16s var(--ease);
 }
 @keyframes modal-in {
@@ -375,12 +377,13 @@
   max-width: 760px;
   padding: 22px 20px 20px;
   border-radius: 18px;
-  background: var(--panel-bg, var(--glass-bg));
+  /* 面板要接近实底（用户反馈玻璃底太透，叠在正文上看不清）：
+     以 --bg 为基、掺一点前景色做“抬升面”，明暗两套都成立 */
+  background: color-mix(in srgb, var(--bg) 93%, var(--text) 7%);
   border: 1px solid var(--glass-border);
-  /* 面板自己是实底：叠在毛玻璃遮罩上再来一层模糊会糊成一片 */
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 24px 60px color-mix(in srgb, #000 28%, transparent);
+  box-shadow: 0 24px 60px color-mix(in srgb, #000 34%, transparent);
 }
 
 .modal-close {
