@@ -200,8 +200,18 @@ export function applyReport(report: JobReport): ReportEffects {
         // 不用 onConflictDoUpdate(target: link)——那样主键冲突不在处理范围内，重扫会直接报错。
         const existing = tx.select().from(schema.presents).where(eq(schema.presents.id, p.id)).get();
         if (existing) {
+          // ⚠️ 空值不覆盖：扫描来自**列表页**，粉丝俱乐部系的列表页没有期间/数量，
+          // 这些字段是 audit 之后从**详情页**补的。无条件覆盖会把补好的数据冲成 null
+          // （踩过：一次重扫抹掉 57 个期间）。列表页给了新值才更新，否则保留旧值。
           tx.update(schema.presents)
-            .set({ name: p.name, brand: p.brand, imageUrl: p.imageUrl, period: p.period, quantity: p.quantity, tagline: p.tagline })
+            .set({
+              name: p.name,
+              brand: p.brand ?? existing.brand,
+              imageUrl: p.imageUrl ?? existing.imageUrl,
+              period: p.period ?? existing.period,
+              quantity: p.quantity ?? existing.quantity,
+              tagline: p.tagline ?? existing.tagline,
+            })
             .where(eq(schema.presents.id, p.id))
             .run();
         } else {

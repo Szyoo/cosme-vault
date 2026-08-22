@@ -15,8 +15,8 @@ export const PACING = {
   stepDelayMs: { min: 800, max: 2500 },
   /** 两个奖品之间的随机停顿区间（毫秒） */
   betweenPresentsMs: { min: 4000, max: 12000 },
-  /** 单账号单批次最多处理的奖品数（防止一次跑太多显得非人类） */
-  maxPresentsPerRun: 30,
+  // 单批数量上限（原 maxPresentsPerRun=30）已按用户决定取消：
+  // 合规底线靠的是**节奏**（上面两个随机停顿），不是批次大小。
 } as const;
 
 /** 在区间内取一个随机整数延迟（供 runner 用 setTimeout 消费） */

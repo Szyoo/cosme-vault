@@ -266,7 +266,9 @@ apps/
 ## 批次编排与人工介入（已实现并实测）
 
 - **事件驱动，不做状态机**：「跑一轮」＝`POST /api/runs` 给每个启用账号入队 scan；scan 上报成功后 `applyReport` 自动派发该账号 pending 奖品的 draw（`lib/dispatch.ts`）。控制面不维护「批次进行到第几步」，崩溃重启不会留半吊子批次。
-- **合规节奏放在 runner 侧**：领完一个 draw 会等 `PACING.betweenPresentsMs` 再取下一个，这样无论任务怎么入队都不会连珠炮式投递。单轮派发上限 `PACING.maxPresentsPerRun`。
+- **合规节奏放在 runner 侧**：领完一个 draw 会等 `PACING.betweenPresentsMs` 再取下一个，这样无论任务怎么入队都不会连珠炮式投递。
+  **单批数量上限（原 30）已按用户决定取消（2026-08-22）**——合规靠节奏不靠批次大小；
+  一次「仅抽取/跑一轮」会派发全部待投递，cron 每 12h 的自动轮同理。
 - **人工选择闭环**：runner 返回 `needsChoice` → `/api/runner/report` 发 Bark（`url` 深链接到 `/choices/<presentId>?account=<id>`）→ 用户在手机上选 → `POST /api/choices/:presentId` 记录选择、状态回 pending、派发带 `resolvedChoices` 的新 draw → runner 重跑完成。重复提交返回 409。
 - **僵死任务回收**（`reclaimStaleJobs`）：running 超过 15 分钟视为 runner 崩溃，标记 failed
   并把 `account_presents` 一并标成 failed + 「结果未知，请人工确认」。
