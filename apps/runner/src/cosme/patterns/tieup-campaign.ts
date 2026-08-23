@@ -58,18 +58,29 @@ export const tieupCampaignPattern: FlowPattern = {
         .sort((a, b) => a.n - b.n);
       if (templ.length > 0) return templ.map((x) => x.src);
 
-      const seen = new Set<string>();
-      const out: string[] = [];
-      for (const i of all) {
-        const file = (i.getAttribute("src") ?? "").split("/").pop() ?? "";
-        if (!/present|product/i.test(file)) continue;
-        if (/tit|obi|ttl|icon|logo|banner|btn|dummy|space|bg/i.test(file)) continue;
-        if (seen.has(i.src)) continue;
-        seen.add(i.src);
-        out.push(i.src);
-        if (out.length >= 4) break;
-      }
-      return out;
+      // ⚠️ present 命名**优先于** product（アルビオン页实测教训）：
+      // 奖品栏（box-present）的图叫 pc--14_present-1，正文产品介绍图组叫
+      // pc--08_product-0..3——按 DOM 顺序先到先得会把介绍图当奖品图（用户报「图不对」）。
+      // 「奖品是什么」永远比「产品长什么样」更贴选择场景，present 有就不要 product。
+      const pick = (re: RegExp): string[] => {
+        const seen = new Set<string>();
+        const out: string[] = [];
+        for (const i of all) {
+          const file = (i.getAttribute("src") ?? "").split("/").pop() ?? "";
+          if (!re.test(file)) continue;
+          if (/tit|obi|ttl|icon|logo|banner|btn|dummy|space|bg/i.test(file)) continue;
+          // 同一素材的 pc/sp 变体共享资产号前缀（013_884_original / 013_884_large），去重
+          const asset = file.match(/^(\d+_\d+)_/)?.[1] ?? file;
+          if (seen.has(asset)) continue;
+          seen.add(asset);
+          out.push(i.src);
+          if (out.length >= 4) break;
+        }
+        return out;
+      };
+      const presents = pick(/present/i);
+      if (presents.length > 0) return presents;
+      return pick(/product/i);
     });
     if (ctx.optionImageUrls.length > 0) await ctx.log(`PR 页采到 ${ctx.optionImageUrls.length} 张奖品参考图`);
 
