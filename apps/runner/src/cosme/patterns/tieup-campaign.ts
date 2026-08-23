@@ -39,19 +39,39 @@ export const tieupCampaignPattern: FlowPattern = {
       return { status: "unknownPattern" };
     }
 
-    // 顺路采「奖品选项配图」：部分多选一页面用 present_img_<NN> 模板（NN=选项序号）。
-    // 实测并非全都有（3 个选择型里 1 个有），没有就算了——挂图与否由问卷侧按数目匹配决定。
+    // 顺路采「奖品参考图」，两级启发式（2026-08-23 抽 15 个 PR 页人工核出的规律）：
+    // 1. `present_img_<NN>` 模板（按 NN 排序）——部分多选一页面才有；
+    // 2. 退而求其次：文件名含 present / product 的图（`present.jpg`、`product01_pc.png`、
+    //    `product-img_pc.png` 是最常见的奖品本体图命名），剔除 tit/obi/ttl 等装饰件，
+    //    最多 4 张、保持页面顺序。
+    // 这些图作为**参考图**整组展示、不与选项对应（合成图教训），放漏比放错好，
+    // 但参考图语义下宽一点没关系——选色号没有图基本没法选（用户反馈）。
     ctx.optionImageUrls = await page.evaluate(() => {
-      const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="present_img_"]'))
+      const all = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="tieup_images"]'));
+
+      const templ = all
         .map((i) => {
           const m = (i.getAttribute("src") ?? "").match(/present_img_(\d+)/);
           return m ? { n: Number(m[1]), src: i.src } : null;
         })
         .filter((x): x is { n: number; src: string } => !!x)
         .sort((a, b) => a.n - b.n);
-      return imgs.map((x) => x.src);
+      if (templ.length > 0) return templ.map((x) => x.src);
+
+      const seen = new Set<string>();
+      const out: string[] = [];
+      for (const i of all) {
+        const file = (i.getAttribute("src") ?? "").split("/").pop() ?? "";
+        if (!/present|product/i.test(file)) continue;
+        if (/tit|obi|ttl|icon|logo|banner|btn|dummy|space|bg/i.test(file)) continue;
+        if (seen.has(i.src)) continue;
+        seen.add(i.src);
+        out.push(i.src);
+        if (out.length >= 4) break;
+      }
+      return out;
     });
-    if (ctx.optionImageUrls.length > 0) await ctx.log(`PR 页采到 ${ctx.optionImageUrls.length} 张奖品选项配图`);
+    if (ctx.optionImageUrls.length > 0) await ctx.log(`PR 页采到 ${ctx.optionImageUrls.length} 张奖品参考图`);
 
     await ctx.log("点击「今すぐ応募」追踪链，进入应募流程");
     await ctx.pace();
