@@ -756,3 +756,9 @@
 iframe.diag-shot {
   height: 46vh;
 }
+
+/* 状态 pill 里的账号短名：比状态本身弱一档，扫读时先看状态再看是谁 */
+.pill-who {
+  opacity: 0.65;
+  font-weight: 600;
+}

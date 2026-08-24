@@ -24,13 +24,28 @@ import type { PresentItem } from "./present-item.ts";
  * 一个 article 直链、一个经品牌主页），短名都叫「粉丝俱乐部」。按枚举值分组会
  * 出现两个同名按钮（42 和 10），用户根本分不出该点哪个。
  */
-function tally(items: PresentItem[], key: "sourceShort" | "status", label: (i: PresentItem) => string) {
+function tallySource(items: PresentItem[]) {
   const map = new Map<string, { value: string; label: string; count: number }>();
   for (const i of items) {
-    const v = i[key];
-    const hit = map.get(v);
+    const hit = map.get(i.sourceShort);
     if (hit) hit.count++;
-    else map.set(v, { value: v, label: label(i), count: 1 });
+    else map.set(i.sourceShort, { value: i.sourceShort, label: i.sourceShort, count: 1 });
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}
+
+/**
+ * 状态维度按「**任一账号**处于该状态」统计——一个奖品可能在 A 账号已投、
+ * 在 B 账号待投，两边都该被数到，否则筛选会漏。
+ */
+function tallyStatus(items: PresentItem[]) {
+  const map = new Map<string, { value: string; label: string; count: number }>();
+  for (const i of items) {
+    for (const st of new Map(i.accounts.map((a) => [a.status, a])).values()) {
+      const hit = map.get(st.status);
+      if (hit) hit.count++;
+      else map.set(st.status, { value: st.status, label: st.statusLabel, count: 1 });
+    }
   }
   return [...map.values()].sort((a, b) => b.count - a.count);
 }
@@ -41,15 +56,16 @@ export function PresentList({ items }: { items: PresentItem[] }) {
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
-  const sources = useMemo(() => tally(items, "sourceShort", (i) => i.sourceShort), [items]);
-  const statuses = useMemo(() => tally(items, "status", (i) => i.statusLabel), [items]);
+  const sources = useMemo(() => tallySource(items), [items]);
+  const statuses = useMemo(() => tallyStatus(items), [items]);
 
   const shown = useMemo(() => {
     // 关键词大小写与全半角不敏感（站点里 @cosme 与 ＠ｃｏｓｍｅ 混用）
     const needle = q.normalize("NFKC").toLowerCase().trim();
     return items.filter((i) => {
       if (source && i.sourceShort !== source) return false;
-      if (status && i.status !== status) return false;
+      // 任一账号命中即算（同一奖品在不同账号可能状态不同）
+      if (status && !i.accounts.some((a) => a.status === status)) return false;
       if (!needle) return true;
       // 也匹配奖品 ID：日志、诊断页、详情页里出现的都是 ID（`bfc-2710647`），
       // 拿到一个 ID 却只能按名字搜，等于搜不到（踩过）
@@ -123,7 +139,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
       ) : (
         <ul className="plist">
           {shown.map((i) => (
-            <Row key={`${i.presentId}-${i.accountLabel ?? ""}`} item={i} />
+            <Row key={i.presentId} item={i} />
           ))}
         </ul>
       )}
@@ -169,15 +185,17 @@ function Row({ item }: { item: PresentItem }) {
           <span className={`pill ${item.sourcePill}`} title={item.sourceFull}>
             {item.sourceShort}
           </span>
-          <span className={`pill ${item.statusPill}`} title={item.pattern ?? ""}>
-            {item.statusLabel}
-          </span>
+          {/* 各账号在这个奖品上的状态：多账号时带账号短名，单账号时只显示状态 */}
+          {item.accounts.map((a) => (
+            <span key={a.accountId} className={`pill ${a.statusPill}`} title={`${a.label}${a.error ? ` — ${a.error}` : ""}`}>
+              {item.accounts.length > 1 && <span className="pill-who">{a.short} </span>}
+              {a.statusLabel}
+            </span>
+          ))}
           {item.brand && <span className="prow-brand">{item.brand}</span>}
           {item.quantity && <span className="prow-tag num">{item.quantity}</span>}
           {item.period && <span className="prow-tag num">{item.period}</span>}
-          {item.accountLabel && <span className="prow-tag">@{item.accountLabel}</span>}
           {item.at && <span className="prow-tag muted num">{item.at}</span>}
-          {item.error && <span className="prow-tag err">{item.error.slice(0, 48)}</span>}
         </span>
       </Link>
     </li>
