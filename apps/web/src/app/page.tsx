@@ -142,7 +142,14 @@ export default async function Home() {
 
       <section className="stat-grid section">
         <StatCard label={t.stat.presents} value={rows.length} sub={t.stat.scanned} />
-        <StatCard label={t.stat.drawn} value={counts.drawn ?? 0} sub={t.stat.thisAccount} />
+        {/* 已投递 = 我们投的 + 站点判定早已应募的（alreadyEntered）。
+            后者结果上同样是「投过了」，不并进来会出现 188 里只有 184 的
+            「账对不上」观感（用户问过）。列表的状态筛选仍可分开看。 */}
+        <StatCard
+          label={t.stat.drawn}
+          value={(counts.drawn ?? 0) + (counts.alreadyEntered ?? 0)}
+          sub={t.stat.thisAccount}
+        />
         <StatCard label={t.stat.pending} value={counts.pending ?? 0} sub={t.stat.nextRound} />
         <StatCard label={t.stat.needsChoice} value={needsChoice.length} sub={t.stat.needsYou} />
       </section>
