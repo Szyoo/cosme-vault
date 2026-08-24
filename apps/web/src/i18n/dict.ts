@@ -98,6 +98,15 @@ const zh = {
     configured: "已配置",
   },
 
+  matrix: {
+    title: "各账号进度",
+    hint: "每个账号：各状态之和 + 未建记录 = 奖品总数。缺口就是这个账号还没扫到的奖品。",
+    totalPresents: (n: number) => `奖品共 ${n} 个`,
+    missing: "未建记录",
+    missingHint: "扫描还没覆盖到这个账号的奖品（新账号或扫描中断）。点「仅检测」为它建立记录。",
+    disabled: "已停用",
+  },
+
   present: {
     listTitle: "奖品",
     name: "奖品",
@@ -431,6 +440,15 @@ const ja: Dict = {
     configured: "設定済み",
   },
 
+  matrix: {
+    title: "アカウント別の進捗",
+    hint: "各アカウント：状態ごとの合計 + 未登録 = プレゼント総数。差分はまだ走査していない分です。",
+    totalPresents: (n: number) => `プレゼント計 ${n} 件`,
+    missing: "未登録",
+    missingHint: "このアカウント向けのレコードが未作成（新規または走査中断）。「検出のみ」で作成されます。",
+    disabled: "無効",
+  },
+
   present: {
     listTitle: "プレゼント",
     name: "プレゼント",
@@ -740,6 +758,15 @@ const en: Dict = {
     needsReview: "needs review",
     accounts: "Accounts",
     configured: "configured",
+  },
+
+  matrix: {
+    title: "Progress per account",
+    hint: "For each account: all statuses + not-yet-tracked = total presents. The gap is what this account hasn't scanned.",
+    totalPresents: (n: number) => `${n} presents total`,
+    missing: "Not tracked",
+    missingHint: "No record for this account yet (new account or interrupted scan). Run “Scan only” to create them.",
+    disabled: "Disabled",
   },
 
   present: {

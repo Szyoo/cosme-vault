@@ -686,3 +686,52 @@
   border: 1px solid var(--glass-border);
   cursor: not-allowed;
 }
+
+/* ---------- 账号 × 状态矩阵 ---------- */
+.acct {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--inner-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.acct-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.acct-name {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.acct-total {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-dim);
+  flex: none;
+}
+/* 堆叠条：缺口（未建记录）自然留白，一眼看出没扫全 */
+.acct-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.acct-seg {
+  display: block;
+  height: 100%;
+}
+.acct-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.acct-chips .num {
+  opacity: 0.75;
+}
