@@ -24,6 +24,8 @@ const CreateJob = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("scan"), accountId: z.string(), sources: z.array(z.enum(["normal", "brandFanClub", "brandFanClubViaBrand", "produceMember", "tieupCampaign"])).optional() }),
   z.object({ kind: z.literal("draw"), accountId: z.string(), presentId: z.string(), presentLink: z.string().url() }),
   z.object({ kind: z.literal("inspect"), accountId: z.string(), url: z.string().url() }),
+  // 激活登录：Mac mini 弹有头窗口，人工登录（见 runner 的 handleLogin）
+  z.object({ kind: z.literal("login"), accountId: z.string() }),
 ]);
 
 export async function POST(req: Request): Promise<NextResponse> {

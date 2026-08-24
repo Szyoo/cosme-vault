@@ -134,6 +134,8 @@ function AccountCard({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [activateMsg, setActivateMsg] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
   // 预填已存的值（用户要求：配置完点开要能看见，否则没法核对）。
   // 密码刻意不回显也不预填：placeholder 提示「已设置，留空不改」。
   const c0 = account.credentials;
@@ -180,6 +182,29 @@ function AccountCard({
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
         <span className="row" style={{ gap: 8, flex: "none" }}>
+          {/* 激活登录：入队 login 任务 → Mac mini 弹有头窗口人工登录（pull 模型，
+              控制面不需要任何入站通道就能「让电脑弹窗」）。密码绝不代填。 */}
+          <button
+            type="button"
+            className="btn-ghost btn-small"
+            title={t.settings.activateHint}
+            disabled={activating}
+            onClick={async () => {
+              setActivating(true);
+              try {
+                const res = await fetch("/api/jobs", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ kind: "login", accountId: account.id }),
+                });
+                setActivateMsg(res.ok ? t.settings.activateQueued : t.settings.saveFailed);
+              } finally {
+                setActivating(false);
+              }
+            }}
+          >
+            {activating ? t.settings.activating : t.settings.activate}
+          </button>
           <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
             {account.enabled ? t.settings.disable : t.settings.enable}
           </button>
@@ -191,6 +216,8 @@ function AccountCard({
           </button>
         </span>
       </div>
+
+      {activateMsg && <p className="small muted" style={{ marginTop: 8 }}>{activateMsg}</p>}
 
       {open && (
         <form className="stack section" onSubmit={save}>

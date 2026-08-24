@@ -70,6 +70,19 @@ export async function newPage(accountId: string): Promise<Page> {
   return ctx.newPage();
 }
 
+/** 关掉某账号的无头上下文并清锁（login 任务要用同一 profile 弹有头窗，必须先释放） */
+export async function closeAccountContext(accountId: string): Promise<void> {
+  const ctx = contexts.get(accountId);
+  contexts.delete(accountId);
+  if (ctx) {
+    await Promise.race([
+      ctx.close().catch(() => undefined),
+      new Promise<void>((r) => setTimeout(r, 5_000)),
+    ]);
+  }
+  await clearStaleLocks(profileDirFor(accountId));
+}
+
 export async function closeBrowser(): Promise<void> {
   for (const ctx of contexts.values()) await ctx.close().catch(() => undefined);
   contexts.clear();

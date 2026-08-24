@@ -4,7 +4,7 @@
  * 反复：心跳 → 长轮询领任务 → 分发执行 → 上报结果（失败/未知模式附现场快照）。
  * scan / draw / inspect 均已实现。
  */
-import type { DrawJob, InspectJob, Job, JobReport, ScanJob } from "@cosme/contract";
+import type { DrawJob, InspectJob, Job, JobReport, LoginJob, ScanJob } from "@cosme/contract";
 import { config } from "./config.ts";
 import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat, fetchRunnerConfig } from "./control-plane.ts";
 import { closeBrowser, newPage, restartBrowser } from "./browser.ts";
@@ -13,6 +13,9 @@ import { drawOnce } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
 import { scanSources } from "./cosme/scan.ts";
 import { betweenPresentsDelay, stepDelay, updatePacing } from "./pacing.ts";
+import { closeAccountContext, profileDirFor } from "./browser.ts";
+import { GATED_URL, isSessionValid } from "./session.ts";
+import { selectors } from "@cosme/core";
 
 let currentJobId: string | null = null;
 let stopping = false;
@@ -46,6 +49,8 @@ async function runJob(job: Job): Promise<JobReport> {
         return { ...base, ...(await handleDraw(job)), finishedAt: nowIso() };
       case "inspect":
         return { ...base, ...(await handleInspect(job)), finishedAt: nowIso() };
+      case "login":
+        return { ...base, ...(await handleLogin(job)), finishedAt: nowIso() };
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -104,6 +109,54 @@ async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "fini
     return { ok: outcome.status !== "failed", outcome, error: null, artifacts };
   } finally {
     await closePageSafely(page);
+  }
+}
+
+/**
+ * 登录任务：在 Mac mini 上**弹出有头浏览器窗口**，由人完成该账号的 @COSME 登录。
+ *
+ * - 绝不代填账号密码（reCAPTCHA Enterprise 红线）；本函数只负责开窗、领路、等待。
+ * - 用该账号自己的 profile 弹窗（先关掉可能占着它的无头上下文），登录态存进去后
+ *   之后的自动化任务直接复用。
+ * - 每 10 秒开一个隐形标签页检测登录态（不打扰登录窗口本身），最长等 12 分钟。
+ */
+async function handleLogin(job: LoginJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
+  const say = (text: string, level: "info" | "warn" | "error" = "info") =>
+    pushLog({ jobId: job.id, at: nowIso(), level, text });
+
+  await closeAccountContext(job.accountId);
+  await say("正在 Mac mini 上打开登录窗口，请到电脑前完成登录（本程序不会代填密码）");
+
+  const { chromium } = await import("playwright");
+  const ctx = await chromium.launchPersistentContext(profileDirFor(job.accountId), {
+    headless: false, // 人工登录必须有头，无视 RUNNER_HEADLESS
+    channel: config.channel,
+    viewport: { width: 1280, height: 900 },
+    locale: "ja-JP",
+    timezoneId: "Asia/Tokyo",
+    timeout: 30_000,
+  });
+  try {
+    if (await isSessionValid(ctx)) {
+      await say("该账号会话本来就有效，无需登录");
+      return { ok: true, outcome: { kind: "login", loggedIn: true }, error: null, artifacts: null };
+    }
+    const page = await ctx.newPage();
+    await page.goto(selectors.LOGIN.entryUrl(GATED_URL), { waitUntil: "domcontentloaded", timeout: 40_000 });
+
+    const deadline = Date.now() + 12 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await sleep(10_000);
+      if (page.isClosed() && ctx.pages().length === 0) break; // 用户把窗口全关了
+      if (await isSessionValid(ctx).catch(() => false)) {
+        await say("登录成功，会话已保存，该账号可以开始自动化了 ✅");
+        return { ok: true, outcome: { kind: "login", loggedIn: true }, error: null, artifacts: null };
+      }
+    }
+    await say("等了 12 分钟没有检测到登录态，窗口已收起；需要时再点一次「激活登录」", "warn");
+    return { ok: false, outcome: { kind: "login", loggedIn: false }, error: "登录未完成（超时或窗口被关闭）", artifacts: null };
+  } finally {
+    await ctx.close().catch(() => undefined);
   }
 }
 

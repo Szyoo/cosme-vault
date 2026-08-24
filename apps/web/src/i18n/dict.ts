@@ -56,6 +56,7 @@ const zh = {
     batchScan: "仅检测",
     batchDraw: "仅抽取",
     batchSingle: "单独重跑",
+    batchLogin: "激活登录（等人工）",
     batchProgress: (done: number, total: number) => `${done} / ${total} 个奖品`,
     batchFailed: (n: number) => `${n} 个失败`,
     queueEmpty: "队列是空的。",
@@ -225,6 +226,12 @@ const zh = {
     saved: (label: string) => `「${label}」的凭证已保存`,
     saveFailed: "保存失败",
     confirmDelete: (label: string) => `删除账号「${label}」及其全部抽取记录？此操作不可撤销。`,
+    activate: "激活登录",
+    activating: "已通知电脑…",
+    activateHint:
+      "点击后 Mac mini 上会弹出该账号的登录窗口（可能要等几秒到几十秒，runner 领到任务才弹）。" +
+      "到电脑前手动完成登录——密码不会被代填（reCAPTCHA 风控红线）。最长等 12 分钟。",
+    activateQueued: "已入队：去 Mac mini 屏幕前完成登录（最长等 12 分钟）",
   },
 
   login: {
@@ -380,6 +387,7 @@ const ja: Dict = {
     batchScan: "検出のみ",
     batchDraw: "応募のみ",
     batchSingle: "個別に再実行",
+    batchLogin: "ログイン起動（手動待ち）",
     batchProgress: (done: number, total: number) => `${done} / ${total} 件`,
     batchFailed: (n: number) => `失敗 ${n}`,
     queueEmpty: "キューは空です。",
@@ -548,6 +556,12 @@ const ja: Dict = {
     saved: (label: string) => `「${label}」の認証情報を保存しました`,
     saveFailed: "保存に失敗しました",
     confirmDelete: (label: string) => `アカウント「${label}」と全ての応募記録を削除しますか？元に戻せません。`,
+    activate: "ログインを起動",
+    activating: "PC に通知しました…",
+    activateHint:
+      "クリックすると Mac mini にこのアカウントのログインウィンドウが開きます（runner が受け取るまで数秒〜数十秒）。" +
+      "PC の前でログインしてください——パスワードの自動入力はしません（reCAPTCHA 対策のレッドライン）。最長 12 分待機。",
+    activateQueued: "登録しました：Mac mini の画面でログインを完了してください（最長 12 分）",
   },
 
   login: { username: "ユーザー名", password: "パスワード", submit: "ログイン", submitting: "ログイン中…", failed: "ログインに失敗しました" },
@@ -682,6 +696,7 @@ const en: Dict = {
     batchScan: "Scan only",
     batchDraw: "Draw only",
     batchSingle: "Single retry",
+    batchLogin: "Login activation (manual)",
     batchProgress: (done: number, total: number) => `${done} / ${total} presents`,
     batchFailed: (n: number) => `${n} failed`,
     queueEmpty: "The queue is empty.",
@@ -850,6 +865,12 @@ const en: Dict = {
     saved: (label: string) => `Credentials saved for “${label}”`,
     saveFailed: "Failed to save",
     confirmDelete: (label: string) => `Delete account “${label}” and all its entry records? This cannot be undone.`,
+    activate: "Activate login",
+    activating: "Notified the Mac…",
+    activateHint:
+      "Opens a login window for this account on the Mac mini (takes a few seconds until the runner picks it up). " +
+      "Complete the login there yourself — passwords are never auto-filled (reCAPTCHA red line). Waits up to 12 minutes.",
+    activateQueued: "Queued — finish the login on the Mac mini screen (up to 12 min)",
   },
 
   login: { username: "Username", password: "Password", submit: "Sign in", submitting: "Signing in…", failed: "Sign-in failed" },

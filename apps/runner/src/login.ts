@@ -16,6 +16,7 @@ import { chromium, type BrowserContext } from "playwright";
 import { createInterface } from "node:readline/promises";
 import { join } from "node:path";
 import { selectors } from "@cosme/core";
+import { GATED_URL, isSessionValid } from "./session.ts";
 
 const ROOT_DIR = process.env.RUNNER_PROFILE_DIR ?? "./profile";
 const CHECK_ONLY = process.argv.includes("--check");
@@ -56,7 +57,7 @@ async function resolveAccountDir(): Promise<{ dir: string; label: string }> {
 }
 
 /** 登录后才能看到内容的页面，用它判断会话是否有效 */
-const GATED_URL = selectors.LIST_URLS.brandFanClub;
+
 
 async function openContext(dir: string, headless: boolean): Promise<BrowserContext> {
   return chromium.launchPersistentContext(dir, {
@@ -66,31 +67,6 @@ async function openContext(dir: string, headless: boolean): Promise<BrowserConte
     timezoneId: "Asia/Tokyo",
     viewport: { width: 1280, height: 900 },
   });
-}
-
-/**
- * 检查会话有效性。
- *
- * ⚠️ 不能只看「是否被重定向到授权服务器」——实测 brandfanclub 页未登录时
- * 照样返回 200，只是渲染成未登录版本，那样判断会一律误报为已登录。
- * 可靠依据是页面上还有没有登录入口：未登录版本会渲染 `/isauth/login/` 链接。
- */
-export async function isSessionValid(ctx: BrowserContext): Promise<boolean> {
-  const page = await ctx.newPage();
-  try {
-    await page.goto(GATED_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
-
-    // 被直接弹到授权服务器：肯定未登录
-    if (page.url().includes(selectors.LOGIN.authHost)) return false;
-
-    // 页面上仍有登录入口：未登录
-    const loginLinks = await page.locator('a[href*="/isauth/login/"]').count();
-    return loginLinks === 0;
-  } catch {
-    return false;
-  } finally {
-    await page.close();
-  }
 }
 
 async function main(): Promise<void> {
