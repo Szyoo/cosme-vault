@@ -11,7 +11,7 @@ import { db, schema } from "@/db/index.ts";
 import { getT } from "@/i18n/server.ts";
 import { Nav } from "../nav.tsx";
 import { PresentList } from "../present-list.tsx";
-import { toItem } from "../present-item.ts";
+import { toItems } from "../present-item.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,6 @@ export default async function RecordsPage() {
     .all();
 
   const accounts = db.select().from(schema.accounts).all();
-  const labelOf = (id: string) => accounts.find((a) => a.id === id)?.label ?? id;
 
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
@@ -87,16 +86,10 @@ export default async function RecordsPage() {
           </div>
         ) : (
           <PresentList
-            items={rows.map((r) =>
-              toItem(
-                {
-                  ...r,
-                  // 单账号时不重复显示账号名，参数行本来就挤
-                  accountLabel: accounts.length > 1 ? labelOf(r.accountId) : null,
-                  at: r.drawnAt ?? r.updatedAt,
-                },
-                t,
-              ),
+            items={toItems(
+              rows.map((r) => ({ ...r, at: r.drawnAt ?? r.updatedAt })),
+              accounts,
+              t,
             )}
           />
         )}

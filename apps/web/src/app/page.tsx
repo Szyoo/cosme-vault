@@ -25,7 +25,7 @@ import { PresentList } from "./present-list.tsx";
 import { TermLog } from "./term-log.tsx";
 import { AccountMatrix, type AccountRow } from "./account-matrix.tsx";
 import { ResolveButtons } from "./resolve-buttons.tsx";
-import { toItem } from "./present-item.ts";
+import { toItems } from "./present-item.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -235,7 +235,7 @@ export default async function Home() {
             <p>{t.present.emptyHint}</p>
           </div>
         ) : (
-          <PresentList items={rows.map((r) => toItem(r, t))} />
+          <PresentList items={toItems(rows, accountList, t)} />
         )}
       </section>
     </main>
