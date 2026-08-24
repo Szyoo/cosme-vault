@@ -31,8 +31,15 @@ type DbLike = Pick<typeof db, "select" | "insert" | "update" | "delete">;
 export function startRun(
   trigger: "cron" | "manual",
   scanOnly = false,
+  /** 只跑指定账号（账号矩阵的单账号按钮）；不传则全部启用账号 */
+  onlyAccountId?: string,
 ): { accountId: string; jobId: string }[] {
-  const accounts = db.select().from(schema.accounts).where(eq(schema.accounts.enabled, true)).all();
+  const accounts = db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.enabled, true))
+    .all()
+    .filter((a) => !onlyAccountId || a.id === onlyAccountId);
   const created: { accountId: string; jobId: string }[] = [];
   // 一次「跑一轮」= 一个批次。scan 与它稍后派发出的 draw 共享这个 id，
   // 界面上才能显示成「一轮（3/130）」而不是 130 个独立任务。
@@ -63,8 +70,17 @@ export function startRun(
  * 「仅抽取」：不扫描，直接给每个启用账号派发现有的待投递奖品。
  * 一次派发全部待投递（单批上限已取消）；合规节奏由 runner 的随机停顿保证。
  */
-export function startDrawOnly(trigger: "cron" | "manual"): { accountId: string; dispatched: number }[] {
-  const accounts = db.select().from(schema.accounts).where(eq(schema.accounts.enabled, true)).all();
+export function startDrawOnly(
+  trigger: "cron" | "manual",
+  /** 只跑指定账号（账号矩阵的单账号按钮）；不传则全部启用账号 */
+  onlyAccountId?: string,
+): { accountId: string; dispatched: number }[] {
+  const accounts = db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.enabled, true))
+    .all()
+    .filter((a) => !onlyAccountId || a.id === onlyAccountId);
   const out: { accountId: string; dispatched: number }[] = [];
   for (const a of accounts) {
     if (!a.credentialsEnc) continue;

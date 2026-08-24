@@ -735,3 +735,24 @@
 .acct-chips .num {
   opacity: 0.75;
 }
+
+/* 账号卡里的单账号触发按钮：紧凑一排，与状态 chip 分层 */
+.acct-actions {
+  margin-top: 2px;
+}
+
+/* 诊断页的可视证据：截图或 HTML 快照 iframe。限高避免一张长图淹没页面 */
+.diag-shot {
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: #fff;
+  object-fit: contain;
+  object-position: top;
+}
+iframe.diag-shot {
+  height: 46vh;
+}

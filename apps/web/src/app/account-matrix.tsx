@@ -12,6 +12,7 @@
  */
 import type { Dict } from "@/i18n/dict.ts";
 import { statusOf } from "./labels.ts";
+import { AccountActions } from "./account-actions.tsx";
 
 /** 状态展示顺序：先「好结果」，再「等你」，最后「有问题」 */
 const ORDER = ["drawn", "alreadyEntered", "needsChoice", "pending", "unknownPattern", "failed", "skipped"] as const;
@@ -84,6 +85,9 @@ export function AccountMatrix({
                   );
                 })}
               </div>
+
+              {/* 单账号触发：只跑这一个账号（全局按钮在 Runner 卡里） */}
+              <AccountActions accountId={r.accountId} label={r.label} />
 
               <div className="acct-chips">
                 {ORDER.map((k) => {

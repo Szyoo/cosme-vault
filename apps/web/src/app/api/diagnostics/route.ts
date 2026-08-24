@@ -1,9 +1,11 @@
 /**
  * GET /api/diagnostics —— 汇总「没认出来的东西」，供补写 pattern / 解析器。
  *
- * 两个来源：
- * 1. account_presents.diagnostics —— draw 遇到未知页面模式时的现场包
+ * 三个来源：
+ * 1. **异常聚合表**（主）——按指纹去重的现场：一种异常一份，带出现次数、
+ *    受影响奖品数、截图或 HTML 快照。127 个奖品撞同一登录墙 → 这里只有 1 条。
  * 2. 最近 scan 任务结果里 recognized=false 的来源报告 —— 列表页版式没认出来
+ * 3. （兼容）尚未并入聚合表的旧 account_presents.diagnostics
  *
  * 这是「遇到没见过的就反馈」机制的最后一环：不看得到，落库也没用。
  */
@@ -15,6 +17,58 @@ import { db, schema } from "@/db/index.ts";
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<NextResponse> {
+  // ── 0. 异常聚合（主视图）：一种异常一条，带次数与受影响奖品 ──
+  const anomalyRows = db
+    .select()
+    .from(schema.anomalies)
+    .orderBy(desc(schema.anomalies.lastSeenAt))
+    .all()
+    .filter((a) => !a.resolvedAt);
+
+  // 每种异常影响了哪些奖品：按当前仍是 unknownPattern 的记录反查指纹
+  const stuck = db
+    .select({
+      presentId: schema.accountPresents.presentId,
+      accountId: schema.accountPresents.accountId,
+      diagnostics: schema.accountPresents.diagnostics,
+      name: schema.presents.name,
+      brand: schema.presents.brand,
+    })
+    .from(schema.accountPresents)
+    .leftJoin(schema.presents, eq(schema.presents.id, schema.accountPresents.presentId))
+    .where(eq(schema.accountPresents.status, "unknownPattern"))
+    .all();
+
+  const anomalies = anomalyRows.map((a) => {
+    const affected = stuck.filter((r) => {
+      if (!r.diagnostics) return false;
+      try {
+        return (JSON.parse(r.diagnostics) as { fingerprint?: string }).fingerprint === a.fingerprint;
+      } catch {
+        return false;
+      }
+    });
+    return {
+      fingerprint: a.fingerprint,
+      url: a.url,
+      title: a.title,
+      triedPatterns: JSON.parse(a.triedPatterns) as unknown,
+      elements: JSON.parse(a.elements) as unknown,
+      bodyExcerpt: a.bodyExcerpt,
+      screenshot: a.screenshot,
+      htmlSnapshot: a.htmlSnapshot,
+      seenCount: a.seenCount,
+      firstSeenAt: a.firstSeenAt,
+      lastSeenAt: a.lastSeenAt,
+      affected: affected.map((r) => ({
+        presentId: r.presentId,
+        accountId: r.accountId,
+        name: r.name,
+        brand: r.brand,
+      })),
+    };
+  });
+
   // ── 1. draw 的未知模式 ──
   const rows = db
     .select({
@@ -73,6 +127,7 @@ export async function GET(): Promise<NextResponse> {
   }
 
   return NextResponse.json({
+    anomalies,
     unknownPatterns,
     unrecognizedSources: Array.from(bySource.values()),
   });

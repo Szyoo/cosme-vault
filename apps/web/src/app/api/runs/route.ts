@@ -34,12 +34,14 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   // mode：full=跑一轮（扫描+自动派发）/ scan=仅检测 / draw=仅抽取。
   // cron sidecar 不带 body → 默认 full，行为与从前一致。
-  const body = (await req.json().catch(() => ({}))) as { mode?: string };
+  const body = (await req.json().catch(() => ({}))) as { mode?: string; accountId?: string };
   const mode = body.mode === "scan" || body.mode === "draw" ? body.mode : "full";
   const trigger = cron ? "cron" : "manual";
+  // accountId 指定时只跑这一个账号（账号矩阵里的单账号按钮，用户要求）
+  const only = body.accountId;
 
   if (mode === "draw") {
-    const results = startDrawOnly(trigger);
+    const results = startDrawOnly(trigger, only);
     const dispatched = results.reduce((n, r) => n + r.dispatched, 0);
     if (results.length === 0) {
       return NextResponse.json({ error: t.api.noRunnableAccount, dispatched: 0 }, { status: 409 });
@@ -52,7 +54,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ mode, dispatched });
   }
 
-  const started = startRun(trigger, mode === "scan");
+  const started = startRun(trigger, mode === "scan", only);
   if (started.length === 0) {
     return NextResponse.json(
       { error: t.api.noRunnableAccount, started: [] },

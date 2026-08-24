@@ -165,3 +165,28 @@ export const surveyCaptures = sqliteTable("survey_captures", {
   questions: text("questions").notNull(),
   capturedAt: text("captured_at").notNull(),
 });
+
+/**
+ * 异常聚合（指纹去重）。
+ *
+ * 同一种异常只留一份现场 + 累计次数（127 个奖品撞同一个登录墙 → 1 行 seen_count=127）。
+ * `seen_count` 同时是「可复现性」的判据：首次出现允许自动重试，重现即需人工介入
+ * （用户要求：减少人工介入频率，但可复现的异常必须报出来）。
+ */
+export const anomalies = sqliteTable("anomalies", {
+  fingerprint: text("fingerprint").primaryKey(),
+  url: text("url").notNull(),
+  title: text("title").notNull(),
+  triedPatterns: text("tried_patterns").notNull(),
+  elements: text("elements").notNull(),
+  bodyExcerpt: text("body_excerpt").notNull(),
+  /** 现场截图（JPEG data URI，由 runner 内嵌回传——控制面读不到 Mac mini 的文件） */
+  screenshot: text("screenshot"),
+  /** 截图失败时的降级：HTML 快照，诊断页用 sandbox iframe 还原成可视页面 */
+  htmlSnapshot: text("html_snapshot"),
+  seenCount: integer("seen_count").notNull().default(1),
+  firstSeenAt: text("first_seen_at").notNull(),
+  lastSeenAt: text("last_seen_at").notNull(),
+  /** 人工标记已处理的时刻；非空则不在诊断页的待处理列表里 */
+  resolvedAt: text("resolved_at"),
+});

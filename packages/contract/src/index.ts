@@ -300,6 +300,28 @@ export const PatternDiagnostics = z.object({
   elements: z.array(InspectedElement).default([]),
   /** 正文摘要，便于快速辨认页面种类 */
   bodyExcerpt: z.string().default(""),
+  /**
+   * 异常指纹：同一种异常的稳定身份 = 规范化 URL + 元素选择器集合的哈希。
+   *
+   * 用途（用户要求）：**同一异常只留一份**。127 个奖品全撞同一个登录墙时，
+   * 诊断页该显示「1 种异常 × 127 次」而不是 127 份一模一样的现场包；
+   * 同时用出现次数判断「是否可复现」——首次可自动重试，重现即需人工。
+   */
+  fingerprint: z.string().default(""),
+  /**
+   * 现场截图（JPEG 的 data URI，视口尺寸、质量压过）。
+   *
+   * ⚠️ 必须内嵌传回：`artifacts` 里那几个是**Mac mini 上的本地文件路径**，
+   * 控制面在 VPS 上根本读不到——「要能看到截图」此前完全落空（用户指出）。
+   */
+  screenshot: z.string().nullable().default(null),
+  /**
+   * 页面 HTML 快照（截图失败或超大时的降级方案，用户要求）。
+   *
+   * 诊断页把它塞进 **sandbox iframe** 还原成「看得见的页面」——留存的是
+   * 可视证据，不是让人读 DOM 文本。已内联 base 标签让相对资源仍能加载。
+   */
+  htmlSnapshot: z.string().nullable().default(null),
 });
 export type PatternDiagnostics = z.infer<typeof PatternDiagnostics>;
 
