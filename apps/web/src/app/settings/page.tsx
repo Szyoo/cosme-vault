@@ -171,21 +171,25 @@ function AccountCard({
   const c = account.credentials;
   return (
     <div className="glass spot diag-card">
+      {/* 布局三段式：名称 | 状态（占满余宽）| 操作簇。
+          原先 5 个子元素直接被 space-between 均摊，间距忽大忽小显得散乱粘连 */}
       <div className="row spread">
         <strong>{account.label}</strong>
-        <span className="small">
+        <span className="small" style={{ flex: 1, minWidth: 160 }}>
           {c.configured ? `🔑 ${t.settings.credConfigured}` : `⚠️ ${t.settings.credMissing}`}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
-        <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
-          {account.enabled ? t.settings.disable : t.settings.enable}
-        </button>
-        <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-          {open ? t.settings.collapse : t.settings.fillCred}
-        </button>
-        <button type="button" className="btn-ghost danger btn-small" onClick={onDelete}>
-          {t.settings.delete}
-        </button>
+        <span className="row" style={{ gap: 8, flex: "none" }}>
+          <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
+            {account.enabled ? t.settings.disable : t.settings.enable}
+          </button>
+          <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
+            {open ? t.settings.collapse : t.settings.fillCred}
+          </button>
+          <button type="button" className="btn-ghost danger btn-small" onClick={onDelete}>
+            {t.settings.delete}
+          </button>
+        </span>
       </div>
 
       {open && (

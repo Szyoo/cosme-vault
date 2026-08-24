@@ -676,3 +676,13 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
 }
+
+/* 禁用态按钮：包默认是 0.45 透明度的渐变——半透明紫糊在输入框旁边，
+   看着像两个控件粘连（用户报过）。改成实底的「熄灭」样式，边界清清楚楚。 */
+.btn:disabled {
+  opacity: 1;
+  background: var(--inner-bg);
+  color: var(--text-dim);
+  border: 1px solid var(--glass-border);
+  cursor: not-allowed;
+}
