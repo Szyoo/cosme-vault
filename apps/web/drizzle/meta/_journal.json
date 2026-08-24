@@ -57,6 +57,13 @@
       "when": 1787279391190,
       "tag": "0008_survey_captures",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1787279392190,
+      "tag": "0009_account_session",
+      "breakpoints": true
     }
   ]
 }

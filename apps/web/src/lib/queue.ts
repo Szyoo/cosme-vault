@@ -208,6 +208,28 @@ export function applyReport(report: JobReport): ReportEffects {
     if (!report.outcome) return;
 
     const outcome = report.outcome;
+    // 任何成功任务都是「该账号会话有效」的证明——网页据此决定要不要催「激活登录」
+    {
+      const jobRow = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
+      if (jobRow && report.ok) {
+        try {
+          const pl = JSON.parse(jobRow.payload) as { accountId?: string };
+          const proven =
+            outcome.kind === "scan" ||
+            outcome.kind === "draw" ||
+            (outcome.kind === "login" && outcome.loggedIn);
+          if (pl.accountId && proven) {
+            tx.update(schema.accounts)
+              .set({ sessionOkAt: new Date().toISOString() })
+              .where(eq(schema.accounts.id, pl.accountId))
+              .run();
+          }
+        } catch {
+          // payload 坏了就不记，无伤大雅
+        }
+      }
+    }
+
     if (outcome.kind === "scan") {
       // 扫描任务的 accountId 从载荷取，用于建立「该账号 × 该奖品」的待抽记录
       const scanJob = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
