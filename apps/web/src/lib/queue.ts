@@ -214,9 +214,13 @@ export function applyReport(report: JobReport): ReportEffects {
       if (jobRow && report.ok) {
         try {
           const pl = JSON.parse(jobRow.payload) as { accountId?: string };
+          // ⚠️ scan **不算**登录证明：奖品列表页未登录也能扫（实测踩过——
+          // 第二个账号从没登录，扫描照样 ok，绿标就撒谎了）。
+          // 只认必须登录才可能出现的结果：投出去 / 站点判已应募 / 走进问卷等选择，
+          // 以及 login 任务亲测的登录态。
           const proven =
-            outcome.kind === "scan" ||
-            outcome.kind === "draw" ||
+            (outcome.kind === "draw" &&
+              ["drawn", "alreadyEntered", "needsChoice"].includes(outcome.status)) ||
             (outcome.kind === "login" && outcome.loggedIn);
           if (pl.accountId && proven) {
             tx.update(schema.accounts)

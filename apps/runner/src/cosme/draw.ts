@@ -20,6 +20,28 @@ export interface DrawDeps {
  * 投递成功后详情页照样显示「応募する」，重走入口也照样能进确认页。
  * 因此本函数**不做**「是否已投过」的判断，控制面必须先查 account_presents 再派任务。
  */
+/**
+ * 撞过登录墙的账号（进程内记忆）。
+ *
+ * 实测事故（2026-08-24）：第二个账号未登录就跑了一整批——127 个 draw 逐个
+ * 打开入口、逐个被弹到 auth.cosme.net、逐个安全中止。零误操作，但 127 次
+ * 无意义访问本身就是噪音与风险。撞墙一次就把账号拉黑到进程重启
+ * （或 login 任务成功）为止，后续任务秒失败、不碰站点。
+ */
+const authWalled = new Set<string>();
+
+export function markLoggedIn(accountId: string): void {
+  authWalled.delete(accountId);
+}
+
+export function markAuthWalled(accountId: string): void {
+  authWalled.add(accountId);
+}
+
+export function isAuthWalled(accountId: string): boolean {
+  return authWalled.has(accountId);
+}
+
 export async function drawOnce(
   page: Page,
   params: {
