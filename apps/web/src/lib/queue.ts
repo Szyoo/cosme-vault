@@ -241,6 +241,17 @@ export function applyReport(report: JobReport): ReportEffects {
         ? (JSON.parse(scanJob.payload) as { accountId?: string }).accountId
         : undefined;
 
+      // 有凭证且启用的账号才建记录（没凭证的账号建了也跑不了）
+      const enabledAccounts = tx
+        .select({
+          id: schema.accounts.id,
+          enabled: schema.accounts.enabled,
+          credentialsEnc: schema.accounts.credentialsEnc,
+        })
+        .from(schema.accounts)
+        .all()
+        .filter((a) => a.enabled && a.credentialsEnc);
+
       for (const p of outcome.presents) {
         // 显式 upsert：奖品 id 取自站点的 present_id，是天然主键。
         // 不用 onConflictDoUpdate(target: link)——那样主键冲突不在处理范围内，重扫会直接报错。
@@ -280,20 +291,25 @@ export function applyReport(report: JobReport): ReportEffects {
         // 为该账号建立待抽记录；已存在则保持原状态不动
         // （关键：绝不能把已投递的记录重置为 pending，否则会重复投递——
         //  @COSME 不标注「已应募」，去重全靠这张表）
-        if (accountId) {
+        // ⚠️ 扫描结果**与账号无关**（同一个站点的同一批奖品，用户指出）：
+        // 为**所有启用账号**建立待投递记录，而不是只给执行扫描的那个账号。
+        // 否则新账号必须自己再扫一遍才有记录——白跑一趟且毫无意义
+        //（实测后果：第二个账号 59 个奖品「未建记录」，界面上凭空缺一块）。
+        // 投递仍严格按账号独立（account_presents 是各账号的去重防线）。
+        for (const acc of enabledAccounts) {
           const link = tx
             .select()
             .from(schema.accountPresents)
             .where(
               and(
-                eq(schema.accountPresents.accountId, accountId),
+                eq(schema.accountPresents.accountId, acc.id),
                 eq(schema.accountPresents.presentId, p.id),
               ),
             )
             .get();
           if (!link) {
             tx.insert(schema.accountPresents)
-              .values({ id: randomUUID(), accountId, presentId: p.id, status: "pending" })
+              .values({ id: randomUUID(), accountId: acc.id, presentId: p.id, status: "pending" })
               .run();
           }
         }

@@ -8,6 +8,7 @@ import type { Page } from "playwright";
 import type { AccountCredentials, DrawResult } from "@cosme/contract";
 import { stepDelay } from "../pacing.ts";
 import { selectPattern, collectDiagnostics , type PatternContext } from "./patterns/index.ts";
+import { classifyPage, type PageVerdict } from "./page-kind.ts";
 
 export interface DrawDeps {
   log: (text: string, level?: "info" | "warn" | "error") => Promise<void>;
@@ -42,6 +43,30 @@ export function isAuthWalled(accountId: string): boolean {
   return authWalled.has(accountId);
 }
 
+/**
+ * 已知非流程页的统一结论。返回 null 表示「这页没什么可结论的，继续走流程」。
+ *
+ * - 登录墙 → `failed` + 明确指引（外层据此拉黑该账号，见 index.ts 的护栏）
+ * - 已结束 → `skipped`（奖品过期是正常边界，尤其第二个账号晚跑时常遇到）
+ * - 404    → `skipped`（站点下架了）
+ */
+async function concludeKnownPage(v: PageVerdict, deps: DrawDeps): Promise<DrawResult | null> {
+  const base = { kind: "draw" as const, pattern: null, pendingChoices: [], diagnostics: null, surveyCapture: null };
+  switch (v.kind) {
+    case "loginWall":
+      await deps.log(`账号未登录（${v.evidence}）——去设置页点「激活登录」后重跑`, "error");
+      return { ...base, status: "failed" };
+    case "ended":
+      await deps.log(`该奖品已结束募集，跳过（${v.evidence}）`);
+      return { ...base, status: "skipped" };
+    case "notFound":
+      await deps.log(`奖品页面已不存在，跳过（${v.evidence}）`, "warn");
+      return { ...base, status: "skipped" };
+    default:
+      return null;
+  }
+}
+
 export async function drawOnce(
   page: Page,
   params: {
@@ -63,11 +88,11 @@ export async function drawOnce(
   // （brandcollection 藏在 onclick、brandFanClub 是普通 href），
   // 由各模式在自己的 execute 里处理，这样加新来源不必改这个文件。
 
-  // ── 2. 先判断是否明确已结束（省掉无谓的模式识别） ──
-  const bodyNow = await page.evaluate(() => document.body.innerText.replace(/\s+/g, " ").slice(0, 2000));
-  if (/募集(は)?終了|受付(は)?終了|終了しました|受付を終了/.test(bodyNow)) {
-    await deps.log("该奖品已结束募集，跳过");
-    return { kind: "draw", status: "skipped", pattern: null, pendingChoices: [], diagnostics: null, surveyCapture: null };
+  // ── 2. 先分类页面：已知的非流程页各有各的结论，别一律推给「未知模式」 ──
+  const entry = await classifyPage(page);
+  if (entry.kind !== "other") {
+    const done = await concludeKnownPage(entry, deps);
+    if (done) return done;
   }
 
   // ── 3. 识别模式（入口形态各异，交给各模式自己认） ──
@@ -104,12 +129,34 @@ export async function drawOnce(
   let usedPattern = picked.pattern;
   let outcome = await picked.pattern.execute(page, ctx);
 
-  if (outcome.status === "unknownPattern") {
-    const second = await selectPattern(page);
-    if (second.pattern && second.pattern.name !== picked.pattern.name) {
-      await deps.log(`交棒给模式：${second.pattern.name}（落点已换）`);
-      usedPattern = second.pattern;
-      outcome = await second.pattern.execute(page, ctx);
+  // ── 5. 未知落点的兜底阶梯（用户要求：先重试、再全量重认、最后才报未知）──
+  //
+  // 顺序有讲究：
+  //   a. 先看是不是**已知的非流程页**（登录墙 / 已结束 / 404）——这类有确定结论，
+  //      报成「未知模式」纯属误导（127 个诊断包全是登录页的教训）。
+  //   b. 再给瞬时问题几次机会：慢加载、跳转没落地的，等一下重新分类往往就好了。
+  //   c. 最后全量重认模式：落点换了地盘就交棒继续跑（跨模式接力）。
+  //   d. 都不行才是真的没见过 → 安全中止 + 现场包。
+  for (let attempt = 1; outcome.status === "unknownPattern" && attempt <= 3; attempt++) {
+    const verdict = await classifyPage(page);
+    if (verdict.kind !== "other") {
+      const done = await concludeKnownPage(verdict, deps);
+      if (done) return done;
+    }
+
+    const again = await selectPattern(page);
+    if (again.pattern && again.pattern.name !== usedPattern.name) {
+      await deps.log(`交棒给模式：${again.pattern.name}（落点已换）`);
+      usedPattern = again.pattern;
+      outcome = await again.pattern.execute(page, ctx);
+      continue;
+    }
+
+    if (attempt < 3) {
+      // 瞬时问题（慢跳转/慢加载）：等一拍再看，别急着判死
+      await deps.log(`落点暂时无人认领，第 ${attempt} 次重试确认…`, "warn");
+      await pace();
+      await page.waitForLoadState("domcontentloaded", { timeout: 8_000 }).catch(() => undefined);
     }
   }
 
