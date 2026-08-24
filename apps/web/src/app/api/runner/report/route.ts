@@ -42,7 +42,9 @@ export async function POST(req: Request): Promise<NextResponse> {
       title: "遇到未知页面模式",
       subtitle: info.accountLabel,
       body: `「${info.presentName}」已安全中止，现场已存，需补一个 pattern`,
-      url: `${base}/presents`,
+      // ⚠️ 落点必须是真实存在的路由：这里曾写 `/presents`（根本没有这个页面），
+      // 推送点开一律 404（用户从 Bark 点进来撞上了）。现场在诊断页。
+      url: `${base}/diagnostics`,
       group: info.accountLabel,
       level: "timeSensitive",
     });
