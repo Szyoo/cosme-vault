@@ -7,22 +7,59 @@
  * 人工过一次风控、机器复用会话，是既合规又稳定的做法
  * （同作者 ledger-helper 处理网银二次验证的思路）。
  *
- * 用法：
- *   npm run login            打开登录页，登录完成后回车退出
- *   npm run login -- --check 只检查当前会话是否有效，不打开登录页
+ * 用法（多账号：一账号一 profile，见 browser.ts 的说明）：
+ *   npm run login -- --account <备注名或ID>            给该账号人工登录
+ *   npm run login -- --account <备注名或ID> --check    只检查该账号会话
+ *   只有一个账号时可省略 --account
  */
 import { chromium, type BrowserContext } from "playwright";
 import { createInterface } from "node:readline/promises";
+import { join } from "node:path";
 import { selectors } from "@cosme/core";
 
-const PROFILE_DIR = process.env.RUNNER_PROFILE_DIR ?? "./profile";
+const ROOT_DIR = process.env.RUNNER_PROFILE_DIR ?? "./profile";
 const CHECK_ONLY = process.argv.includes("--check");
+const accArg = process.argv.indexOf("--account");
+const ACCOUNT_WANTED = accArg >= 0 ? process.argv[accArg + 1] : null;
+
+/** 从控制面取账号清单，把 --account 的备注名解析成 accountId */
+async function resolveAccountDir(): Promise<{ dir: string; label: string }> {
+  const base = (process.env.CONTROL_PLANE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const token = process.env.RUNNER_TOKEN;
+  if (!token) throw new Error("缺少 RUNNER_TOKEN（.env）");
+  const res = await fetch(`${base}/api/runner/accounts`, {
+    headers: { authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`取账号清单失败：HTTP ${res.status}`);
+  const { accounts } = (await res.json()) as { accounts: { id: string; label: string; enabled: boolean }[] };
+  if (accounts.length === 0) throw new Error("控制面里还没有账号，先去设置页添加");
+
+  let picked = accounts.length === 1 ? accounts[0]! : null;
+  if (ACCOUNT_WANTED) {
+    picked =
+      accounts.find((a) => a.label === ACCOUNT_WANTED) ??
+      accounts.find((a) => a.id === ACCOUNT_WANTED || a.id.startsWith(ACCOUNT_WANTED)) ??
+      null;
+    if (!picked) {
+      console.error(`找不到账号「${ACCOUNT_WANTED}」。现有账号：`);
+      for (const a of accounts) console.error(`  - ${a.label}（${a.id.slice(0, 8)}…${a.enabled ? "" : "，已停用"}）`);
+      process.exit(1);
+    }
+  }
+  if (!picked) {
+    console.error("有多个账号，必须用 --account 指定给谁登录。现有账号：");
+    for (const a of accounts) console.error(`  - ${a.label}（${a.id.slice(0, 8)}…${a.enabled ? "" : "，已停用"}）`);
+    process.exit(1);
+  }
+  return { dir: join(ROOT_DIR, "accounts", picked.id), label: picked.label };
+}
 
 /** 登录后才能看到内容的页面，用它判断会话是否有效 */
 const GATED_URL = selectors.LIST_URLS.brandFanClub;
 
-async function openContext(headless: boolean): Promise<BrowserContext> {
-  return chromium.launchPersistentContext(PROFILE_DIR, {
+async function openContext(dir: string, headless: boolean): Promise<BrowserContext> {
+  return chromium.launchPersistentContext(dir, {
     headless,
     channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
     locale: "ja-JP",
@@ -57,27 +94,29 @@ export async function isSessionValid(ctx: BrowserContext): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
+  const { dir, label } = await resolveAccountDir();
+  console.log(`账号「${label}」的 profile：${dir}`);
+
   if (CHECK_ONLY) {
-    const ctx = await openContext(true);
+    const ctx = await openContext(dir, true);
     const ok = await isSessionValid(ctx);
-    console.log(ok ? "✅ 会话有效，无需重新登录" : "⚠️ 会话已失效，请运行 npm run login 重新登录");
+    console.log(ok ? `✅ 「${label}」会话有效，无需重新登录` : `⚠️ 「${label}」会话已失效，请运行 npm run login -- --account ${label}`);
     await ctx.close();
     process.exit(ok ? 0 : 1);
   }
 
-  const ctx = await openContext(false); // 人工登录必须有头
+  const ctx = await openContext(dir, false); // 人工登录必须有头
   const page = await ctx.newPage();
 
   if (await isSessionValid(ctx)) {
-    console.log("✅ 当前会话已是登录态，无需重复登录。");
-    console.log("   如需换账号，先删除 profile 目录再运行本命令。");
+    console.log(`✅ 「${label}」当前已是登录态，无需重复登录。`);
     await ctx.close();
     return;
   }
 
   const entry = selectors.LOGIN.entryUrl(GATED_URL);
   console.log("\n请在弹出的浏览器窗口里完成登录：");
-  console.log("  1. 输入 @cosme 邮箱与密码（本程序不会代填——登录表单有 reCAPTCHA 风控）");
+  console.log(`  1. 输入「${label}」账号的 @cosme 邮箱与密码（本程序不会代填——登录表单有 reCAPTCHA 风控）`);
   console.log("  2. 保持勾选「次回から自動でログイン」以延长会话");
   console.log("  3. 登录成功后回到本终端按回车\n");
   await page.goto(entry, { waitUntil: "domcontentloaded" });

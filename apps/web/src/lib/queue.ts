@@ -140,6 +140,26 @@ export function enqueueJob(
   trigger: "cron" | "manual" = "manual",
 ): string {
   const id = randomUUID();
+  // draw 且调用方没带选择时，继承任意账号已有的选择（跨账号复用，见 dispatch.ts）
+  if (kind === "draw" && payload.presentId && payload.accountId && !payload.resolvedChoices) {
+    const rows = db
+      .select({
+        accountId: schema.accountPresents.accountId,
+        resolvedChoices: schema.accountPresents.resolvedChoices,
+      })
+      .from(schema.accountPresents)
+      .where(eq(schema.accountPresents.presentId, String(payload.presentId)))
+      .all()
+      .filter((r) => r.resolvedChoices);
+    const donor = rows.find((r) => r.accountId === payload.accountId) ?? rows[0];
+    if (donor?.resolvedChoices) {
+      try {
+        payload = { ...payload, resolvedChoices: JSON.parse(donor.resolvedChoices) as unknown };
+      } catch {
+        // 坏 JSON 就不带，runner 侧会照常走 needsChoice
+      }
+    }
+  }
   // 手动单点的任务自成一批：队列上显示成「单独重跑 · <奖品名>」，
   // 与「一轮」区分开——用户的操作单位是这两个，不是「一个奖品一个 job」
   db.insert(schema.jobs)
