@@ -27,6 +27,8 @@ export interface PatternContext {
    * 图片数与选项数一致则一一对应挂上（见 ChoiceOption.imageUrl 的说明）。
    */
   optionImageUrls?: string[];
+  /** PR 页全部像样的内容图（候选池，供用户手动纠错换图） */
+  candidateImageUrls?: string[];
   /** 做题时顺手采下的问卷结构（url + 全部题目），由问卷路径写入、drawOnce 带回 */
   surveyCapture?: { url: string; questions: CapturedQuestion[] };
 }

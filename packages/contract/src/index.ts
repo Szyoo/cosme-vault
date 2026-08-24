@@ -241,6 +241,12 @@ export const PendingChoice = z.object({
    * 对应关系让用户自己从图里看（图内通常自带说明）。
    */
   referenceImages: z.array(z.string().url()).default([]),
+  /**
+   * 候选图池：PR 页上全部像样的内容图（排除标题/图标/背景等装饰，按资产号去重，
+   * 上限 24）。启发式选出的 referenceImages 有时不对或缺失（实测反馈）——
+   * 用户可在选择页从候选里手动挑对的图替换，改动写回快照、历史同步生效。
+   */
+  candidateImages: z.array(z.string().url()).default([]),
 });
 export type PendingChoice = z.infer<typeof PendingChoice>;
 

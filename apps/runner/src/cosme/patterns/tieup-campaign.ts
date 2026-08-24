@@ -46,7 +46,7 @@ export const tieupCampaignPattern: FlowPattern = {
     //    最多 4 张、保持页面顺序。
     // 这些图作为**参考图**整组展示、不与选项对应（合成图教训），放漏比放错好，
     // 但参考图语义下宽一点没关系——选色号没有图基本没法选（用户反馈）。
-    ctx.optionImageUrls = await page.evaluate(() => {
+    const collected = await page.evaluate(() => {
       const all = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="tieup_images"]'));
 
       const templ = all
@@ -56,7 +56,10 @@ export const tieupCampaignPattern: FlowPattern = {
         })
         .filter((x): x is { n: number; src: string } => !!x)
         .sort((a, b) => a.n - b.n);
-      if (templ.length > 0) return templ.map((x) => x.src);
+      if (templ.length > 0) {
+        const t = templ.map((x) => x.src);
+        return { primary: t, candidates: t };
+      }
 
       // ⚠️ present 命名**优先于** product（アルビオン页实测教训）：
       // 奖品栏（box-present）的图叫 pc--14_present-1，正文产品介绍图组叫
@@ -79,10 +82,27 @@ export const tieupCampaignPattern: FlowPattern = {
         return out;
       };
       const presents = pick(/present/i);
-      if (presents.length > 0) return presents;
-      return pick(/product/i);
+      const primary = presents.length > 0 ? presents : pick(/product/i);
+      // 候选池：不做 present/product 的猜测，只排除装饰图——启发式选错时
+      // 用户要能从这里手动挑对的（实测反馈：有时不对或没有）
+      const seen2 = new Set<string>();
+      const candidates: string[] = [];
+      for (const i of all) {
+        const file = (i.getAttribute("src") ?? "").split("/").pop() ?? "";
+        if (!/tieup_images/.test(i.src)) continue;
+        if (/tit|obi|ttl|icon|logo|banner|btn|dummy|space|bg|arw|star|chara|sbm/i.test(file)) continue;
+        const asset = file.match(/^(\d+_\d+)_/)?.[1] ?? file;
+        if (seen2.has(asset)) continue;
+        seen2.add(asset);
+        candidates.push(i.src);
+        if (candidates.length >= 24) break;
+      }
+      return { primary, candidates };
     });
-    if (ctx.optionImageUrls.length > 0) await ctx.log(`PR 页采到 ${ctx.optionImageUrls.length} 张奖品参考图`);
+    ctx.optionImageUrls = collected.primary;
+    ctx.candidateImageUrls = collected.candidates;
+    if (collected.primary.length > 0 || collected.candidates.length > 0)
+      await ctx.log(`PR 页采到 ${collected.primary.length} 张奖品参考图（候选池 ${collected.candidates.length} 张）`);
 
     await ctx.log("点击「今すぐ応募」追踪链，进入应募流程");
     await ctx.pace();

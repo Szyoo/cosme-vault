@@ -104,10 +104,11 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
       prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
       options: opts.map((o) => ({ id: o.value, text: o.label || o.value, imageUrl: null as string | null })),
       referenceImages: [] as string[],
+      candidateImages: [] as string[],
     });
 
     // 1. 整组未选的 radio —— 真正会卡「選択してください」的
-    const out: { questionId: string; prompt: string; options: { id: string; text: string; imageUrl: string | null }[]; referenceImages: string[] }[] = [];
+    const out: { questionId: string; prompt: string; options: { id: string; text: string; imageUrl: string | null }[]; referenceImages: string[]; candidateImages: string[] }[] = [];
     for (const [name, opts] of radios) {
       if (!opts.some((o) => o.checked)) out.push(toChoice(name, opts));
     }
@@ -123,6 +124,7 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
           prompt: findPrompt(opts[0]!.name) || "以下の選択肢から選んでください",
           options: opts.map((o) => ({ id: o.name, text: o.label || o.name, imageUrl: null as string | null })),
           referenceImages: [] as string[],
+          candidateImages: [] as string[],
         });
       }
     }
@@ -140,8 +142,11 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
  */
 function attachReferenceImages(pending: PendingChoice[], ctx: PatternContext): PendingChoice[] {
   const imgs = ctx.optionImageUrls ?? [];
-  if (imgs.length === 0 || pending.length === 0) return pending;
-  return pending.map((q, i) => (i === 0 ? { ...q, referenceImages: imgs } : q));
+  const cands = ctx.candidateImageUrls ?? [];
+  if ((imgs.length === 0 && cands.length === 0) || pending.length === 0) return pending;
+  return pending.map((q, i) =>
+    i === 0 ? { ...q, referenceImages: imgs, candidateImages: cands } : q,
+  );
 }
 
 export const isEnqSurveyPattern: FlowPattern = {
