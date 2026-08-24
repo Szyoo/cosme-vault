@@ -23,6 +23,7 @@ import { Nav } from "./nav.tsx";
 import { LiveRefresh } from "./live-refresh.tsx";
 import { PresentList } from "./present-list.tsx";
 import { TermLog } from "./term-log.tsx";
+import { AccountMatrix, type AccountRow } from "./account-matrix.tsx";
 import { ResolveButtons } from "./resolve-buttons.tsx";
 import { toItem } from "./present-item.ts";
 
@@ -63,6 +64,18 @@ export default async function Home() {
     .all();
 
   const logs = db.select().from(schema.runnerLogs).orderBy(desc(schema.runnerLogs.id)).limit(20).all();
+
+  // 矩阵数据：奖品总数（全局唯一，多账号共享）+ 每账号各状态计数
+  const totalPresents = db.select({ id: schema.presents.id }).from(schema.presents).all().length;
+  const accountList = db.select().from(schema.accounts).all();
+  const accountRows: AccountRow[] = accountList.map((a) => {
+    const counts: Record<string, number> = {};
+    for (const r of rows) {
+      if (r.accountId !== a.id) continue;
+      counts[r.status] = (counts[r.status] ?? 0) + 1;
+    }
+    return { accountId: a.id, label: a.label, enabled: a.enabled, counts };
+  });
 
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
@@ -140,19 +153,9 @@ export default async function Home() {
         <LiveRefresh />
       </section>
 
-      <section className="stat-grid section">
-        <StatCard label={t.stat.presents} value={rows.length} sub={t.stat.scanned} />
-        {/* 已投递 = 我们投的 + 站点判定早已应募的（alreadyEntered）。
-            后者结果上同样是「投过了」，不并进来会出现 188 里只有 184 的
-            「账对不上」观感（用户问过）。列表的状态筛选仍可分开看。 */}
-        <StatCard
-          label={t.stat.drawn}
-          value={(counts.drawn ?? 0) + (counts.alreadyEntered ?? 0)}
-          sub={t.stat.thisAccount}
-        />
-        <StatCard label={t.stat.pending} value={counts.pending ?? 0} sub={t.stat.nextRound} />
-        <StatCard label={t.stat.needsChoice} value={needsChoice.length} sub={t.stat.needsYou} />
-      </section>
+      {/* 账号 × 状态矩阵（取代原来的四张加总卡：那些卡不含未知模式/失败，
+          数字不闭合也看不出各账号进度——见 account-matrix.tsx 的说明） */}
+      <AccountMatrix rows={accountRows} totalPresents={totalPresents} t={t} />
 
       {needsChoice.length > 0 && (
         <section className="glass section">
@@ -249,12 +252,3 @@ function where(location: string): string {
   return location && location !== "unknown" ? ` · ${location}` : "";
 }
 
-function StatCard({ label, value, sub }: { label: string; value: number; sub: string }) {
-  return (
-    <div className="stat-card">
-      <div className="stat-label">{label}</div>
-      <div className="stat-value num">{value}</div>
-      <div className="stat-sub">{sub}</div>
-    </div>
-  );
-}
