@@ -642,3 +642,37 @@
   border: 1px solid color-mix(in srgb, var(--term-text, #9fb0c3) 35%, transparent);
   backdrop-filter: blur(6px);
 }
+
+/* ---------- 参考图纠错器（候选池点选） ---------- */
+.img-fixer {
+  margin: 6px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.cand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.cand-thumb {
+  appearance: none;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--glass-border);
+  background: var(--inner-bg);
+  line-height: 0;
+}
+.cand-thumb img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+}
+.cand-thumb.picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}

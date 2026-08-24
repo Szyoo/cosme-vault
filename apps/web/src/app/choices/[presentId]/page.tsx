@@ -32,6 +32,87 @@ interface Data {
   choices: PendingChoice[];
 }
 
+/**
+ * 参考图纠错器：启发式选的图有时不对或缺失（实测反馈），
+ * 展开候选池（PR 页全部内容图）让用户点选，保存即替换快照里的参考图。
+ */
+function ImageFixer({
+  presentId,
+  accountId,
+  current,
+  candidates,
+  onSaved,
+}: {
+  presentId: string;
+  accountId: string;
+  current: string[];
+  candidates: string[];
+  onSaved: () => void;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [sel, setSel] = useState<Set<string>>(new Set(current));
+  const [busy, setBusy] = useState(false);
+
+  if (candidates.length === 0) return null;
+
+  async function save() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/choices/${presentId}/images`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ accountId, images: [...sel] }),
+      });
+      if (res.ok) {
+        setOpen(false);
+        onSaved();
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="img-fixer">
+      <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
+        {open ? t.choice.fixImagesClose : t.choice.fixImages}
+      </button>
+      {open && (
+        <>
+          <p className="tiny muted">{t.choice.fixImagesHint}</p>
+          <div className="cand-grid">
+            {candidates.map((src) => {
+              const picked = sel.has(src);
+              return (
+                <button
+                  key={src}
+                  type="button"
+                  className={`cand-thumb${picked ? " picked" : ""}`}
+                  onClick={() =>
+                    setSel((s0) => {
+                      const n = new Set(s0);
+                      if (n.has(src)) n.delete(src);
+                      else if (n.size < 8) n.add(src);
+                      return n;
+                    })
+                  }
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图 */}
+                  <img src={src} alt="" loading="lazy" />
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" className="btn btn-small" onClick={() => void save()} disabled={busy}>
+            {busy ? t.choice.fixImagesSaving : t.choice.fixImagesSave(sel.size)}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /** ⚠️ Next 16：useSearchParams() 必须在 Suspense 内，否则构建失败。 */
 export default function ChoicePage() {
   return (
@@ -159,6 +240,14 @@ export function ChoiceInner() {
               <p className="tiny muted">{t.choice.refImagesHint}</p>
             </div>
           )}
+          {/* 图不对/缺图的自助纠错：从候选池点选替换（纯数据修正，不触发投递） */}
+          <ImageFixer
+            presentId={presentId}
+            accountId={accountId}
+            current={c.referenceImages ?? []}
+            candidates={c.candidateImages ?? []}
+            onSaved={() => void load()}
+          />
           <div className="stack">
             {c.options.map((o) => {
               const picked = selections[c.questionId] === o.id;
