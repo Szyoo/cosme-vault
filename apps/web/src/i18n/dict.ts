@@ -105,6 +105,7 @@ const zh = {
     missing: "未建记录",
     missingHint: "扫描还没覆盖到这个账号的奖品（新账号或扫描中断）。点「仅检测」为它建立记录。",
     disabled: "已停用",
+    confirmOne: (label: string) => `只为「${label}」投递现有待投递，抽奖机会用掉就没了。`,
   },
 
   present: {
@@ -181,6 +182,11 @@ const zh = {
     title: "诊断",
     sub: "runner 遇到没见过的页面版式时会安全中止并回传现场（不会瞎点）。这里列出待处理的现场。",
     none: "目前没有未识别的页面 —— 所有遇到的版式都有对应实现。",
+    anomalies: "异常现场（按种类去重）",
+    seenTimes: (n: number) => `出现 ${n} 次`,
+    affected: (n: number) => `影响 ${n} 个奖品`,
+    noVisual: "（这次没留下截图或页面快照）",
+    markResolved: "标记已处理并重排",
     unrecognizedSources: "列表来源未识别",
     unknownFlows: "投递流程未识别",
     stuckAt: "卡在",
@@ -447,6 +453,7 @@ const ja: Dict = {
     missing: "未登録",
     missingHint: "このアカウント向けのレコードが未作成（新規または走査中断）。「検出のみ」で作成されます。",
     disabled: "無効",
+    confirmOne: (label: string) => `「${label}」の未応募分だけに応募します。応募機会は取り消せません。`,
   },
 
   present: {
@@ -521,6 +528,11 @@ const ja: Dict = {
     title: "診断",
     sub: "未知のページ版式に遭遇すると runner は安全に中止し、現場を回収します（推測でクリックしません）。",
     none: "未識別のページはありません — 遭遇した版式はすべて対応済みです。",
+    anomalies: "異常の現場（種類ごとに集約）",
+    seenTimes: (n: number) => `${n} 回発生`,
+    affected: (n: number) => `${n} 件に影響`,
+    noVisual: "（今回はスクリーンショットもスナップショットも取れませんでした）",
+    markResolved: "対応済みにして再キュー",
     unrecognizedSources: "一覧ソース未識別",
     unknownFlows: "応募フロー未識別",
     stuckAt: "停止位置",
@@ -767,6 +779,7 @@ const en: Dict = {
     missing: "Not tracked",
     missingHint: "No record for this account yet (new account or interrupted scan). Run “Scan only” to create them.",
     disabled: "Disabled",
+    confirmOne: (label: string) => `Enters pending presents for “${label}” only. Entries cannot be undone.`,
   },
 
   present: {
@@ -841,6 +854,11 @@ const en: Dict = {
     title: "Diagnostics",
     sub: "When the runner meets an unknown page layout it stops safely and reports the scene — it never guesses clicks.",
     none: "No unrecognised pages — every layout encountered is handled.",
+    anomalies: "Anomalies (deduped by kind)",
+    seenTimes: (n: number) => `seen ${n}×`,
+    affected: (n: number) => `${n} presents affected`,
+    noVisual: "(no screenshot or snapshot captured this time)",
+    markResolved: "Mark resolved & requeue",
     unrecognizedSources: "Unrecognised list sources",
     unknownFlows: "Unrecognised entry flows",
     stuckAt: "Stuck at",

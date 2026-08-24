@@ -24,6 +24,21 @@ interface UnknownPattern {
   diagnostics: PatternDiagnostics | null;
 }
 
+interface Anomaly {
+  fingerprint: string;
+  url: string;
+  title: string;
+  triedPatterns: { name: string; reason: string }[];
+  elements: InspectedElement[];
+  bodyExcerpt: string;
+  screenshot: string | null;
+  htmlSnapshot: string | null;
+  seenCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  affected: { presentId: string; accountId: string; name: string | null; brand: string | null }[];
+}
+
 interface UnrecognizedSource {
   source: string;
   note: string;
@@ -34,6 +49,7 @@ interface UnrecognizedSource {
 export default function DiagnosticsPage() {
   const t = useT();
   const [data, setData] = useState<{
+    anomalies: Anomaly[];
     unknownPatterns: UnknownPattern[];
     unrecognizedSources: UnrecognizedSource[];
   } | null>(null);
@@ -56,7 +72,7 @@ export default function DiagnosticsPage() {
     );
   }
 
-  const total = data.unknownPatterns.length + data.unrecognizedSources.length;
+  const total = data.anomalies.length + data.unrecognizedSources.length;
 
   return (
     <main className="page">
@@ -72,6 +88,18 @@ export default function DiagnosticsPage() {
           <div>✅</div>
           <p>{t.diag.none}</p>
         </div>
+      )}
+
+      {/* 异常聚合（主视图）：一种异常一张卡，带可视证据与出现次数 */}
+      {data.anomalies.length > 0 && (
+        <section className="section">
+          <div className="section-name">
+            {t.diag.anomalies}（{data.anomalies.length}）
+          </div>
+          {data.anomalies.map((a) => (
+            <AnomalyCard key={a.fingerprint} a={a} t={t} onResolved={() => void load()} />
+          ))}
+        </section>
       )}
 
       {data.unrecognizedSources.length > 0 && (
@@ -102,6 +130,101 @@ export default function DiagnosticsPage() {
       )}
 
     </main>
+  );
+}
+
+/**
+ * 一种异常的现场卡。
+ *
+ * 「可视证据」是硬要求（用户）：优先显示截图；截图缺失时用 **sandbox iframe**
+ * 还原 HTML 快照——留给人看的是页面，不是 DOM 文本。元素清单收在折叠里，
+ * 需要写选择器时再展开。
+ */
+function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function resolve() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/diagnostics/${a.fingerprint}`, { method: "PATCH" });
+      if (res.ok) onResolved();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyElements() {
+    await navigator.clipboard
+      .writeText(a.elements.map((e) => `${e.tag}\t${e.type ?? ""}\t${e.selector}\t${e.text}`).join("\n"))
+      .catch(() => undefined);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="glass spot diag-card">
+      <div className="row spread">
+        <strong>{a.title || a.url}</strong>
+        <span className="row" style={{ gap: 8 }}>
+          <span className="pill amber">{t.diag.seenTimes(a.seenCount)}</span>
+          {a.affected.length > 0 && <span className="pill">{t.diag.affected(a.affected.length)}</span>}
+        </span>
+      </div>
+      <p className="tiny muted" style={{ wordBreak: "break-all" }}>
+        <code>{a.url}</code>
+      </p>
+
+      {/* 可视证据 */}
+      {a.screenshot ? (
+        // eslint-disable-next-line @next/next/no-img-element -- data URI 截图
+        <img className="diag-shot" src={a.screenshot} alt="" />
+      ) : a.htmlSnapshot ? (
+        <iframe
+          className="diag-shot"
+          sandbox=""
+          title={a.title || a.url}
+          srcDoc={a.htmlSnapshot}
+        />
+      ) : (
+        <p className="tiny muted">{t.diag.noVisual}</p>
+      )}
+
+      {a.triedPatterns.length > 0 && (
+        <dl className="kv">
+          <dt>{t.diag.triedPatterns}</dt>
+          <dd>
+            {a.triedPatterns.map((x) => (
+              <div key={x.name} className="tiny">
+                <code>{x.name}</code> — {x.reason}
+              </div>
+            ))}
+          </dd>
+        </dl>
+      )}
+
+      <div className="actions">
+        <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
+          {open ? t.diag.collapse : t.diag.expandElements(a.elements.length)}
+        </button>
+        <button type="button" className="btn-ghost btn-small" onClick={() => void copyElements()}>
+          {copied ? t.diag.copied : t.diag.copyElements}
+        </button>
+        <button type="button" className="btn btn-small" onClick={() => void resolve()} disabled={busy}>
+          {busy ? "…" : t.diag.markResolved}
+        </button>
+      </div>
+
+      {open && <ElementTable elements={a.elements} t={t} />}
+
+      {a.bodyExcerpt && (
+        <details className="section">
+          <summary className="small">{t.diag.bodyExcerpt}</summary>
+          <p className="tiny muted" style={{ whiteSpace: "pre-wrap" }}>{a.bodyExcerpt}</p>
+        </details>
+      )}
+    </div>
   );
 }
 

@@ -355,6 +355,17 @@ export function applyReport(report: JobReport): ReportEffects {
           .run();
       }
 
+      const row = tx
+        .select({ id: schema.accountPresents.id })
+        .from(schema.accountPresents)
+        .where(
+          and(
+            eq(schema.accountPresents.accountId, p.accountId),
+            eq(schema.accountPresents.presentId, p.presentId),
+          ),
+        )
+        .get();
+
       const prev = tx
         .select({ drawnAt: schema.accountPresents.drawnAt })
         .from(schema.accountPresents)
@@ -394,8 +405,63 @@ export function applyReport(report: JobReport): ReportEffects {
 
       if (outcome.status === "needsChoice") {
         effects.needsChoice.push({ accountId: p.accountId, presentId: p.presentId });
-      } else if (outcome.status === "unknownPattern") {
-        effects.unknownPattern.push({ accountId: p.accountId, presentId: p.presentId });
+      } else if (outcome.status === "unknownPattern" && outcome.diagnostics) {
+        // ── 异常聚合 + 可复现性判定（用户设计）──
+        //
+        // 同一种异常（指纹相同）只留一份现场并累计次数：127 个奖品撞同一个
+        // 登录墙 → 1 行 seen_count=127，而不是 127 份重复现场包。
+        //
+        // 次数即「可复现性」：
+        //   首次出现  → 大概率是瞬时问题，**自动排回 pending 下轮重试**，不烦人
+        //   再次出现  → 同样的页面又来了，说明可复现、不是偶发 → 交人工
+        const d = outcome.diagnostics;
+        const fp = d.fingerprint || d.url;
+        const existing = tx.select().from(schema.anomalies).where(eq(schema.anomalies.fingerprint, fp)).get();
+        const now = new Date().toISOString();
+        if (existing) {
+          tx.update(schema.anomalies)
+            .set({
+              seenCount: existing.seenCount + 1,
+              lastSeenAt: now,
+              // 现场只在首次存（省空间）；截图缺失时后续补上
+              screenshot: existing.screenshot ?? d.screenshot ?? null,
+              htmlSnapshot: existing.htmlSnapshot ?? d.htmlSnapshot ?? null,
+            })
+            .where(eq(schema.anomalies.fingerprint, fp))
+            .run();
+        } else {
+          tx.insert(schema.anomalies)
+            .values({
+              fingerprint: fp,
+              url: d.url,
+              title: d.title,
+              triedPatterns: JSON.stringify(d.triedPatterns),
+              elements: JSON.stringify(d.elements),
+              bodyExcerpt: d.bodyExcerpt,
+              screenshot: d.screenshot ?? null,
+              htmlSnapshot: d.htmlSnapshot ?? null,
+              seenCount: 1,
+              firstSeenAt: now,
+              lastSeenAt: now,
+            })
+            .run();
+        }
+
+        // 这个「奖品 × 账号」组合此前撞过同一指纹吗？撞过就是可复现
+        const seenBefore = !!existing;
+        if (seenBefore) {
+          effects.unknownPattern.push({ accountId: p.accountId, presentId: p.presentId });
+        } else {
+          // 首次：自动重试一次，别惊动人
+          tx.update(schema.accountPresents)
+            .set({
+              status: "pending",
+              error: "首次遇到异常，已自动排入下一轮重试（重现才会交人工）",
+              updatedAt: now,
+            })
+            .where(eq(schema.accountPresents.id, row?.id ?? ""))
+            .run();
+        }
       }
     }
   });
