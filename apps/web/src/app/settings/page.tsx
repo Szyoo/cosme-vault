@@ -171,6 +171,9 @@ function AccountCard({
   }
 
   const c = account.credentials;
+  // 72 小时内有成功任务 = 会话仍有效（cron 每 12h 一轮，正常情况下证明持续刷新）
+  const sessionFresh =
+    !!account.sessionOkAt && Date.now() - new Date(account.sessionOkAt).getTime() < 72 * 3600 * 1000;
   return (
     <div className="glass spot diag-card">
       {/* 布局三段式：名称 | 状态（占满余宽）| 操作簇。
@@ -182,8 +185,14 @@ function AccountCard({
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
         <span className="row" style={{ gap: 8, flex: "none" }}>
-          {/* 激活登录：入队 login 任务 → Mac mini 弹有头窗口人工登录（pull 模型，
-              控制面不需要任何入站通道就能「让电脑弹窗」）。密码绝不代填。 */}
+          {/* 会话状态：任何成功任务都是证明。72 小时内有证明就认为已登录、
+              藏起「激活登录」（已激活还摆着按钮是噪音——用户问过）；
+              证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}
+          {sessionFresh ? (
+            <span className="pill green" title={t.settings.sessionOkHint}>
+              {t.settings.sessionOk}
+            </span>
+          ) : (
           <button
             type="button"
             className="btn-ghost btn-small"
@@ -205,6 +214,7 @@ function AccountCard({
           >
             {activating ? t.settings.activating : t.settings.activate}
           </button>
+          )}
           <button type="button" className="btn-ghost btn-small" onClick={onToggle}>
             {account.enabled ? t.settings.disable : t.settings.enable}
           </button>

@@ -14,6 +14,12 @@ export const accounts = sqliteTable("accounts", {
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
   /** 加密后的凭证 + 个人资料（邮箱/密码/姓名/年龄/职业等）；null 表示未配置 */
   credentialsEnc: text("credentials_enc"),
+  /**
+   * 最近一次「会话有效」的证明时刻。任何一次成功的 scan/draw/login 任务都算证明
+   * （会话在 Mac mini 的 profile 里，网页无从直接探测，只能靠任务侧回传的事实）。
+   * 驱动设置页「激活登录」按钮显隐：近期有证明就不显示。
+   */
+  sessionOkAt: text("session_ok_at"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 });

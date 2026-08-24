@@ -174,6 +174,8 @@ export const AccountSummary = z.object({
   label: z.string(),
   enabled: z.boolean(),
   credentials: CredentialStatus,
+  /** 最近一次会话有效的证明时刻（成功任务回传）；null = 从未证明过（该激活登录） */
+  sessionOkAt: z.string().nullable().default(null),
 });
 export type AccountSummary = z.infer<typeof AccountSummary>;
 

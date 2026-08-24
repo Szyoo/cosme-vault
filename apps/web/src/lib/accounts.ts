@@ -54,13 +54,14 @@ export function listAccounts(): AccountSummary[] {
       label: a.label,
       enabled: a.enabled,
       credentials: statusOf(a.credentialsEnc),
+      sessionOkAt: a.sessionOkAt,
     }));
 }
 
 export function createAccount(label: string): AccountSummary {
   const id = randomUUID();
   db.insert(schema.accounts).values({ id, label }).run();
-  return { id, label, enabled: true, credentials: EMPTY };
+  return { id, label, enabled: true, credentials: EMPTY, sessionOkAt: null };
 }
 
 export function updateAccount(id: string, patch: { label?: string; enabled?: boolean }): boolean {

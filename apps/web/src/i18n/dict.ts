@@ -227,6 +227,8 @@ const zh = {
     saveFailed: "保存失败",
     confirmDelete: (label: string) => `删除账号「${label}」及其全部抽取记录？此操作不可撤销。`,
     activate: "激活登录",
+    sessionOk: "已登录 ✓",
+    sessionOkHint: "最近 72 小时内有成功任务，会话有效；失效后此处会重新出现「激活登录」",
     activating: "已通知电脑…",
     activateHint:
       "点击后 Mac mini 上会弹出该账号的登录窗口（可能要等几秒到几十秒，runner 领到任务才弹）。" +
@@ -557,6 +559,8 @@ const ja: Dict = {
     saveFailed: "保存に失敗しました",
     confirmDelete: (label: string) => `アカウント「${label}」と全ての応募記録を削除しますか？元に戻せません。`,
     activate: "ログインを起動",
+    sessionOk: "ログイン済み ✓",
+    sessionOkHint: "直近 72 時間以内に成功タスクあり。セッション切れになるとここに「ログインを起動」が再表示されます",
     activating: "PC に通知しました…",
     activateHint:
       "クリックすると Mac mini にこのアカウントのログインウィンドウが開きます（runner が受け取るまで数秒〜数十秒）。" +
@@ -866,6 +870,8 @@ const en: Dict = {
     saveFailed: "Failed to save",
     confirmDelete: (label: string) => `Delete account “${label}” and all its entry records? This cannot be undone.`,
     activate: "Activate login",
+    sessionOk: "Logged in ✓",
+    sessionOkHint: "A task succeeded within 72h, session is live; the activate button reappears if it expires",
     activating: "Notified the Mac…",
     activateHint:
       "Opens a login window for this account on the Mac mini (takes a few seconds until the runner picks it up). " +
