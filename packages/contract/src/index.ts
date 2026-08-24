@@ -209,11 +209,24 @@ export const InspectJob = z.object({
   url: z.string().url(),
 });
 
-export const Job = z.discriminatedUnion("kind", [ScanJob, DrawJob, InspectJob]);
+/**
+ * 登录任务：网页点「激活登录」→ 入队 → Mac mini 的 runner 领到后**弹出有头
+ * 浏览器窗口**（该账号自己的 profile），由人完成登录（reCAPTCHA 红线，绝不代填），
+ * runner 轮询检测到登录态后自动收尾。pull 模型的天然用法——控制面不需要
+ * 任何入站通道就能「让电脑弹窗」。
+ */
+export const LoginJob = z.object({
+  kind: z.literal("login"),
+  id: z.string(),
+  accountId: z.string(),
+});
+
+export const Job = z.discriminatedUnion("kind", [ScanJob, DrawJob, InspectJob, LoginJob]);
 export type Job = z.infer<typeof Job>;
 export type ScanJob = z.infer<typeof ScanJob>;
 export type DrawJob = z.infer<typeof DrawJob>;
 export type InspectJob = z.infer<typeof InspectJob>;
+export type LoginJob = z.infer<typeof LoginJob>;
 
 /* ────────────────────────────────────────────────────────────
  * 人工介入：选择项
@@ -356,7 +369,13 @@ export const InspectResult = z.object({
 });
 export type InspectResult = z.infer<typeof InspectResult>;
 
-export const JobOutcome = z.discriminatedUnion("kind", [ScanResult, DrawResult, InspectResult]);
+export const LoginResult = z.object({
+  kind: z.literal("login"),
+  loggedIn: z.boolean(),
+});
+export type LoginResult = z.infer<typeof LoginResult>;
+
+export const JobOutcome = z.discriminatedUnion("kind", [ScanResult, DrawResult, InspectResult, LoginResult]);
 export type JobOutcome = z.infer<typeof JobOutcome>;
 
 export const JobReport = z.object({

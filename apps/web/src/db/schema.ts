@@ -74,7 +74,7 @@ export const accountPresents = sqliteTable(
 /** 任务队列：runner 用 pull 模型领取（status 从 queued → running → done/failed） */
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(),
-  kind: text("kind", { enum: ["scan", "draw", "inspect"] }).notNull(),
+  kind: text("kind", { enum: ["scan", "draw", "inspect", "login"] }).notNull(),
   status: text("status", { enum: ["queued", "running", "done", "failed"] })
     .notNull()
     .default("queued"),

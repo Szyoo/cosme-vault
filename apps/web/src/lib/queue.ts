@@ -135,7 +135,7 @@ export function claimNextJob(): Job | null {
 
 /** 入队一个任务，返回 jobId */
 export function enqueueJob(
-  kind: "scan" | "draw" | "inspect",
+  kind: "scan" | "draw" | "inspect" | "login",
   payload: Record<string, unknown>,
   trigger: "cron" | "manual" = "manual",
 ): string {

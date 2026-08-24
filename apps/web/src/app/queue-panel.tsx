@@ -52,7 +52,9 @@ export function QueuePanel({
                           ? t.runner.batchScan
                           : b.kind === "draw"
                             ? t.runner.batchDraw
-                            : t.runner.batchSingle}
+                            : b.kindDetail === "login"
+                              ? t.runner.batchLogin
+                              : t.runner.batchSingle}
                       {b.label && <span className="qsub"> · {b.label}</span>}
                     </span>
 

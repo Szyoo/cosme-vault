@@ -31,6 +31,8 @@ export interface QueueBatch {
   failed: number;
   /** single 批次显示的奖品名；run 批次为 null */
   label: string | null;
+  /** 批内任务种类（login 批次要显示成「激活登录」而不是「单独重跑」） */
+  kindDetail: string;
   /** 正在执行的那一个在做什么（奖品名），用于「一轮」显示当前进度 */
   currentLabel: string | null;
   /** 是否还有未跑完的（决定能不能取消） */
@@ -78,6 +80,7 @@ export function loadQueue(): { batches: QueueBatch[]; hidden: number; activeJobs
         done: 0,
         failed: 0,
         label: null,
+        kindDetail: j.kind,
         currentLabel: null,
         active: false,
         _rows: [],
