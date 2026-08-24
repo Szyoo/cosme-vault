@@ -9,7 +9,7 @@ import { config } from "./config.ts";
 import { fetchCredentials, fetchNextJob, pushLog, reportJob, sendHeartbeat, fetchRunnerConfig } from "./control-plane.ts";
 import { closeBrowser, newPage, restartBrowser } from "./browser.ts";
 import { captureArtifacts } from "./artifacts.ts";
-import { drawOnce } from "./cosme/draw.ts";
+import { drawOnce, isAuthWalled, markAuthWalled, markLoggedIn } from "./cosme/draw.ts";
 import { inspectPage } from "./cosme/inspect.ts";
 import { scanSources } from "./cosme/scan.ts";
 import { betweenPresentsDelay, stepDelay, updatePacing } from "./pacing.ts";
@@ -87,6 +87,15 @@ async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "fini
 
 async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
   // 凭证按需拉取，不进任务载荷（避免明文落 jobs 表）
+  // 登录墙护栏：这个账号刚撞过 auth.cosme.net 就别再一个个撞了（见 draw.ts 注释）
+  if (isAuthWalled(job.accountId)) {
+    return {
+      ok: false,
+      outcome: null,
+      error: "账号未登录（已撞过登录墙），请在设置页点「激活登录」完成登录后重跑",
+      artifacts: null,
+    };
+  }
   const credentials = await fetchCredentials(job.accountId);
   const page = await newPage(job.accountId);
   try {
@@ -101,6 +110,17 @@ async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "fini
         log: (text, level = "info") => pushLog({ jobId: job.id, at: nowIso(), level, text }),
       },
     );
+
+    // 落在登录墙上 → 拉黑该账号直到重启/登录成功，别让整批一个个去撞
+    if (page.url().includes("auth.cosme.net")) {
+      markAuthWalled(job.accountId);
+      await pushLog({
+        jobId: job.id,
+        at: nowIso(),
+        level: "error",
+        text: `账号未登录（被弹到登录页），本账号后续任务将直接失败——去设置页点「激活登录」`,
+      });
+    }
 
     // 未知模式与失败都留现场，便于事后补 pattern 或排查
     const needArtifacts = outcome.status === "unknownPattern" || outcome.status === "failed";
@@ -138,6 +158,7 @@ async function handleLogin(job: LoginJob): Promise<Omit<JobReport, "jobId" | "fi
   });
   try {
     if (await isSessionValid(ctx)) {
+      markLoggedIn(job.accountId);
       await say("该账号会话本来就有效，无需登录");
       return { ok: true, outcome: { kind: "login", loggedIn: true }, error: null, artifacts: null };
     }
@@ -149,7 +170,8 @@ async function handleLogin(job: LoginJob): Promise<Omit<JobReport, "jobId" | "fi
       await sleep(10_000);
       if (page.isClosed() && ctx.pages().length === 0) break; // 用户把窗口全关了
       if (await isSessionValid(ctx).catch(() => false)) {
-        await say("登录成功，会话已保存，该账号可以开始自动化了 ✅");
+        markLoggedIn(job.accountId);
+      await say("登录成功，会话已保存，该账号可以开始自动化了 ✅");
         return { ok: true, outcome: { kind: "login", loggedIn: true }, error: null, artifacts: null };
       }
     }
