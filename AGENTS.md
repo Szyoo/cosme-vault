@@ -380,6 +380,24 @@ audit 把同一期间报成「不一致」**79 次**。`isPeriodExpired()` 用�
 逐项比对（期间/数量/图片/是否仍开放应募），只读、**绝不点投递按钮**。
 库里字段改了形状之后应当跑一次。
 
+## 多账号（2026-08-24 打通 runner 侧）
+
+- **一账号一 profile**：`apps/runner/profile/accounts/<accountId>`（原单账号 profile 已手工
+  迁移至主账号子目录）。任务按 `job.accountId` 用各自的持久化上下文，互不串会话。
+- **新账号接入三步，缺一不可**：设置页添加账号并录凭证 → Mac mini 上
+  `npm run login -- --account <备注名>` 人工登录一次（reCAPTCHA 红线，绝不脚本化）→
+  跑「仅检测」为该账号建立 account_presents 记录，之后照常投递。
+  只加账号不登录不扫描，界面上什么都不会发生（用户问过）。
+- `GET /api/runner/accounts`（Bearer）给 login 脚本解析备注名 → accountId 用，不含凭证。
+- **选择结果跨账号复用**（用户要求）：同一奖品的问卷对所有账号是同一份，派单时若本账号
+  没有 resolvedChoices，就借用任意其他账号已选的（`dispatch.ts` 的 `inheritedChoices`），
+  B 账号不会再被挂起要求重选。
+- 研究脚本（audit/harvest/recon）仍用 `RUNNER_PROFILE_DIR` 指定 profile，多账号后要显式指到
+  某账号子目录：`RUNNER_PROFILE_DIR=./profile/accounts/<id> npm run audit`。
+- ⚠️ 合规注记：红线写的是「单账号自用、低频」。多账号是用户明确要求的能力，
+  风险决策归用户；实现上仍保持各账号低频 + 人类节奏，绝不并行跑多个浏览器投递
+  （主循环单线程，天然串行）。
+
 ## 操作授权（用户明令，2026-08-23）
 
 **任何会触发真实投递的动作——派发、重跑、重置状态后再派——一律先征得用户同意，

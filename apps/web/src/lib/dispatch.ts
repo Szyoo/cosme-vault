@@ -81,6 +81,31 @@ export function startDrawOnly(trigger: "cron" | "manual"): { accountId: string; 
  * - 只取 status='pending' 的记录（drawn/needsChoice/skipped 一律不动）
  * - 已有 queued/running 的 draw 任务的奖品要跳过，避免同一奖品被派两次
  */
+/**
+ * 跨账号复用选择结果（用户要求）：同一个奖品的问卷对所有账号都是同一份，
+ * A 账号选过的色号/套装，给 B 账号派单时直接带上——不用每个账号都再选一遍。
+ * 自己账号已有的选择优先；否则借用任意其他账号的。
+ */
+function inheritedChoices(tx: DbLike, presentId: string, accountId: string): Record<string, string> {
+  const rows = tx
+    .select({
+      accountId: schema.accountPresents.accountId,
+      resolvedChoices: schema.accountPresents.resolvedChoices,
+    })
+    .from(schema.accountPresents)
+    .where(eq(schema.accountPresents.presentId, presentId))
+    .all()
+    .filter((r) => r.resolvedChoices);
+  const own = rows.find((r) => r.accountId === accountId);
+  const donor = own ?? rows[0];
+  if (!donor?.resolvedChoices) return {};
+  try {
+    return JSON.parse(donor.resolvedChoices) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
 export function dispatchPendingDraws(
   accountId: string,
   trigger: "cron" | "manual",
@@ -134,7 +159,8 @@ export function dispatchPendingDraws(
           accountId,
           presentId: row.presentId,
           presentLink: present.link,
-          resolvedChoices: {},
+          // 跨账号复用：别的账号选过的直接带上，B 账号不会再被挂起等选择
+          resolvedChoices: inheritedChoices(tx, row.presentId, accountId),
         }),
         // createdAt 是队列排序键，必须毫秒唯一（见 lib/stamp.ts）
         createdAt: nextStamp(),

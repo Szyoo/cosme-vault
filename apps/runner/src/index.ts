@@ -57,7 +57,7 @@ async function runJob(job: Job): Promise<JobReport> {
 /* ── 任务处理器（待移植初版业务逻辑，先返回明确的未实现结果） ── */
 
 async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
-  const page = await newPage();
+  const page = await newPage(job.accountId);
   try {
     const { presents, reports } = await scanSources(
       page,
@@ -83,7 +83,7 @@ async function handleScan(job: ScanJob): Promise<Omit<JobReport, "jobId" | "fini
 async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
   // 凭证按需拉取，不进任务载荷（避免明文落 jobs 表）
   const credentials = await fetchCredentials(job.accountId);
-  const page = await newPage();
+  const page = await newPage(job.accountId);
   try {
     const outcome = await drawOnce(
       page,
@@ -109,7 +109,7 @@ async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "fini
 
 async function handleInspect(job: InspectJob): Promise<Omit<JobReport, "jobId" | "finishedAt">> {
   // 只读巡检：回传页面全部可交互元素与建议选择器，用于校验/补写 selectors
-  const page = await newPage();
+  const page = await newPage(job.accountId);
   try {
     await page.goto(job.url, { waitUntil: "domcontentloaded", timeout: 40_000 });
     const elements = await inspectPage(page);
