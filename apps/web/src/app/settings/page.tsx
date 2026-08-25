@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
+import { JOB_OPTIONS } from "@cosme/core";
 import { Nav } from "../nav.tsx";
 import { BarkSection } from "./bark-section.tsx";
 import { PacingSection } from "./pacing-section.tsx";
@@ -259,12 +260,24 @@ function AccountCard({
             value={form.age}
             onChange={(e) => setForm({ ...form, age: e.target.value })}
           />
-          <input
+          {/* 职业必须与站点下拉选项逐字一致，故这里也做成下拉（手填「自営業」
+              而站点是「自営業・自由業」，曾导致该账号 81 个奖品全失败）。
+              历史值若不在枚举内，作为额外一项保留，避免静默丢失。 */}
+          <select
             className="field"
-            placeholder={t.settings.job}
             value={form.job}
             onChange={(e) => setForm({ ...form, job: e.target.value })}
-          />
+          >
+            <option value="">{t.settings.job}</option>
+            {JOB_OPTIONS.map((j) => (
+              <option key={j} value={j}>
+                {j}
+              </option>
+            ))}
+            {form.job && !(JOB_OPTIONS as readonly string[]).includes(form.job) && (
+              <option value={form.job}>{form.job}（{t.settings.jobLegacy}）</option>
+            )}
+          </select>
           <button type="submit" className="btn" disabled={saving}>
             {saving ? t.settings.saving : t.settings.save}
           </button>
