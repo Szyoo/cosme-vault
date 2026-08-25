@@ -96,6 +96,14 @@ export async function applyDecisions(
     }
     if (d.action === "skip") continue;
     for (const v of d.values) {
+      // 下拉要用 selectOption，check() 对 <select> 无效——用户从选择页补的
+      // 职业等下拉答案走的就是这条路（见 is-enq 的 collectUnanswered）
+      const sel = page.locator(`select[name="${q.field}"]`);
+      if ((await sel.count()) > 0) {
+        await sel.first().selectOption(v, { timeout: 3000 }).catch(() => undefined);
+        applied++;
+        continue;
+      }
       await page
         .locator(`[name="${q.field}"][value="${v}"]`)
         .first()

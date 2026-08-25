@@ -112,6 +112,27 @@ async function collectUnanswered(page: Page): Promise<PendingChoice[]> {
     for (const [name, opts] of radios) {
       if (!opts.some((o) => o.checked)) out.push(toChoice(name, opts));
     }
+
+    // 1b. **未选中的下拉**同样会卡送信（实测：设置页的职业值与站点选项对不上时，
+    // prof_010_job1 留空 → 必填 → 弹回）。此前只看 radio/checkbox，
+    // 于是「送信被退回，且找不到未作答的题」，用户连补救入口都没有。
+    for (const sel of Array.from(document.querySelectorAll<HTMLSelectElement>("select"))) {
+      if (!sel.name) continue;
+      const chosen = sel.selectedOptions[0];
+      if (chosen && chosen.value) continue; // 已选
+      const opts = Array.from(sel.options)
+        .filter((o) => o.value && o.text.trim())
+        .map((o) => ({ id: o.value, text: o.text.trim(), imageUrl: null as string | null }));
+      if (opts.length === 0) continue;
+      out.push({
+        questionId: sel.name,
+        prompt: findPrompt(sel.name) || sel.name,
+        options: opts,
+        referenceImages: [] as string[],
+        candidateImages: [] as string[],
+      });
+    }
+
     if (out.length > 0) return out;
 
     // 2. 兜底：整族未勾的 checkbox 家族（把一族合并成一道多选题）。
@@ -281,16 +302,29 @@ export async function fillAndSubmitSurvey(page: Page, ctx: PatternContext): Prom
         ageInput.value = profile.age;
         done.push("age");
       }
-      // 职业下拉：精确匹配 → 斜杠/中点互换兜底（站点两种写法都出现过）
+      // 职业下拉：精确匹配 → 斜杠/中点互换 → **包含匹配**兜底。
+      //
+      // ⚠️ 包含匹配是必需的（2026-08-25 实测）：站点选项是「自営業・自由業」，
+      // 而用户在设置页填的是「自営業」——精确匹配永远不中，下拉留空，
+      // 而它是**必填**，于是送信被弹回、整个账号 81 个奖品全失败。
       const job = document.querySelector<HTMLSelectElement>('select[name="prof_010_job1"]');
       if (job && profile.job) {
-        for (const v of [profile.job, profile.job.replace("/", "・"), profile.job.replace("・", "/")]) {
-          const opt = Array.from(job.options).find((o) => o.text.trim() === v);
-          if (opt) {
-            job.value = opt.value;
-            done.push("prof_010_job1");
-            break;
-          }
+        const want = profile.job.trim();
+        const variants = [want, want.replace("/", "・"), want.replace("・", "/")];
+        const opts = Array.from(job.options).filter((o) => o.value && o.text.trim());
+        const exact = opts.find((o) => variants.includes(o.text.trim()));
+        // 包含匹配取**最短**的候选：「自営業」同时被「自営業・自由業」与
+        // 「その他（自営業を除く）」包含时，短的那个更可能是本意
+        const loose =
+          exact ??
+          opts
+            .filter((o) => variants.some((v) => o.text.trim().includes(v) || v.includes(o.text.trim())))
+            .sort((a, b) => a.text.trim().length - b.text.trim().length)[0];
+        if (loose) {
+          job.value = loose.value;
+          done.push("prof_010_job1");
+        } else {
+          done.push("!prof_010_job1_未匹配");
         }
       }
       return done;
