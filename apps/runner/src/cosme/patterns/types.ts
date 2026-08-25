@@ -40,6 +40,8 @@ export type Recognition = { matched: true } | { matched: false; reason: string }
 export type PatternOutcome = {
   status: DrawResult["status"];
   pendingChoices?: PendingChoice[];
+  /** 这个结论的依据（如「确认页含结束文案：受付は終了」），非 drawn 的终态都该带 */
+  reason?: string;
 };
 
 export interface FlowPattern {

@@ -388,11 +388,13 @@ export function applyReport(report: JobReport): ReportEffects {
           // 原先是 `: null`，等于「后续任何一次上报都会抹掉投递时间」——
           // 例如已投递的奖品重跑一次被判 alreadyEntered，投递时间就没了。
           drawnAt: outcome.status === "drawn" ? new Date().toISOString() : (prev?.drawnAt ?? null),
-          // ⚠️ 成功/已应募时要**清掉上一次的报错**，否则界面上一直挂着过期的失败原因
+          // ⚠️ 成功/已应募时要**清掉上一次的报错**，否则界面上一直挂着过期的失败原因。
+          // 其余终态优先记 `outcome.reason`（结论的依据，如「正文含结束文案：受付は終了」）——
+          // 此前 expired/gone 只写状态不写理由，界面上就只有一个说不清缘由的「已跳过」。
           error:
             outcome.status === "drawn" || outcome.status === "alreadyEntered"
               ? null
-              : (report.error ?? null),
+              : (outcome.reason ?? report.error ?? null),
           updatedAt: new Date().toISOString(),
         })
         .where(

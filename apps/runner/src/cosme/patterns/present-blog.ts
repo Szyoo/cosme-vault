@@ -99,9 +99,10 @@ export const presentBlogPattern: FlowPattern = {
     }
 
     // 3d. 明确的失败/已结束
-    if (/募集(は)?終了|受付(は)?終了|終了しました/.test(body)) {
-      await ctx.log("该奖品已结束募集", "warn");
-      return { status: "skipped" };
+    const endedHit = /募集(は)?終了|受付(は)?終了|終了しました/.exec(body);
+    if (endedHit) {
+      await ctx.log(`该奖品已结束募集（确认页含「${endedHit[0]}」）`, "warn");
+      return { status: "expired", reason: `确认页含结束文案：${endedHit[0]}` };
     }
     if (/エラー|error/i.test(body)) {
       await ctx.log("确认页提交被拒", "error");

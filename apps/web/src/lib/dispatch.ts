@@ -94,7 +94,7 @@ export function startDrawOnly(
  * 为某账号派发待抽奖品的 draw 任务。
  *
  * 幂等要点：
- * - 只取 status='pending' 的记录（drawn/needsChoice/skipped 一律不动）
+ * - 只取 status='pending' 的记录（drawn/needsChoice/expired/gone 一律不动）
  * - 已有 queued/running 的 draw 任务的奖品要跳过，避免同一奖品被派两次
  */
 /**
