@@ -7,6 +7,7 @@ export * from "./images.ts";
 export * from "./answering.ts";
 export * from "./period.ts";
 export * from "./quantity.ts";
+export * from "./profile-options.ts";
 export * as selectors from "./selectors.ts";
 
 /**
