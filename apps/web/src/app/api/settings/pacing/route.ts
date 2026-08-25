@@ -4,7 +4,7 @@
  *   PUT  保存 —— runner 在下一次心跳后（≤15 秒）拉到新值
  */
 import { NextResponse } from "next/server";
-import { PacingConfig } from "@cosme/contract";
+import { RunnerConfig } from "@cosme/contract";
 import { requireUser } from "@/lib/auth.ts";
 import { getPacingConfig, setPacingConfig } from "@/lib/settings.ts";
 import { getT } from "@/i18n/server.ts";
@@ -31,7 +31,7 @@ export async function PUT(req: Request): Promise<NextResponse> {
   const denied = await guard();
   if (denied) return denied;
   const t = await getT();
-  const parsed = PacingConfig.safeParse(await req.json().catch(() => null));
+  const parsed = RunnerConfig.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: t.api.badParams }, { status: 400 });
   setPacingConfig(parsed.data);
   return NextResponse.json({ ok: true, ...getPacingConfig() });

@@ -18,7 +18,6 @@ export function Nav({
     { href: "/", label: t.nav.console },
     { href: "/records", label: t.nav.records },
     { href: "/diagnostics", label: diagnosticsCount > 0 ? `${t.nav.diagnostics} (${diagnosticsCount})` : t.nav.diagnostics },
-    { href: "/rules", label: t.nav.rules },
     { href: "/settings", label: t.nav.settings },
   ];
   return (
