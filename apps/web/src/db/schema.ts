@@ -58,7 +58,7 @@ export const accountPresents = sqliteTable(
       .notNull()
       .references(() => presents.id, { onDelete: "cascade" }),
     status: text("status", {
-      enum: ["pending", "drawn", "needsChoice", "skipped", "alreadyEntered", "failed", "unknownPattern"],
+      enum: ["pending", "drawn", "needsChoice", "expired", "gone", "alreadyEntered", "failed", "unknownPattern"],
     })
       .notNull()
       .default("pending"),

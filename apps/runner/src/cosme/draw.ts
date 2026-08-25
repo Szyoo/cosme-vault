@@ -47,21 +47,31 @@ export function isAuthWalled(accountId: string): boolean {
  * 已知非流程页的统一结论。返回 null 表示「这页没什么可结论的，继续走流程」。
  *
  * - 登录墙 → `failed` + 明确指引（外层据此拉黑该账号，见 index.ts 的护栏）
- * - 已结束 → `skipped`（奖品过期是正常边界，尤其第二个账号晚跑时常遇到）
- * - 404    → `skipped`（站点下架了）
+ * - 已结束 → `expired`（奖品过期是正常边界，尤其第二个账号晚跑时常遇到）
+ * - 404    → `gone`（站点把这个奖品撤了）
+ *
+ * ⚠️ 两者**必须分开**、且**必须带上依据**：合成一个「已跳过」+ 空理由，
+ * 界面上就只剩一个说不清是过期还是出问题的状态（用户 2026-08-26 指出）。
  */
 async function concludeKnownPage(v: PageVerdict, deps: DrawDeps): Promise<DrawResult | null> {
-  const base = { kind: "draw" as const, pattern: null, pendingChoices: [], diagnostics: null, surveyCapture: null };
+  const base = {
+    kind: "draw" as const,
+    pattern: null,
+    pendingChoices: [],
+    diagnostics: null,
+    surveyCapture: null,
+    reason: v.evidence,
+  };
   switch (v.kind) {
     case "loginWall":
       await deps.log(`账号未登录（${v.evidence}）——去设置页点「激活登录」后重跑`, "error");
       return { ...base, status: "failed" };
     case "ended":
-      await deps.log(`该奖品已结束募集，跳过（${v.evidence}）`);
-      return { ...base, status: "skipped" };
+      await deps.log(`该奖品已结束募集（${v.evidence}）`);
+      return { ...base, status: "expired" };
     case "notFound":
-      await deps.log(`奖品页面已不存在，跳过（${v.evidence}）`, "warn");
-      return { ...base, status: "skipped" };
+      await deps.log(`奖品页面已不存在（${v.evidence}）`, "warn");
+      return { ...base, status: "gone" };
     default:
       return null;
   }
@@ -106,6 +116,7 @@ export async function drawOnce(
       pendingChoices: [],
       diagnostics: picked.diagnostics,
       surveyCapture: null,
+      reason: `没有模式认领这一页（${picked.diagnostics.url}）`,
     };
   }
 
@@ -177,5 +188,6 @@ export async function drawOnce(
     pendingChoices: outcome.pendingChoices ?? [],
     diagnostics,
     surveyCapture: ctx.surveyCapture ?? null,
+    reason: outcome.reason ?? null,
   };
 }

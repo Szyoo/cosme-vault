@@ -79,7 +79,14 @@ export const DrawStatus = z.enum([
   "pending", // 待抽
   "drawn", // 已抽成功
   "needsChoice", // 需要用户选择（多奖品可选或必填项缺失），已挂起等人工
-  "skipped", // 主动跳过（无法确认）
+  /**
+   * 募集已结束（期间过了）。**这是正常边界，不是错误**——尤其第二个账号晚跑时常遇到。
+   * 与 `gone` 分开是因为用户会问「为什么跳过」：一个是奖品过期、一个是站点下架了，
+   * 混成一个「已跳过」等于什么都没说（2026-08-26 用户指出）。
+   */
+  "expired",
+  /** 页面已不存在（404）——站点把这个奖品撤了 */
+  "gone",
   /**
    * 站点表明这个奖品**已经应募过了**，本次什么都没提交。
    *
@@ -384,6 +391,13 @@ export const DrawResult = z.object({
   diagnostics: PatternDiagnostics.nullable().default(null),
   /** 做题时顺手采下的问卷结构（题号/题干/选项），供重建匹配库；没走到问卷则 null */
   surveyCapture: SurveyCapture.nullable().default(null),
+  /**
+   * 这个结论的**依据**（如「正文含结束文案：受付は終了」）。
+   *
+   * 此前 expired/gone 只写状态不写理由，库里 `error` 是空的，界面上就只有一个
+   * 「已跳过」，没人知道为什么跳过（用户为此提过）。凡是非 drawn 的终态都该带一句。
+   */
+  reason: z.string().nullable().default(null),
 });
 export type DrawResult = z.infer<typeof DrawResult>;
 

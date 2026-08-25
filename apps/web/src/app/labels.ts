@@ -42,8 +42,11 @@ export function statusOf(status: string, t: Dict): { label: string; pill: string
       return { label: s.drawn, pill: "green" };
     case "needsChoice":
       return { label: s.needsChoice, pill: "violet" };
-    case "skipped":
-      return { label: s.skipped, pill: "" };
+    // 「已跳过」曾把「奖品过期」与「站点下架」混成一个，界面上说不清为什么跳过
+    case "expired":
+      return { label: s.expired, pill: "" };
+    case "gone":
+      return { label: s.gone, pill: "amber" };
     case "alreadyEntered":
       // 结果上等于「已投递」，但来源不同（站点摊牌，不是我们提交的），故单列一档
       return { label: s.alreadyEntered, pill: "green" };

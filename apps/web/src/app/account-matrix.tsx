@@ -2,7 +2,7 @@
  * 账号 × 状态矩阵：首页的核心概览。
  *
  * 为什么取代原来的四张统计卡（用户明确不满）：那四张卡是**全账号加总**，
- * 且只算了 已投递/待投递/待选择——`unknownPattern`、`failed`、`skipped`
+ * 且只算了 已投递/待投递/待选择——`unknownPattern`、`failed`、`expired`/`gone`
  * 一个都不在里面，于是数字既不闭合、也看不出「哪个账号跑到哪」。
  *
  * 这里保证一条**恒等式**并显式呈现：
@@ -15,7 +15,7 @@ import { statusOf } from "./labels.ts";
 import { AccountActions } from "./account-actions.tsx";
 
 /** 状态展示顺序：先「好结果」，再「等你」，最后「有问题」 */
-const ORDER = ["drawn", "alreadyEntered", "needsChoice", "pending", "unknownPattern", "failed", "skipped"] as const;
+const ORDER = ["drawn", "alreadyEntered", "needsChoice", "pending", "unknownPattern", "failed", "expired", "gone"] as const;
 
 /** 各状态在堆叠条里的配色（与 pill 同一套语义） */
 const SEG: Record<string, string> = {
@@ -25,7 +25,9 @@ const SEG: Record<string, string> = {
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
   unknownPattern: "var(--warn)",
   failed: "var(--err)",
-  skipped: "color-mix(in srgb, var(--text) 12%, transparent)",
+  // 过期是正常边界，给最淡的灰；下架是站点动作，给一点琥珀以示区别
+  expired: "color-mix(in srgb, var(--text) 12%, transparent)",
+  gone: "color-mix(in srgb, var(--warn, #d9a441) 30%, transparent)",
 };
 
 export interface AccountRow {
