@@ -112,37 +112,11 @@ export type MsRange = z.infer<typeof MsRange>;
  * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，用户要求**在设置页可看可改**
  * （而不是要从对话里察觉再追问）。runner 每次心跳后拉取一次，改完即生效、无需重启。
  */
-export const PacingConfig = z.object({
+export const RunnerConfig = z.object({
   /** 单步操作后的随机停顿 */
   stepDelayMs: MsRange,
   /** 两个奖品之间的随机停顿 */
   betweenPresentsMs: MsRange,
-});
-export type PacingConfig = z.infer<typeof PacingConfig>;
-
-/**
- * 完整的下发配置 = 节奏 + 作答规则。
- *
- * 拆成两层是因为**设置页只提交节奏**：规则有自己的页面与自己的增删改接口，
- * 若共用一个 schema，节奏表单每次保存都得连规则一起回传，漏传就等于清空规则。
- */
-export const RunnerConfig = PacingConfig.extend({
-  /**
-   * 问卷作答规则（规则页可增删改，与节奏同路下发）。
-   *
-   * 只发**启用中**的关键词，三类语义各不相同：
-   * - `answer`   命中任一 → 勾选（OR）
-   * - `manual`   题干需**全部**命中 → 挂起交人工（AND）
-   * - `negation` 命中任一 → 一律不勾（优先于 answer）
-   *
-   * ⚠️ runner 侧对空列表回落到出厂词表，见 `applyRuleOverrides`——
-   * 控制面故障返回空数组时若照单全收，等于静默地全部答错。
-   */
-  rules: z.object({
-    answer: z.array(z.string()),
-    manual: z.array(z.string()),
-    negation: z.array(z.string()),
-  }),
 });
 export type RunnerConfig = z.infer<typeof RunnerConfig>;
 
