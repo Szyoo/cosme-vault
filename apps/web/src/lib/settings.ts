@@ -42,10 +42,10 @@ export function getBarkConfig(): {
 }
 
 import { PACING } from "@cosme/core";
-import type { RunnerConfig } from "@cosme/contract";
+import type { PacingConfig } from "@cosme/contract";
 
 /** 节奏配置：库优先、core 默认值兜底。给设置页与 /api/runner/config 共用。 */
-export function getPacingConfig(): RunnerConfig {
+export function getPacingConfig(): PacingConfig {
   const read = (key: string, fallback: number): number => {
     const raw = getSetting(key);
     // ⚠️ 必须先判空再 Number()：`Number(null) === 0`，0 又能通过合法性检查，
@@ -72,7 +72,7 @@ export function getPacingConfig(): RunnerConfig {
   return cfg;
 }
 
-export function setPacingConfig(cfg: RunnerConfig): void {
+export function setPacingConfig(cfg: PacingConfig): void {
   setSetting("pacing.step.min", String(cfg.stepDelayMs.min));
   setSetting("pacing.step.max", String(cfg.stepDelayMs.max));
   setSetting("pacing.between.min", String(cfg.betweenPresentsMs.min));

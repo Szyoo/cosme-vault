@@ -19,15 +19,54 @@ export function normalizeText(s: string): string {
 }
 
 /**
- * 正规化后的词库（惰性构建一次）。
+ * 生效中的规则。默认是 keywords.ts 里的出厂词表；
+ * runner 每次心跳后从 `RunnerConfig.rules` 拿到控制面的版本并调 `applyRuleOverrides`。
+ *
+ * 之所以做成可覆盖而不是直接读 DB：`@cosme/core` 与运行环境解耦（这是它存在的理由），
+ * 不能在里面开数据库连接。控制面拉不到时保持出厂词表，作答能力不会因此归零。
+ */
+let active = {
+  answer: ANSWER_KEYWORDS as readonly string[],
+  manual: MANUAL_CHOICE_MARKERS as readonly string[],
+  negation: NEGATION_MARKERS as readonly string[],
+};
+
+/**
+ * 正规化后的词库（惰性构建，规则变更时失效重建）。
  *
  * ⚠️ **两边都要正规化**。只折选项文本是没用的：词库里存的是全角 `＠ｃｏｓｍｅ`，
  * 选项是半角 `@cosme`，不把词库也折成同一形式就永远不命中（已踩过这个错）。
  */
 let normalizedKeywords: string[] | null = null;
+let normalizedNegations: string[] | null = null;
 function getNormalizedKeywords(): string[] {
-  normalizedKeywords ??= ANSWER_KEYWORDS.map(normalizeText).filter(Boolean);
+  normalizedKeywords ??= active.answer.map(normalizeText).filter(Boolean);
   return normalizedKeywords;
+}
+function getNormalizedNegations(): string[] {
+  normalizedNegations ??= active.negation.map(normalizeText).filter(Boolean);
+  return normalizedNegations;
+}
+
+/**
+ * 用控制面下发的规则替换出厂词表。
+ *
+ * ⚠️ **空列表一律忽略**（回落到出厂值）。控制面出故障返回空数组时若照单全收，
+ * `answer` 空 = 一题都不作答、`negation` 空 = 反转语义的选项照勾——
+ * 两种都是静默的错误作答，比不更新糟得多。
+ */
+export function applyRuleOverrides(rules: {
+  answer?: readonly string[];
+  manual?: readonly string[];
+  negation?: readonly string[];
+}): void {
+  active = {
+    answer: rules.answer?.length ? rules.answer : ANSWER_KEYWORDS,
+    manual: rules.manual?.length ? rules.manual : MANUAL_CHOICE_MARKERS,
+    negation: rules.negation?.length ? rules.negation : NEGATION_MARKERS,
+  };
+  normalizedKeywords = null;
+  normalizedNegations = null;
 }
 
 /**
@@ -38,14 +77,14 @@ export function matchesAnswerKeywordNormalized(label: string): boolean {
   const n = normalizeText(label);
   if (!n) return false;
   // 含反转标记的选项一律不选（实测案例：「@cosme以外のWEBサイト」）
-  if (NEGATION_MARKERS.some((m) => n.includes(normalizeText(m)))) return false;
+  if (getNormalizedNegations().some((m) => n.includes(m))) return false;
   return getNormalizedKeywords().some((k) => n.includes(k));
 }
 
 /** 判断题干是否属于「必须人工决定」（正规化后比较） */
 export function needsManualChoiceNormalized(prompt: string): boolean {
   const n = normalizeText(prompt);
-  return MANUAL_CHOICE_MARKERS.every((m) => n.includes(normalizeText(m)));
+  return active.manual.every((m) => n.includes(normalizeText(m)));
 }
 
 /** 一道题的输入 */

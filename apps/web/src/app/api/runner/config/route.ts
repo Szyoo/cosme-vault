@@ -7,11 +7,13 @@
 import { NextResponse } from "next/server";
 import { checkRunnerAuth } from "@/lib/runner-auth.ts";
 import { getPacingConfig } from "@/lib/settings.ts";
+import { activeRules } from "@/lib/rules.ts";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request): Promise<NextResponse> {
   const denied = checkRunnerAuth(req);
   if (denied) return denied;
-  return NextResponse.json(getPacingConfig());
+  // 节奏与规则同路下发：runner 每次心跳后拉一次，两者都是「改完 ≤15 秒生效」
+  return NextResponse.json({ ...getPacingConfig(), rules: activeRules() });
 }
