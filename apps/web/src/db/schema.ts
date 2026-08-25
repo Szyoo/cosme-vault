@@ -190,3 +190,31 @@ export const anomalies = sqliteTable("anomalies", {
   /** 人工标记已处理的时刻；非空则不在诊断页的待处理列表里 */
   resolvedAt: text("resolved_at"),
 });
+
+/**
+ * 问卷作答规则（规则页可增删改）。
+ *
+ * 出厂默认在 `@cosme/core` 的 `DEFAULT_RULES`，首次启动时播种进来（见 lib/rules.ts）。
+ * 之后以本表为准，经 `RunnerConfig.rules` 下发给 runner，改完 ≤15 秒生效。
+ *
+ * ⚠️ `keyword` 唯一是**按 kind 分别唯一**——同一个词在 answer 与 negation 里
+ * 各出现一次是合法的（虽然那样等于永远不勾，界面上会提示冲突）。
+ */
+export const answerRules = sqliteTable(
+  "answer_rules",
+  {
+    id: text("id").primaryKey(),
+    /** answer=命中即勾 / manual=题干全命中则挂起 / negation=命中即排除 */
+    kind: text("kind").notNull(),
+    /** 分类只影响展示，不影响匹配；内置分类是 slug，用户自建的原样显示 */
+    category: text("category").notNull(),
+    keyword: text("keyword").notNull(),
+    /** 停用而不删除——每条词都是当年实跑调教出来的，删了无从复原 */
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    note: text("note"),
+    /** 出厂词标 true，用户新增的标 false；界面据此提示「删除自建词」是安全的 */
+    builtin: integer("builtin", { mode: "boolean" }).notNull().default(false),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [uniqueIndex("answer_rules_kind_keyword").on(t.kind, t.keyword)],
+);
