@@ -77,6 +77,24 @@ async function concludeKnownPage(v: PageVerdict, deps: DrawDeps): Promise<DrawRe
   }
 }
 
+/**
+ * 404 结论的二次确认（用户要求：先自动核实，仍是 404 才定案交人工瞟一眼）。
+ *
+ * 实测教训（tu-8946，2026-08-26）：c.w1.to 追踪链瞬时故障落到错误页，
+ * 一次判定就把**还在募集中**的奖品（期间 8/5～9/1）记成了 404 下架。
+ * 事后匿名复核 HTTP 200、「今すぐ応募」还在。等一拍重新加载再判，能兜住这类瞬时错误。
+ */
+async function reconfirmNotFound(page: Page, deps: DrawDeps): Promise<PageVerdict> {
+  await deps.log("疑似 404，等待后重新加载复核一次…", "warn");
+  await new Promise<void>((r) => setTimeout(r, 3000));
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 30_000 }).catch(() => undefined);
+  const again = await classifyPage(page);
+  if (again.kind === "notFound") {
+    return { kind: "notFound", evidence: `${again.evidence}（已重新加载复核，仍为 404）` };
+  }
+  return again;
+}
+
 export async function drawOnce(
   page: Page,
   params: {
@@ -99,7 +117,8 @@ export async function drawOnce(
   // 由各模式在自己的 execute 里处理，这样加新来源不必改这个文件。
 
   // ── 2. 先分类页面：已知的非流程页各有各的结论，别一律推给「未知模式」 ──
-  const entry = await classifyPage(page);
+  let entry = await classifyPage(page);
+  if (entry.kind === "notFound") entry = await reconfirmNotFound(page, deps);
   if (entry.kind !== "other") {
     const done = await concludeKnownPage(entry, deps);
     if (done) return done;
@@ -149,7 +168,8 @@ export async function drawOnce(
   //   c. 最后全量重认模式：落点换了地盘就交棒继续跑（跨模式接力）。
   //   d. 都不行才是真的没见过 → 安全中止 + 现场包。
   for (let attempt = 1; outcome.status === "unknownPattern" && attempt <= 3; attempt++) {
-    const verdict = await classifyPage(page);
+    let verdict = await classifyPage(page);
+    if (verdict.kind === "notFound") verdict = await reconfirmNotFound(page, deps);
     if (verdict.kind !== "other") {
       const done = await concludeKnownPage(verdict, deps);
       if (done) return done;

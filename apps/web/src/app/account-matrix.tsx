@@ -25,9 +25,10 @@ const SEG: Record<string, string> = {
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
   unknownPattern: "var(--warn)",
   failed: "var(--err)",
-  // 过期是正常边界，给最淡的灰；下架是站点动作，给一点琥珀以示区别
-  expired: "color-mix(in srgb, var(--text) 12%, transparent)",
-  gone: "color-mix(in srgb, var(--warn, #d9a441) 30%, transparent)",
+  // 已下架给黄——之前用淡灰，进度条上和「待投递」的灰分不出区别（用户指出）；
+  // 404 给红——它要么是站点异常撤了页面，要么是我们的链接有错，都值得人瞟一眼
+  expired: "var(--warn)",
+  gone: "var(--err)",
 };
 
 export interface AccountRow {
