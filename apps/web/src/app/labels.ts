@@ -42,11 +42,13 @@ export function statusOf(status: string, t: Dict): { label: string; pill: string
       return { label: s.drawn, pill: "green" };
     case "needsChoice":
       return { label: s.needsChoice, pill: "violet" };
-    // 「已跳过」曾把「奖品过期」与「站点下架」混成一个，界面上说不清为什么跳过
+    // 「已跳过」曾把「奖品过期」与「站点 404」混成一个，界面上说不清为什么跳过。
+    // 配色与账号进度条同语义：已下架黄、404 红（红=值得人看一眼：
+    // 要么站点异常撤了页面，要么我们存的链接就是错的）
     case "expired":
-      return { label: s.expired, pill: "" };
+      return { label: s.expired, pill: "amber" };
     case "gone":
-      return { label: s.gone, pill: "amber" };
+      return { label: s.gone, pill: "red" };
     case "alreadyEntered":
       // 结果上等于「已投递」，但来源不同（站点摊牌，不是我们提交的），故单列一档
       return { label: s.alreadyEntered, pill: "green" };
