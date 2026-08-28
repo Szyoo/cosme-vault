@@ -11,51 +11,18 @@
  */
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useT } from "@/i18n/context.tsx";
-import type { PresentItem } from "./present-item.ts";
+import { tallySource, tallyStatus, type PresentItem } from "./present-item.ts";
+import { usePresentFilter } from "./present-filter.tsx";
 import { GoneFix } from "./gone-fix.tsx";
-
-/**
- * 统计某个字段的取值与条数，用于生成筛选按钮（只列真实存在的取值）。
- *
- * ⚠️ 类型筛选按**已本地化的短名**分组而不是按 source 枚举值：
- * `brandFanClub` 与 `brandFanClubViaBrand` 是同一类奖品（只是入口路径不同，
- * 一个 article 直链、一个经品牌主页），短名都叫「粉丝俱乐部」。按枚举值分组会
- * 出现两个同名按钮（42 和 10），用户根本分不出该点哪个。
- */
-function tallySource(items: PresentItem[]) {
-  const map = new Map<string, { value: string; label: string; count: number }>();
-  for (const i of items) {
-    const hit = map.get(i.sourceShort);
-    if (hit) hit.count++;
-    else map.set(i.sourceShort, { value: i.sourceShort, label: i.sourceShort, count: 1 });
-  }
-  return [...map.values()].sort((a, b) => b.count - a.count);
-}
-
-/**
- * 状态维度按「**任一账号**处于该状态」统计——一个奖品可能在 A 账号已投、
- * 在 B 账号待投，两边都该被数到，否则筛选会漏。
- */
-function tallyStatus(items: PresentItem[]) {
-  const map = new Map<string, { value: string; label: string; count: number }>();
-  for (const i of items) {
-    for (const st of new Map(i.accounts.map((a) => [a.status, a])).values()) {
-      const hit = map.get(st.status);
-      if (hit) hit.count++;
-      else map.set(st.status, { value: st.status, label: st.statusLabel, count: 1 });
-    }
-  }
-  return [...map.values()].sort((a, b) => b.count - a.count);
-}
 
 export function PresentList({ items }: { items: PresentItem[] }) {
   const t = useT();
-  const [source, setSource] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [q, setQ] = useState("");
+  // 筛选状态与顶部的「奖品概览」共享（见 present-filter.tsx）：
+  // 上面点一个类型/状态，下面这份列表跟着筛
+  const { source, status, q, setSource, setStatus, setQ, reset } = usePresentFilter();
 
   const sources = useMemo(() => tallySource(items), [items]);
   const statuses = useMemo(() => tallyStatus(items), [items]);
@@ -123,11 +90,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
             <button
               type="button"
               className="btn-ghost btn-small"
-              onClick={() => {
-                setSource(null);
-                setStatus(null);
-                setQ("");
-              }}
+              onClick={reset}
             >
               {t.filter.reset}
             </button>

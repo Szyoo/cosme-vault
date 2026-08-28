@@ -119,3 +119,39 @@ export function toItems(
   }
   return [...byPresent.values()];
 }
+
+
+/**
+ * 按类型统计（供概览与列表筛选共用）。
+ *
+ * ⚠️ 按**已本地化的短名**分组而不是按 source 枚举值：`brandFanClub` 与
+ * `brandFanClubViaBrand` 是同一类奖品（只是入口路径不同，一个 article 直链、
+ * 一个经品牌主页），短名都叫「粉丝俱乐部」。按枚举值分组会出现两个同名按钮
+ * （42 和 10），用户根本分不出该点哪个。
+ */
+export function tallySource(items: PresentItem[]): { value: string; label: string; count: number }[] {
+  const map = new Map<string, { value: string; label: string; count: number }>();
+  for (const i of items) {
+    const hit = map.get(i.sourceShort);
+    if (hit) hit.count++;
+    else map.set(i.sourceShort, { value: i.sourceShort, label: i.sourceShort, count: 1 });
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}
+
+/**
+ * 按状态统计：口径是「**任一账号**处于该状态」。
+ * 一个奖品可能在 A 账号已投、在 B 账号待投，两边都该被数到，否则筛选会漏。
+ * 因此各状态之和**可以大于**奖品总数——这是有意的，不是算错。
+ */
+export function tallyStatus(items: PresentItem[]): { value: string; label: string; pill: string; count: number }[] {
+  const map = new Map<string, { value: string; label: string; pill: string; count: number }>();
+  for (const i of items) {
+    for (const st of new Map(i.accounts.map((a) => [a.status, a])).values()) {
+      const hit = map.get(st.status);
+      if (hit) hit.count++;
+      else map.set(st.status, { value: st.status, label: st.statusLabel, pill: st.statusPill, count: 1 });
+    }
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}

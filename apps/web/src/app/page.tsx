@@ -27,6 +27,8 @@ import { AccountMatrix, type AccountRow } from "./account-matrix.tsx";
 import { ResolveButtons } from "./resolve-buttons.tsx";
 import { toItems } from "./present-item.ts";
 import { mergeStatus } from "./labels.ts";
+import { PresentFilterProvider } from "./present-filter.tsx";
+import { PresentOverview } from "./present-overview.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -108,7 +110,9 @@ export default async function Home() {
   const diagnosticsCount = unknown.length + unrecognizedSources;
 
   return (
-    <main className="page">
+    // 概览与列表共享同一份筛选（两者在页面上隔得远，靠 context 串起来）
+    <PresentFilterProvider>
+      <main className="page">
       <Nav current="/" diagnosticsCount={diagnosticsCount} t={t} />
 
       <h1 className="page-title grad-text">{t.appName}</h1>
@@ -161,6 +165,10 @@ export default async function Home() {
       {/* 账号 × 状态矩阵（取代原来的四张加总卡：那些卡不含未知模式/失败，
           数字不闭合也看不出各账号进度——见 account-matrix.tsx 的说明） */}
       <AccountMatrix rows={accountRows} totalPresents={totalPresents} items={items} />
+
+      {/* 奖品概览：这些数字原先只在列表的筛选栏里，而列表在一百多条奖品之后的页尾，
+          等于要滚到底才看得见（用户要求搬上来）。chip 可点，筛的是下面同一份列表。 */}
+      {items.length > 0 && <PresentOverview items={items} />}
 
       {needsChoice.length > 0 && (
         <section className="glass section">
@@ -227,7 +235,7 @@ export default async function Home() {
           .map((l) => ({ key: l.id, time: fmtLogTime(l.at) ?? "", level: l.level, text: l.text, jobId: l.jobId }))}
       />
 
-      <section className="glass section">
+      <section className="glass section" id="presents">
         <div className="section-name">{t.present.listTitle}</div>
         {rows.length === 0 ? (
           <div className="empty">
@@ -238,7 +246,8 @@ export default async function Home() {
           <PresentList items={items} />
         )}
       </section>
-    </main>
+      </main>
+    </PresentFilterProvider>
   );
 }
 

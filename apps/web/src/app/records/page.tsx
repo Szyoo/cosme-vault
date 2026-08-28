@@ -12,6 +12,7 @@ import { getT } from "@/i18n/server.ts";
 import { Nav } from "../nav.tsx";
 import { mergeStatus } from "../labels.ts";
 import { PresentList } from "../present-list.tsx";
+import { PresentFilterProvider } from "../present-filter.tsx";
 import { toItems } from "../present-item.ts";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,10 @@ export default async function RecordsPage() {
   const drawn = rows.filter((r) => mergeStatus(r.status) === "drawn");
 
   return (
-    <main className="page">
+    // PresentList 的筛选走 context（与首页概览共享的那套），
+    // 记录页没有概览，但同样必须提供 Provider，否则组件里 useContext 取不到直接抛
+    <PresentFilterProvider>
+      <main className="page">
       <Nav current="/records" t={t} />
 
       <h1 className="page-title">{t.records.title}</h1>
@@ -99,6 +103,7 @@ export default async function RecordsPage() {
         )}
       </section>
 
-    </main>
+      </main>
+    </PresentFilterProvider>
   );
 }

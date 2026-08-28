@@ -8,8 +8,10 @@
  * 3. 清空——**只清屏，不删数据**。记一个水位线（当前最新那条的 id），
  *    只隐藏 id ≤ 水位线的行，之后的新日志照常出现；库里一条都不动。
  *    水位线存 localStorage，刷新页面后仍然清着（否则一按 F5 就全回来了，
- *    等于没清）。清掉之后显示一条「已隐藏 N 条（仍保留在日志里）· 显示全部」，
+ *    等于没清）。清掉之后显示一条「已清空显示（日志仍完整保留）· 显示全部」，
  *    让人知道数据还在、也随时能恢复。
+ *    ⚠️ 提示里**不报条数**：首页只取最近 20 条，条数表达的是「这一屏里藏了几条」，
+ *    新日志涌入时它会往下掉，看着像在倒数（用户被绕晕过）。
  *
  * 行数据由服务端组件格式化好传进来（时间已转 DISPLAY_TZ）；
  * ⚠️ **文案由本组件 useT() 自取，不走 props**——`hidden(n)` 这类是函数，
@@ -62,7 +64,8 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
   }, []);
 
   const shown = lines.filter((l) => l.key > floor);
-  const hiddenCount = lines.length - shown.length;
+  // 只判断「清没清过」，不报条数——见字典里 log.hidden 的说明
+  const cleared = floor > 0 && shown.length < lines.length;
 
   function clearView() {
     const newest = lines.length > 0 ? lines[lines.length - 1]!.key : 0;
@@ -114,9 +117,9 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
           {clearLabel}
         </button>
       </div>
-      {hiddenCount > 0 && (
+      {cleared && (
         <div className="term-hidden">
-          {hiddenLabel(hiddenCount)}
+          {hiddenLabel}
           <button type="button" className="term-tool-btn" onClick={showAll}>
             {showAllLabel}
           </button>
