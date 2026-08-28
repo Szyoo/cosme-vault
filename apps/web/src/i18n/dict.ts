@@ -122,9 +122,13 @@ const zh = {
 
   overview: {
     title: "奖品概览",
-    // 说明「和 ≠ 总数」是必要的：状态按「任一账号处于该状态」计，两个账号状态不同的
-    // 奖品会被数两次，不解释会被当成算错
-    hint: "点一下即可筛下面的列表。状态按「任一账号处于该状态」计，故各状态之和可能大于奖品总数。",
+    active: "募集中",
+    lifeLabel: "状态",
+    typeLabel: "类型",
+    activeOf: (n: number, all: number) => `募集中 ${n} / 共 ${all}`,
+    noneActive: "当前没有还在募集的奖品",
+    // 说清这里是**奖品自己**的状态：账号投没投在上面的「各账号进度」里
+    hint: "这里是奖品自身的状态，与账号无关（谁投没投看上面的各账号进度）。类型只统计募集中的，点一下即可筛下面的列表。",
   },
 
   present: {
@@ -502,7 +506,12 @@ const ja: Dict = {
 
   overview: {
     title: "プレゼント概況",
-    hint: "クリックすると下の一覧を絞り込みます。状態は「いずれかのアカウントがその状態」で数えるため、合計が総数を上回ることがあります。",
+    active: "募集中",
+    lifeLabel: "状態",
+    typeLabel: "種別",
+    activeOf: (n: number, all: number) => `募集中 ${n} / 全 ${all}`,
+    noneActive: "募集中のプレゼントはありません",
+    hint: "プレゼント自体の状態です（アカウント別の応募状況は上の「アカウント別の進捗」）。種別は募集中のみを集計。クリックで下の一覧を絞り込みます。",
   },
 
   present: {
@@ -856,7 +865,12 @@ const en: Dict = {
 
   overview: {
     title: "Present overview",
-    hint: "Click to filter the list below. Statuses count “any account in this status”, so the sum can exceed the total.",
+    active: "Open",
+    lifeLabel: "State",
+    typeLabel: "Type",
+    activeOf: (n: number, all: number) => `${n} open / ${all} total`,
+    noneActive: "No presents are open right now",
+    hint: "This is the present’s own state, independent of accounts (per-account progress is above). Types count open presents only. Click to filter the list below.",
   },
 
   present: {

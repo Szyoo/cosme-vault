@@ -973,3 +973,6 @@ iframe.diag-shot {
   outline: 1.5px solid currentColor;
   outline-offset: -1px;
 }
+.ov-foot {
+  margin-top: 8px;
+}
