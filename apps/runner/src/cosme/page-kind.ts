@@ -38,16 +38,36 @@ export async function classifyPage(page: Page): Promise<PageVerdict> {
   if (/(^|\/\/)auth\.cosme\.net/.test(url) || /\/isauth\/login/.test(url)) {
     return { kind: "loginWall", evidence: `URL 落在授权服务器：${url}` };
   }
-  const body = await page
-    .evaluate(() => document.body?.innerText?.replace(/\s+/g, " ").slice(0, 3000) ?? "")
-    .catch(() => "");
+  const { body, hasApplyEntry } = await page
+    .evaluate(() => {
+      const text = document.body?.innerText?.replace(/\s+/g, " ").slice(0, 3000) ?? "";
+      // 可点击的应募入口是否还在：只看 a / button / input（含图片按钮的 alt），
+      // 不看正文——正文里「応募するには…」这类说明句不算入口
+      const APPLY = /今すぐ応募|応募する/;
+      const clickable = [
+        ...document.querySelectorAll<HTMLElement>("a, button, input[type=submit], input[type=image], input[type=button]"),
+      ];
+      const entry = clickable.some((el) => {
+        const label =
+          el instanceof HTMLInputElement ? `${el.value ?? ""} ${el.alt ?? ""}` : (el.innerText ?? "");
+        return APPLY.test(label);
+      });
+      return { body: text, hasApplyEntry: entry };
+    })
+    .catch(() => ({ body: "", hasApplyEntry: false }));
   if (LOGIN_TEXT.test(body)) {
     return { kind: "loginWall", evidence: `正文含登录墙文案：${LOGIN_TEXT.exec(body)?.[0]}` };
   }
 
-  // 2. 已结束：奖品过期是正常边界，不该报成未知模式
-  if (ENDED_TEXT.test(body)) {
-    return { kind: "ended", evidence: `正文含结束文案：${ENDED_TEXT.exec(body)?.[0]}` };
+  // 2. 已结束：奖品过期是正常边界，不该报成未知模式。
+  //
+  // ⚠️ 双条件：结束文案 **且** 应募入口已消失。单看文案会误伤——tieup 的 PR 页
+  // 常并列多个活动，别的活动的「受付は終了」也在 innerText 里（用户担心的场景）。
+  // 实证（2026-08-26 复核 55 条 expired）：真结束的详情页应募入口一定没了
+  // （bp-31867/31876/31898 均验证），而 PR 页误扫场景本活动的「今すぐ応募」还在。
+  // 入口还在就不定案，交给模式照常走流程——真结束了后续自然走不通，会回到兜底阶梯。
+  if (ENDED_TEXT.test(body) && !hasApplyEntry) {
+    return { kind: "ended", evidence: `正文含结束文案：${ENDED_TEXT.exec(body)?.[0]}，且页面已无应募入口` };
   }
 
   // 3. 页面不存在
