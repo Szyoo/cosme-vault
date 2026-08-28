@@ -76,6 +76,8 @@ export default async function Home() {
     }
     return { accountId: a.id, label: a.label, enabled: a.enabled, counts };
   });
+  // 矩阵下钻 modal 与奖品列表共用同一份已本地化数据（纯字符串，可跨 RSC 边界）
+  const items = toItems(rows, accountList, t);
 
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
@@ -155,7 +157,7 @@ export default async function Home() {
 
       {/* 账号 × 状态矩阵（取代原来的四张加总卡：那些卡不含未知模式/失败，
           数字不闭合也看不出各账号进度——见 account-matrix.tsx 的说明） */}
-      <AccountMatrix rows={accountRows} totalPresents={totalPresents} t={t} />
+      <AccountMatrix rows={accountRows} totalPresents={totalPresents} items={items} />
 
       {needsChoice.length > 0 && (
         <section className="glass section">
@@ -235,7 +237,7 @@ export default async function Home() {
             <p>{t.present.emptyHint}</p>
           </div>
         ) : (
-          <PresentList items={toItems(rows, accountList, t)} />
+          <PresentList items={items} />
         )}
       </section>
     </main>
