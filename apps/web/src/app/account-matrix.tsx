@@ -24,6 +24,7 @@ import type { Dict } from "@/i18n/dict.ts";
 import { statusOf } from "./labels.ts";
 import { AccountActions } from "./account-actions.tsx";
 import type { PresentItem } from "./present-item.ts";
+import { GoneFix } from "./gone-fix.tsx";
 
 /** 状态展示顺序：先「好结果」，再「等你」，最后「有问题」 */
 const ORDER = ["drawn", "alreadyEntered", "needsChoice", "pending", "unknownPattern", "failed", "expired", "gone"] as const;
@@ -274,15 +275,20 @@ function DrillModal({
                           {t.matrix.goChoose}
                         </Link>
                       )}
-                      {resettable && (
-                        <button
-                          type="button"
-                          className="btn-ghost btn-small"
-                          disabled={busy}
-                          onClick={() => void reset(i.presentId)}
-                        >
-                          {t.matrix.resetOne}
-                        </button>
+                      {/* 404 给完整改判（含回待投递）；其余可重置态给一键回待投递 */}
+                      {drill.status === "gone" ? (
+                        <GoneFix accountId={drill.accountId} presentId={i.presentId} />
+                      ) : (
+                        resettable && (
+                          <button
+                            type="button"
+                            className="btn-ghost btn-small"
+                            disabled={busy}
+                            onClick={() => void reset(i.presentId)}
+                          >
+                            {t.matrix.resetOne}
+                          </button>
+                        )
                       )}
                     </div>
                   </li>
