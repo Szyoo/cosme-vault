@@ -943,3 +943,33 @@ iframe.diag-shot {
 .term-hidden .term-tool-btn {
   margin-left: auto;
 }
+
+/* ─────────────────────────────────────────────────────────
+ * 奖品概览（首页靠上，点 chip 筛下面的列表）
+ * ───────────────────────────────────────────────────────── */
+.ov-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ov-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  flex: none;
+  /* 与 chip 首行基线对齐；chip 是 11px/1.5 加 2px 内边距 */
+  padding-top: 3px;
+  min-width: 2.6em;
+}
+.ov-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+/* 选中态：加粗边框而不是换配色——状态 chip 本身就靠颜色表意，
+   再改颜色会和「已下架黄 / 404 红」那套语义打架 */
+.pill-btn.active {
+  outline: 1.5px solid currentColor;
+  outline-offset: -1px;
+}

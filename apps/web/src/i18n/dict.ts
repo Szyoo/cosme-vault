@@ -120,6 +120,13 @@ const zh = {
     fixHint: "404 可能是误判（站点瞬时故障 / 链接有错 / 其实已投过）。人工核实原页面后，把状态改成实际情况。",
   },
 
+  overview: {
+    title: "奖品概览",
+    // 说明「和 ≠ 总数」是必要的：状态按「任一账号处于该状态」计，两个账号状态不同的
+    // 奖品会被数两次，不解释会被当成算错
+    hint: "点一下即可筛下面的列表。状态按「任一账号处于该状态」计，故各状态之和可能大于奖品总数。",
+  },
+
   present: {
     listTitle: "奖品",
     name: "奖品",
@@ -289,8 +296,9 @@ const zh = {
     copied: "已复制 ✓",
     toBottom: "回到最新",
     clear: "清空",
-    // 说清「只清屏、不删数据」——否则没人敢点
-    hidden: (n: number) => `已隐藏 ${n} 条（仍保留在日志里）`,
+    // ⚠️ 刻意不报「隐藏了几条」：首页只取最近 20 条，那个数字表达的是
+    // 「当前这一屏里被藏了几条」，会随新日志涌入而下降，读起来像在倒数（用户被绕晕过）。
+    hidden: "已清空显示（日志仍完整保留）",
     showAll: "显示全部",
   },
   common: { loading: "读取中…", none: "—", jobs: "最近任务", noneYet: "暂无" },
@@ -492,6 +500,11 @@ const ja: Dict = {
     fixHint: "404 は誤判定の可能性があります（一時的障害 / リンク誤り / 応募済み）。元ページを確認のうえ実際の状態に修正してください。",
   },
 
+  overview: {
+    title: "プレゼント概況",
+    hint: "クリックすると下の一覧を絞り込みます。状態は「いずれかのアカウントがその状態」で数えるため、合計が総数を上回ることがあります。",
+  },
+
   present: {
     listTitle: "プレゼント",
     name: "プレゼント",
@@ -654,7 +667,7 @@ const ja: Dict = {
     copied: "コピーしました ✓",
     toBottom: "最新へ",
     clear: "表示をクリア",
-    hidden: (n: number) => `${n} 件を非表示（ログ自体は保持されています）`,
+    hidden: "表示をクリアしました（ログ自体は保持されています）",
     showAll: "すべて表示",
   },
   common: { loading: "読み込み中…", none: "—", jobs: "最近のタスク", noneYet: "なし" },
@@ -841,6 +854,11 @@ const en: Dict = {
     fixHint: "A 404 may be a misjudgment (transient failure / wrong link / already entered). Verify the original page, then set the real status.",
   },
 
+  overview: {
+    title: "Present overview",
+    hint: "Click to filter the list below. Statuses count “any account in this status”, so the sum can exceed the total.",
+  },
+
   present: {
     listTitle: "Presents",
     name: "Present",
@@ -1003,7 +1021,7 @@ const en: Dict = {
     copied: "Copied ✓",
     toBottom: "Jump to latest",
     clear: "Clear view",
-    hidden: (n: number) => `${n} lines hidden (still kept in the log)`,
+    hidden: "View cleared (the log itself is kept)",
     showAll: "Show all",
   },
   common: { loading: "Loading…", none: "—", jobs: "Recent jobs", noneYet: "None" },
