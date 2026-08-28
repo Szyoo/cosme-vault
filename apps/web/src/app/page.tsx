@@ -221,11 +221,6 @@ export default async function Home() {
           复制/贴底跟随在客户端组件里（行已在服务端格式化好，字典函数不跨界）。 */}
       <TermLog
         live={runner.kind === "online"}
-        title={t.log.title}
-        emptyText={t.log.empty}
-        copyLabel={t.log.copy}
-        copiedLabel={t.log.copied}
-        toBottomLabel={t.log.toBottom}
         lines={logs
           .slice()
           .reverse()
