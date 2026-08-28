@@ -610,7 +610,10 @@
 
 /* ---------- 运行日志：复制与贴底跟随 ---------- */
 .term-tool-btn {
-  margin-left: auto;
+  /* ⚠️ 只有**第一个**工具按钮吃掉左侧空白（见下面的 :first-of-type 覆盖）。
+     两个按钮都写 margin-left:auto 的话，剩余空间会在两个 auto 之间平分，
+     结果是按钮被拉开分散在标题栏两端。 */
+  margin-left: 6px;
   appearance: none;
   padding: 2px 10px;
   font-size: 11px;
@@ -915,4 +918,28 @@ iframe.diag-shot {
   color: var(--unknown);
   border-color: color-mix(in srgb, var(--unknown) 50%, transparent);
   background: color-mix(in srgb, var(--unknown) 14%, transparent);
+}
+
+/* 工具按钮：第一个靠右对齐，其余紧跟其后 */
+.term-head .term-tool-btn:first-of-type {
+  margin-left: auto;
+}
+.term-tool-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 清空后的提示条：明确「数据还在」并给回退入口——
+   否则用户不敢按，按了也不知道日志是不是被删了 */
+.term-hidden {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--term-text, #9fb0c3) 75%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--term-text, #9fb0c3) 18%, transparent);
+}
+.term-hidden .term-tool-btn {
+  margin-left: auto;
 }

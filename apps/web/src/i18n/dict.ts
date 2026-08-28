@@ -282,7 +282,17 @@ const zh = {
     seeScene: "看现场",
   },
 
-  log: { title: "运行日志", empty: "（暂无日志）", copy: "复制", copied: "已复制 ✓", toBottom: "回到最新" },
+  log: {
+    title: "运行日志",
+    empty: "（暂无日志）",
+    copy: "复制",
+    copied: "已复制 ✓",
+    toBottom: "回到最新",
+    clear: "清空",
+    // 说清「只清屏、不删数据」——否则没人敢点
+    hidden: (n: number) => `已隐藏 ${n} 条（仍保留在日志里）`,
+    showAll: "显示全部",
+  },
   common: { loading: "读取中…", none: "—", jobs: "最近任务", noneYet: "暂无" },
 
   /** 设计包的右上角工具（明暗切换、背景参数）也要跟着语言走 */
@@ -637,7 +647,16 @@ const ja: Dict = {
     seeScene: "現場を見る",
   },
 
-  log: { title: "実行ログ", empty: "（ログなし）", copy: "コピー", copied: "コピーしました ✓", toBottom: "最新へ" },
+  log: {
+    title: "実行ログ",
+    empty: "（ログなし）",
+    copy: "コピー",
+    copied: "コピーしました ✓",
+    toBottom: "最新へ",
+    clear: "表示をクリア",
+    hidden: (n: number) => `${n} 件を非表示（ログ自体は保持されています）`,
+    showAll: "すべて表示",
+  },
   common: { loading: "読み込み中…", none: "—", jobs: "最近のタスク", noneYet: "なし" },
 
   chrome: { auto: "システムに従う", light: "ライト", dark: "ダーク", localOnly: "この端末にのみ保存" },
@@ -977,7 +996,16 @@ const en: Dict = {
     seeScene: "View scene",
   },
 
-  log: { title: "Runner log", empty: "(no logs yet)", copy: "Copy", copied: "Copied ✓", toBottom: "Jump to latest" },
+  log: {
+    title: "Runner log",
+    empty: "(no logs yet)",
+    copy: "Copy",
+    copied: "Copied ✓",
+    toBottom: "Jump to latest",
+    clear: "Clear view",
+    hidden: (n: number) => `${n} lines hidden (still kept in the log)`,
+    showAll: "Show all",
+  },
   common: { loading: "Loading…", none: "—", jobs: "Recent jobs", noneYet: "None" },
 
   chrome: { auto: "Follow system", light: "Light", dark: "Dark", localOnly: "saved locally only" },
