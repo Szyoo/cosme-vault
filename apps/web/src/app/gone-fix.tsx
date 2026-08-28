@@ -14,8 +14,12 @@ import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
 import { statusOf } from "./labels.ts";
 
-/** 可改判的目标（除 gone 自身外的全部已有状态） */
-const TARGETS = ["pending", "drawn", "alreadyEntered", "needsChoice", "failed", "expired", "unknownPattern"] as const;
+/**
+ * 可改判的目标（除 gone 自身外的全部已有状态）。
+ * 不含 `alreadyEntered`——它在界面上已归并进「已投递」，列出来会是两个同名选项。
+ * 人工改判统一落到 drawn 即可（二者对用户的意义相同）。
+ */
+const TARGETS = ["pending", "drawn", "needsChoice", "failed", "expired", "unknownPattern"] as const;
 
 export function GoneFix({ accountId, presentId }: { accountId: string; presentId: string }) {
   const t = useT();
