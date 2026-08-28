@@ -18,6 +18,8 @@ export interface TermLine {
   time: string;
   level: string;
   text: string;
+  /** 所属任务；换任务时终端插一条分隔线（控制面自己写的日志为 null，自成一组） */
+  jobId: string | null;
 }
 
 /** 距底多少像素以内都算「在底部」——留余量，免得一像素的抖动就解除跟随 */
@@ -58,7 +60,13 @@ export function TermLog({
   }
 
   async function copyAll() {
-    const text = lines.map((l) => `${l.time} [${l.level}] ${l.text}`).join("\n");
+    // 复制出来的文本也带分隔，贴给别人时同样能看出任务边界
+    const text = lines
+      .map((l, i) => {
+        const sep = i > 0 && l.jobId !== lines[i - 1]!.jobId ? "\n" + "═".repeat(48) + "\n" : "";
+        return `${sep}${l.time} [${l.level}] ${l.text}`;
+      })
+      .join("\n");
     await navigator.clipboard.writeText(text).catch(() => undefined);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -76,9 +84,13 @@ export function TermLog({
       <div className="term-body-wrap">
         <div className="term-body" ref={body} onScroll={onScroll}>
           {lines.length === 0 && <div className="term-line debug">{emptyText}</div>}
-          {lines.map((l) => (
-            <div key={l.key} className={`term-line ${l.level}`}>
-              <span className="term-time">{l.time}</span> {l.text}
+          {lines.map((l, i) => (
+            <div key={l.key}>
+              {/* 任务边界：换 jobId 就画一条双线，否则只能靠时间戳猜哪条属于哪次任务 */}
+              {i > 0 && l.jobId !== lines[i - 1]!.jobId && <div className="term-sep" aria-hidden />}
+              <div className={`term-line ${l.level}`}>
+                <span className="term-time">{l.time}</span> {l.text}
+              </div>
             </div>
           ))}
         </div>

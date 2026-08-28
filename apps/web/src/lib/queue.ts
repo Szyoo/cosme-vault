@@ -252,6 +252,10 @@ export function applyReport(report: JobReport): ReportEffects {
         .all()
         .filter((a) => a.enabled && a.credentialsEnc);
 
+      // 扫描汇总用的计数（终端里要能看到「这次扫出了什么」，而不只是逐来源的流水）
+      let newPresents = 0;
+      let newLinks = 0;
+
       for (const p of outcome.presents) {
         // 显式 upsert：奖品 id 取自站点的 present_id，是天然主键。
         // 不用 onConflictDoUpdate(target: link)——那样主键冲突不在处理范围内，重扫会直接报错。
@@ -272,6 +276,7 @@ export function applyReport(report: JobReport): ReportEffects {
             .where(eq(schema.presents.id, p.id))
             .run();
         } else {
+          newPresents++;
           tx.insert(schema.presents)
             .values({
               id: p.id,
@@ -308,6 +313,7 @@ export function applyReport(report: JobReport): ReportEffects {
             )
             .get();
           if (!link) {
+            newLinks++;
             tx.insert(schema.accountPresents)
               .values({ id: randomUUID(), accountId: acc.id, presentId: p.id, status: "pending" })
               .run();
@@ -329,6 +335,31 @@ export function applyReport(report: JobReport): ReportEffects {
             : undefined,
         ).length;
       }
+
+      // ── 扫描汇总（用户要求：每次扫描完终端要有一条结论行）──
+      //
+      // 逐来源的流水由 runner 打，但「新增了什么」只有控制面知道（它才有旧数据），
+      // 所以汇总必须在这里写。一次扫描打十几行来源流水、却没有一句结论，
+      // 等于要人自己心算——尤其「0 个新奖品」和「某来源版式失效」看起来一模一样。
+      const bad = outcome.sourceReports.filter((r) => !r.recognized);
+      const parts = [
+        `扫描完成：站上 ${outcome.presents.length} 个奖品`,
+        `新奖品 ${newPresents} 个`,
+        `新建待投递记录 ${newLinks} 条`,
+      ];
+      if (effects.dispatchedDraws > 0) parts.push(`已派发投递 ${effects.dispatchedDraws} 个`);
+      else if (scanJob?.batchKind === "scan") parts.push("仅检测，未派发投递");
+      if (bad.length > 0) parts.push(`⚠️ ${bad.length} 个来源版式未识别（${bad.map((r) => r.source).join("、")}）`);
+
+      tx.insert(schema.runnerLogs)
+        .values({
+          jobId: report.jobId,
+          at: new Date().toISOString(),
+          // 有来源没认出来就报 warn——那是「今天没新奖品」与「某来源悄悄失效」的分水岭
+          level: bad.length > 0 ? "warn" : "info",
+          text: parts.join(" · "),
+        })
+        .run();
     } else if (outcome.kind === "draw") {
       // draw 任务的 accountId/presentId 需从 job payload 取
       const job = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();

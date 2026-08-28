@@ -226,7 +226,7 @@ export default async function Home() {
         lines={logs
           .slice()
           .reverse()
-          .map((l) => ({ key: l.id, time: fmtLogTime(l.at) ?? "", level: l.level, text: l.text }))}
+          .map((l) => ({ key: l.id, time: fmtLogTime(l.at) ?? "", level: l.level, text: l.text, jobId: l.jobId }))}
       />
 
       <section className="glass section">

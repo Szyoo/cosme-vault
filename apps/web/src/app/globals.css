@@ -895,3 +895,10 @@ iframe.diag-shot {
     padding-inline-start: 8px;
   }
 }
+
+/* 任务分隔：终端里换一个 job 就画一条双线。
+   用 CSS 双线而不是一串「─」字符——固定长度的字符串在 375px 上会折行成两截。 */
+.term-sep {
+  border-top: 3px double color-mix(in srgb, var(--term-text, #9fb0c3) 38%, transparent);
+  margin: 7px 0 6px;
+}
