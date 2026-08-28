@@ -14,6 +14,7 @@ import { fmtDateTime } from "@/lib/when.ts";
 import type { Dict } from "@/i18n/dict.ts";
 import { DrawOneButton } from "./draw-one.tsx";
 import { ResolveButtons } from "../../resolve-buttons.tsx";
+import { GoneFix } from "../../gone-fix.tsx";
 import { sourceOf, statusOf } from "../../labels.ts";
 
 export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict }) {
@@ -136,6 +137,8 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
                     {l.status === "failed" && (
                       <ResolveButtons accountId={l.accountId} presentId={present.id} link={present.link} />
                     )}
+                    {/* 404 开放人工改判成任何状态（可能是误判——瞬时故障/链接错/其实已投过） */}
+                    {l.status === "gone" && <GoneFix accountId={l.accountId} presentId={present.id} />}
                     {l.status === "pending" && (
                       <DrawOneButton accountId={l.accountId} presentId={present.id} presentLink={present.link} />
                     )}

@@ -870,3 +870,28 @@ iframe.diag-shot {
     justify-content: flex-end;
   }
 }
+
+/* 404 人工改判控件（gone-fix.tsx）：下拉 + 应用，哪里显示 404 哪里就有 */
+.gone-fix {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.gone-fix-select {
+  font-size: 12px;
+  padding: 3px 6px;
+  width: auto;
+  min-width: 7em;
+}
+/* 列表行下方的改判条（筛选 404 时出现），与行内容对齐、不挤进 Link */
+.prow-fix {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 4px 8px 8px 68px; /* 对齐图片右侧的内容区 */
+}
+@media (max-width: 480px) {
+  .prow-fix {
+    padding-inline-start: 8px;
+  }
+}

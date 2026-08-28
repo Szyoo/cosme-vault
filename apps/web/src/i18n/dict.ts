@@ -114,6 +114,10 @@ const zh = {
     goChoose: "去选择",
     drillEmpty: "这个状态下没有奖品了。",
     missingDrillHint: "这些奖品还没有为该账号建立记录，点「仅检测」扫描后自动建立。",
+    fixPick: "改为…",
+    fixApply: "应用",
+    fixDone: "已改判 ✓",
+    fixHint: "404 可能是误判（站点瞬时故障 / 链接有错 / 其实已投过）。人工核实原页面后，把状态改成实际情况。",
   },
 
   present: {
@@ -472,6 +476,10 @@ const ja: Dict = {
     goChoose: "選択する",
     drillEmpty: "この状態のプレゼントはありません。",
     missingDrillHint: "このアカウントのレコードが未作成です。「検出のみ」を実行すると作成されます。",
+    fixPick: "変更先…",
+    fixApply: "適用",
+    fixDone: "変更済み ✓",
+    fixHint: "404 は誤判定の可能性があります（一時的障害 / リンク誤り / 応募済み）。元ページを確認のうえ実際の状態に修正してください。",
   },
 
   present: {
@@ -808,6 +816,10 @@ const en: Dict = {
     goChoose: "Choose",
     drillEmpty: "No presents in this status anymore.",
     missingDrillHint: "No records for this account yet — run “Scan only” to create them.",
+    fixPick: "Change to…",
+    fixApply: "Apply",
+    fixDone: "Changed ✓",
+    fixHint: "A 404 may be a misjudgment (transient failure / wrong link / already entered). Verify the original page, then set the real status.",
   },
 
   present: {

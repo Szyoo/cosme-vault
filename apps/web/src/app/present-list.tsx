@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/i18n/context.tsx";
 import type { PresentItem } from "./present-item.ts";
+import { GoneFix } from "./gone-fix.tsx";
 
 /**
  * 统计某个字段的取值与条数，用于生成筛选按钮（只列真实存在的取值）。
@@ -139,7 +140,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
       ) : (
         <ul className="plist">
           {shown.map((i) => (
-            <Row key={i.presentId} item={i} />
+            <Row key={i.presentId} item={i} statusFilter={status} />
           ))}
         </ul>
       )}
@@ -166,7 +167,10 @@ function FilterChip({
   );
 }
 
-function Row({ item }: { item: PresentItem }) {
+function Row({ item, statusFilter }: { item: PresentItem; statusFilter: string | null }) {
+  // 筛选到 404 时给行内改判入口（用户要求：所有展示 404 的界面都要有操作）。
+  // 控件放在 Link 外面——放里面点下拉会触发整行导航。
+  const goneStates = statusFilter === "gone" ? item.accounts.filter((a) => a.status === "gone") : [];
   return (
     <li>
       {/* ⚠️ 必须是 next/link：拦截路由只在**客户端导航**时接管。
@@ -198,6 +202,16 @@ function Row({ item }: { item: PresentItem }) {
           {item.at && <span className="prow-tag muted num">{item.at}</span>}
         </span>
       </Link>
+      {goneStates.length > 0 && (
+        <div className="prow-fix">
+          {goneStates.map((a) => (
+            <span key={a.accountId} className="row" style={{ gap: 6 }}>
+              {item.accounts.length > 1 && <span className="tiny muted">{a.short}</span>}
+              <GoneFix accountId={a.accountId} presentId={item.presentId} />
+            </span>
+          ))}
+        </div>
+      )}
     </li>
   );
 }

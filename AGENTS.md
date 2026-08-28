@@ -484,6 +484,13 @@ audit 把同一期间报成「不一致」**79 次**。`isPeriodExpired()` 用�
 - **重置回待投递只改状态、绝不派发**（`POST /api/account-presents/reset`）：
   白名单 failed / unknownPattern / expired / gone。drawn/alreadyEntered 是去重防线不许重置；
   needsChoice 有选择页闭环，从这里重置会丢挂起的题，也不许。派发仍由用户点「仅抽取」。
+- **404 开放人工改判成任何状态**（`gone-fix.tsx` + `POST /api/account-presents/status`，
+  2026-08-27 用户要求）：404 天然是「可能判错了」的状态（瞬时故障 / 链接存错 /
+  其实早投过），真相要人工看原页面，所以只有 gone 能自由改判、其他状态不走这个口。
+  改判控件挂在**所有展示 404 的地方**：奖品详情页的账号状态行、下钻 modal 的 gone
+  列表（替代该处的重置按钮——pending 只是七个目标之一）、奖品列表**筛选 404 时**的
+  行下方（控件必须放在整行 Link 外面，放里面点下拉会触发导航）。
+  改判留痕：非 pending 目标把「人工改判：404 → X」写进 error；改成 drawn 时补 drawnAt。
 
 ## 操作授权（用户明令，2026-08-23）
 
