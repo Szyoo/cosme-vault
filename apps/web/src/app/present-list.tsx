@@ -22,7 +22,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
   const t = useT();
   // 筛选状态与顶部的「奖品概览」共享（见 present-filter.tsx）：
   // 上面点一个类型/状态，下面这份列表跟着筛
-  const { source, status, q, setSource, setStatus, setQ, reset } = usePresentFilter();
+  const { source, status, life, q, setSource, setStatus, setQ, reset } = usePresentFilter();
 
   const sources = useMemo(() => tallySource(items), [items]);
   const statuses = useMemo(() => tallyStatus(items), [items]);
@@ -32,6 +32,8 @@ export function PresentList({ items }: { items: PresentItem[] }) {
     const needle = q.normalize("NFKC").toLowerCase().trim();
     return items.filter((i) => {
       if (source && i.sourceShort !== source) return false;
+      // 奖品自身状态（募集中/已下架/404），由顶部概览设置
+      if (life && i.life !== life) return false;
       // 任一账号命中即算（同一奖品在不同账号可能状态不同）
       if (status && !i.accounts.some((a) => a.status === status)) return false;
       if (!needle) return true;
@@ -42,9 +44,9 @@ export function PresentList({ items }: { items: PresentItem[] }) {
         .toLowerCase()
         .includes(needle);
     });
-  }, [items, source, status, q]);
+  }, [items, source, status, life, q]);
 
-  const filtering = source !== null || status !== null || q.trim() !== "";
+  const filtering = source !== null || status !== null || life !== null || q.trim() !== "";
 
   return (
     <>

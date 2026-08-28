@@ -1,74 +1,93 @@
 /**
- * 奖品概览：站上现有奖品按**类型**与**状态**的分布，放在首页靠上的位置。
+ * 奖品概览：**奖品自己**的状态与类型分布，放在首页靠上的位置。
  *
- * 为什么单独做：这些数字本来只在奖品列表的筛选栏里有，而列表在页面最底下
- * （一百多条奖品之后），等于要滚到底才看得见（用户要求搬上来）。
+ * ⚠️ 这里的「状态」与账号无关（用户明确指出）：投没投是**账号**的事，
+ * 「还在不在募集」是**奖品**的事，两个维度不能混。账号维度在上面的
+ * 「各账号进度」里已经有了，这里回答的是另一个问题——**现在还有多少能抽**。
  *
- * chip 是**可点的**，点了就筛下面的列表并把视线带过去——与账号进度条的下钻
- * 同一套交互。做成死数字的话，上面一排点不动、下面一排一模一样的能点，更迷惑。
+ * 默认只展示**募集中**的那些（用户要的是「现在有效的」，不是全部），
+ * 已下架 / 404 折在旁边一行小字里，需要时点开。
+ *
+ * chip 可点，筛的就是下面那份列表并把视线带过去——与账号进度条的下钻同一套交互。
  */
 "use client";
 
 import { useMemo } from "react";
 import { useT } from "@/i18n/context.tsx";
-import { tallySource, tallyStatus, type PresentItem } from "./present-item.ts";
+import { tallyLife, tallySource, type PresentItem } from "./present-item.ts";
 import { usePresentFilter, scrollToList } from "./present-filter.tsx";
+
+/** 奖品自身状态的文案与配色（与投递状态那套 pill 配色保持一致） */
+const LIFE_PILL: Record<string, string> = { active: "green", expired: "amber", gone: "red" };
 
 export function PresentOverview({ items }: { items: PresentItem[] }) {
   const t = useT();
-  const { source, status, setSource, setStatus } = usePresentFilter();
+  const { source, life, setSource, setLife } = usePresentFilter();
 
-  const sources = useMemo(() => tallySource(items), [items]);
-  const statuses = useMemo(() => tallyStatus(items), [items]);
+  const lives = useMemo(() => tallyLife(items), [items]);
+  // 类型分布只算**募集中**的：概览要回答「现在还有多少能抽」，
+  // 把已下架的算进类型里会让「PR 合作 110」看着还有 110 个能投，其实早没了
+  const active = useMemo(() => items.filter((i) => i.life === "active"), [items]);
+  const sources = useMemo(() => tallySource(active), [active]);
 
+  function pickLife(v: string) {
+    setLife(life === v ? null : v);
+    scrollToList();
+  }
+  /** 点类型 = 「募集中的这一类」，与上面看到的数字一致，所见即所得 */
   function pickSource(v: string) {
     setSource(source === v ? null : v);
+    setLife("active");
     scrollToList();
   }
-  function pickStatus(v: string) {
-    setStatus(status === v ? null : v);
-    scrollToList();
-  }
+
+  const lifeLabel = (k: string) =>
+    k === "active" ? t.overview.active : k === "expired" ? t.status.expired : t.status.gone;
 
   return (
     <section className="glass section">
       <div className="row spread">
         <div className="section-name">{t.overview.title}</div>
-        <span className="tiny muted num">{t.matrix.totalPresents(items.length)}</span>
+        <span className="tiny muted num">{t.overview.activeOf(active.length, items.length)}</span>
       </div>
-      <p className="tiny muted">{t.overview.hint}</p>
 
       <div className="ov-row">
-        <span className="ov-label">{t.filter.byType}</span>
+        <span className="ov-label">{t.overview.lifeLabel}</span>
         <div className="ov-chips">
-          {sources.map((s) => (
+          {lives.map((l) => (
             <button
-              key={s.value}
+              key={l.value}
               type="button"
-              className={`pill pill-btn${source === s.value ? " active" : ""}`}
-              onClick={() => pickSource(s.value)}
+              className={`pill pill-btn ${LIFE_PILL[l.value] ?? ""}${life === l.value ? " active" : ""}`}
+              onClick={() => pickLife(l.value)}
             >
-              {s.label} <span className="num">{s.count}</span>
+              {lifeLabel(l.value)} <span className="num">{l.count}</span>
             </button>
           ))}
         </div>
       </div>
 
       <div className="ov-row">
-        <span className="ov-label">{t.filter.byStatus}</span>
+        <span className="ov-label">{t.overview.typeLabel}</span>
         <div className="ov-chips">
-          {statuses.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              className={`pill pill-btn ${s.pill}${status === s.value ? " active" : ""}`}
-              onClick={() => pickStatus(s.value)}
-            >
-              {s.label} <span className="num">{s.count}</span>
-            </button>
-          ))}
+          {sources.length === 0 ? (
+            <span className="tiny muted">{t.overview.noneActive}</span>
+          ) : (
+            sources.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                className={`pill pill-btn${source === s.value ? " active" : ""}`}
+                onClick={() => pickSource(s.value)}
+              >
+                {s.label} <span className="num">{s.count}</span>
+              </button>
+            ))
+          )}
         </div>
       </div>
+
+      <p className="tiny muted ov-foot">{t.overview.hint}</p>
     </section>
   );
 }

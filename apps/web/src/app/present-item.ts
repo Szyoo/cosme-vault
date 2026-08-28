@@ -10,6 +10,7 @@
  */
 import type { Dict } from "@/i18n/dict.ts";
 import { fmtDateTime } from "@/lib/when.ts";
+import { isPeriodExpired } from "@cosme/core";
 import { mergeStatus, sourceOf, statusOf } from "./labels.ts";
 
 /** 来自库的原始行（一行 = 一个奖品 × 一个账号） */
@@ -57,6 +58,12 @@ export interface PresentItem {
   sourcePill: string;
   /** 各账号在这个奖品上的状态（按账号顺序） */
   accounts: AccountState[];
+  /**
+   * 奖品**自己**的状态，与账号无关（用户指出：投没投是账号的事，
+   * 「还在不在募集」是奖品的事，两个维度不能混）。
+   * active=募集中 / expired=已下架 / gone=页面 404
+   */
+  life: "active" | "expired" | "gone";
   /** 最近一次变动时间（各账号取最新），用于记录页排序展示 */
   at: string | null;
 }
@@ -92,6 +99,7 @@ export function toItems(
         sourcePill: src.pill,
         accounts: [],
         at: null,
+        life: "active",
       };
       byPresent.set(r.presentId, item);
     }
@@ -116,8 +124,26 @@ export function toItems(
 
   for (const item of byPresent.values()) {
     item.accounts.sort((a, b) => (order.get(a.accountId) ?? 99) - (order.get(b.accountId) ?? 99));
+    item.life = lifeOf(item);
   }
   return [...byPresent.values()];
+}
+
+/**
+ * 判定奖品**自己**还在不在募集，与账号无关。
+ *
+ * 两路证据，任一成立即判为不在募集：
+ * 1. **任一账号**跑到过 gone/expired —— 那是 runner 在站点上亲眼看到的结论
+ *    （页面 404、或写着「受付は終了」且已无应募入口）。奖品下架对所有账号都成立，
+ *    所以哪个账号撞见的不重要。gone 优先于 expired：404 更值得人看一眼。
+ * 2. **期间已过** —— 兜住「还没有任何账号跑过它」的那些，光看账号状态会漏掉，
+ *    它们会一直以「募集中」的面目留在概览里。
+ */
+function lifeOf(item: PresentItem): "active" | "expired" | "gone" {
+  if (item.accounts.some((a) => a.status === "gone")) return "gone";
+  if (item.accounts.some((a) => a.status === "expired")) return "expired";
+  if (isPeriodExpired(item.period)) return "expired";
+  return "active";
 }
 
 
@@ -154,4 +180,14 @@ export function tallyStatus(items: PresentItem[]): { value: string; label: strin
     }
   }
   return [...map.values()].sort((a, b) => b.count - a.count);
+}
+
+
+/** 按奖品自身状态统计（与账号无关）。各项之和 **等于** 奖品总数——它是互斥的三档。 */
+export function tallyLife(items: PresentItem[]): { value: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const i of items) map.set(i.life, (map.get(i.life) ?? 0) + 1);
+  return (["active", "expired", "gone"] as const)
+    .map((k) => ({ value: k, count: map.get(k) ?? 0 }))
+    .filter((x) => x.count > 0);
 }

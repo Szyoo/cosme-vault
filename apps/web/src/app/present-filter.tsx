@@ -15,10 +15,14 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 
 interface FilterState {
   source: string | null;
+  /** 账号维度：某账号在这个奖品上的投递状态 */
   status: string | null;
+  /** 奖品维度：奖品自己还在不在募集（active/expired/gone），与账号无关 */
+  life: string | null;
   q: string;
   setSource: (v: string | null) => void;
   setStatus: (v: string | null) => void;
+  setLife: (v: string | null) => void;
   setQ: (v: string) => void;
   reset: () => void;
 }
@@ -34,22 +38,26 @@ export function usePresentFilter(): FilterState {
 export function PresentFilterProvider({ children }: { children: ReactNode }) {
   const [source, setSource] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [life, setLife] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const value = useMemo<FilterState>(
     () => ({
       source,
       status,
+      life,
       q,
       setSource,
       setStatus,
+      setLife,
       setQ,
       reset: () => {
         setSource(null);
         setStatus(null);
+        setLife(null);
         setQ("");
       },
     }),
-    [source, status, q],
+    [source, status, life, q],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
