@@ -776,11 +776,14 @@ iframe.diag-shot {
  * 这里只补列表行与操作区。
  * ───────────────────────────────────────────────────────── */
 
-/* 状态 pill 变按钮：保持 pill 外观，只加可点感 */
+/* 状态 pill 变按钮：保持 pill 外观，只加可点感。
+   ⚠️ 不能写 `font: inherit`——那会把设计包 `.pill` 的 11px 覆盖成正文字号，
+   chip 立刻比上面的 btn-small(13px) 还大（踩过）。只继承字体族，字号显式钉住。 */
 .pill-btn {
   cursor: pointer;
-  border: 0;
-  font: inherit;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.5;
 }
 .pill-btn:hover {
   filter: brightness(1.12);
@@ -901,4 +904,15 @@ iframe.diag-shot {
 .term-sep {
   border-top: 3px double color-mix(in srgb, var(--term-text, #9fb0c3) 38%, transparent);
   margin: 7px 0 6px;
+}
+
+/* 未知模式专用的明黄：与「已下架」的酱黄（--warn）在进度条上必须一眼分得开。
+   light-dark 两侧都要能读——浅色下纯亮黄看不清，用金褐；深色下用柠檬黄。 */
+:root {
+  --unknown: light-dark(#9a7d00, #ffe94d);
+}
+.pill.yellow {
+  color: var(--unknown);
+  border-color: color-mix(in srgb, var(--unknown) 50%, transparent);
+  background: color-mix(in srgb, var(--unknown) 14%, transparent);
 }

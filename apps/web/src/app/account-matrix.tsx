@@ -27,15 +27,16 @@ import type { PresentItem } from "./present-item.ts";
 import { GoneFix } from "./gone-fix.tsx";
 
 /** 状态展示顺序：先「好结果」，再「等你」，最后「有问题」 */
-const ORDER = ["drawn", "alreadyEntered", "needsChoice", "pending", "unknownPattern", "failed", "expired", "gone"] as const;
+// 「站点已应募」已归并进「已投递」（mergeStatus），不再单列一档
+const ORDER = ["drawn", "needsChoice", "pending", "unknownPattern", "failed", "expired", "gone"] as const;
 
 /** 各状态在堆叠条里的配色（与 pill 同一套语义） */
 const SEG: Record<string, string> = {
   drawn: "var(--ok)",
-  alreadyEntered: "var(--ok)",
   needsChoice: "var(--accent2)",
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
-  unknownPattern: "var(--warn)",
+  // 明黄，与「已下架」的酱黄（--warn）分开——同色段挨着就分不出来了
+  unknownPattern: "var(--unknown)",
   failed: "var(--err)",
   // 已下架给黄——之前用淡灰，进度条上和「待投递」的灰分不出区别（用户指出）；
   // 404 给红——它要么是站点异常撤了页面，要么是我们的链接有错，都值得人瞟一眼

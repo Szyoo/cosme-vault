@@ -10,7 +10,7 @@
  */
 import type { Dict } from "@/i18n/dict.ts";
 import { fmtDateTime } from "@/lib/when.ts";
-import { sourceOf, statusOf } from "./labels.ts";
+import { mergeStatus, sourceOf, statusOf } from "./labels.ts";
 
 /** 来自库的原始行（一行 = 一个奖品 × 一个账号） */
 export interface RawRow {
@@ -95,14 +95,17 @@ export function toItems(
       };
       byPresent.set(r.presentId, item);
     }
-    const st = statusOf(r.status, t);
+    // 归并后再本地化：库里 alreadyEntered 与 drawn 分开存（重跑安全的依据），
+    // 但界面上是同一档，否则筛选栏会出现两个都叫「已投递」的按钮
+    const merged = mergeStatus(r.status);
+    const st = statusOf(merged, t);
     const label = accounts.find((a) => a.id === r.accountId)?.label ?? r.accountId;
     const at = fmtDateTime(r.at);
     item.accounts.push({
       accountId: r.accountId,
       short: shortOf(label),
       label,
-      status: r.status,
+      status: merged,
       statusLabel: st.label,
       statusPill: st.pill,
       at,

@@ -235,11 +235,15 @@ export function applyReport(report: JobReport): ReportEffects {
     }
 
     if (outcome.kind === "scan") {
-      // 扫描任务的 accountId 从载荷取，用于建立「该账号 × 该奖品」的待抽记录
+      // ⚠️ 载荷里的 `accountId` 只是**执行扫描的那个账号**（扫描需要登录态才能看到
+      // brandfanclub），**不是**「为谁扫」——扫描结果对所有账号通用。
+      // 要给谁派发投递由 `dispatchFor` 决定；旧任务没有这个字段，回落到扫描账号。
       const scanJob = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
-      const accountId = scanJob
-        ? (JSON.parse(scanJob.payload) as { accountId?: string }).accountId
-        : undefined;
+      const payload = scanJob
+        ? (JSON.parse(scanJob.payload) as { accountId?: string; dispatchFor?: string[] })
+        : {};
+      const accountId = payload.accountId;
+      const dispatchFor = payload.dispatchFor ?? (accountId ? [accountId] : []);
 
       // 有凭证且启用的账号才建记录（没凭证的账号建了也跑不了）
       const enabledAccounts = tx
@@ -321,19 +325,21 @@ export function applyReport(report: JobReport): ReportEffects {
         }
       }
 
-      // 事件驱动：扫描完成即派发该账号的待抽任务，无需外层状态机。
+      // 事件驱动：扫描完成即派发待抽任务，无需外层状态机。
       // 「仅检测」（batchKind='scan'）刻意不派发——那正是它和「跑一轮」的区别。
-      if (accountId && scanJob?.batchKind !== "scan") {
+      //
+      // ⚠️ 派发要覆盖 `dispatchFor` 里的**每个**账号，而不是只有扫描账号：
+      // 现在整轮只扫一次，若仍按扫描账号派发，另一个账号在「跑一轮」里
+      // 就永远拿不到投递任务。
+      if (scanJob?.batchKind !== "scan") {
         const trigger = (scanJob?.trigger ?? "manual") as "cron" | "manual";
         // 一轮里派发出的 draw 继承 scan 的批次，界面上才是一条队列项
-        effects.dispatchedDraws = dispatchPendingDraws(
-          accountId,
-          trigger,
-          tx,
-          scanJob?.batchId
-            ? { id: scanJob.batchId, kind: (scanJob.batchKind ?? "run") as "run" | "scan" | "draw" | "single" }
-            : undefined,
-        ).length;
+        const batch = scanJob?.batchId
+          ? { id: scanJob.batchId, kind: (scanJob.batchKind ?? "run") as "run" | "scan" | "draw" | "single" }
+          : undefined;
+        for (const accId of dispatchFor) {
+          effects.dispatchedDraws += dispatchPendingDraws(accId, trigger, tx, batch).length;
+        }
       }
 
       // ── 扫描汇总（用户要求：每次扫描完终端要有一条结论行）──

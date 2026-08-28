@@ -26,6 +26,7 @@ import { TermLog } from "./term-log.tsx";
 import { AccountMatrix, type AccountRow } from "./account-matrix.tsx";
 import { ResolveButtons } from "./resolve-buttons.tsx";
 import { toItems } from "./present-item.ts";
+import { mergeStatus } from "./labels.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,9 @@ export default async function Home() {
     const counts: Record<string, number> = {};
     for (const r of rows) {
       if (r.accountId !== a.id) continue;
-      counts[r.status] = (counts[r.status] ?? 0) + 1;
+      // 归并后再计数，否则「已投递」与「站点已应募」会出两个同名 chip
+      const k = mergeStatus(r.status);
+      counts[k] = (counts[k] ?? 0) + 1;
     }
     return { accountId: a.id, label: a.label, enabled: a.enabled, counts };
   });

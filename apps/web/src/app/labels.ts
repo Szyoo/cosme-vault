@@ -32,6 +32,18 @@ export function sourceOf(source: string, t: Dict): Badge {
   }
 }
 
+/**
+ * 展示用的状态归并：`alreadyEntered` 并入 `drawn`（用户要求：不分那么细）。
+ *
+ * **库里仍然分开存**——`alreadyEntered` 是「这次什么都没提交、站点显示早已应募」，
+ * 是任务中断后能安全自动重跑的依据（见 contract 里 DrawStatus 的说明）。
+ * 只是界面上没必要让人分辨：两者对用户的意义都是「已经参加了，不用再管」。
+ * 所有按状态分组/筛选/计数的地方都要先过这一层，否则会出现两个都叫「已投递」的分组。
+ */
+export function mergeStatus(status: string): string {
+  return status === "alreadyEntered" ? "drawn" : status;
+}
+
 /** 投递状态 */
 export function statusOf(status: string, t: Dict): { label: string; pill: string } {
   const s = t.status;
@@ -50,12 +62,13 @@ export function statusOf(status: string, t: Dict): { label: string; pill: string
     case "gone":
       return { label: s.gone, pill: "red" };
     case "alreadyEntered":
-      // 结果上等于「已投递」，但来源不同（站点摊牌，不是我们提交的），故单列一档
-      return { label: s.alreadyEntered, pill: "green" };
+      // 归并到「已投递」（mergeStatus）；这一支只作兜底，正常不会走到
+      return { label: s.drawn, pill: "green" };
     case "failed":
       return { label: s.failed, pill: "red" };
     case "unknownPattern":
-      return { label: s.unknownPattern, pill: "amber" };
+      // 明黄，与「已下架」的酱黄（amber）区分——进度条上同色会分不出来
+      return { label: s.unknownPattern, pill: "yellow" };
     default:
       return { label: status, pill: "" };
   }

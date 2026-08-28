@@ -21,12 +21,27 @@ import { nextStamp } from "@/lib/stamp.ts";
  */
 type DbLike = Pick<typeof db, "select" | "insert" | "update" | "delete">;
 
+const ALL_SOURCES = ["normal", "brandFanClub", "brandFanClubViaBrand", "produceMember", "tieupCampaign"] as const;
+
 /**
- * 给所有启用账号入队扫描任务，返回入队的 jobId 列表。
+ * 入队**一个**扫描任务，返回入队结果。
  *
- * `scanOnly=true` 时批次标成 'scan'：applyReport 看到这个标记就**不会**在
- * 扫描完成后自动派发投递——这就是「仅检测」与「跑一轮」的全部区别，
- * runner 侧完全无感（跨进程契约不动）。
+ * ⚠️ **扫描与账号无关**（用户反复强调）：同一个站点的同一批奖品，一个账号扫过，
+ * `presents` 就是全局的，`applyReport` 也会为**所有**启用账号建立 account_presents。
+ * 此前这里对每个启用账号各入队一个 scan——两个账号就把整站扫两遍，
+ * 纯属白跑，还平白多一倍站点访问（合规上更不该）。
+ *
+ * 扫描仍然需要**某个**账号的登录态（brandfanclub 系列未登录看不到），
+ * 所以只是「挑一个账号去扫」，而不是「为这个账号扫」。挑选优先级：
+ * 会话被证明过的（`sessionOkAt` 非空）> 任意有凭证的——拿没登录过的账号去扫
+ * 必然撞登录墙。
+ *
+ * `dispatchFor` 写进载荷：扫完要给哪些账号派发投递。全局跑一轮 = 所有可跑账号，
+ * 单账号跑一轮 = 只有它。**这一条不能靠 `accountId` 推**——扫描账号只有一个，
+ * 那样另一个账号在「跑一轮」里就永远拿不到投递任务。
+ *
+ * `scanOnly=true` 时批次标成 'scan'：applyReport 看到这个标记就**不会**派发投递
+ * ——这就是「仅检测」与「跑一轮」的全部区别，runner 侧完全无感（跨进程契约不动）。
  */
 export function startRun(
   trigger: "cron" | "manual",
@@ -34,36 +49,40 @@ export function startRun(
   /** 只跑指定账号（账号矩阵的单账号按钮）；不传则全部启用账号 */
   onlyAccountId?: string,
 ): { accountId: string; jobId: string }[] {
-  const accounts = db
+  // 凭证未配置的账号跳过——runner 取不到凭证只会白跑一趟
+  const runnable = db
     .select()
     .from(schema.accounts)
     .where(eq(schema.accounts.enabled, true))
     .all()
+    .filter((a) => a.credentialsEnc)
     .filter((a) => !onlyAccountId || a.id === onlyAccountId);
-  const created: { accountId: string; jobId: string }[] = [];
+  if (runnable.length === 0) return [];
+
+  // 扫描用哪个账号：优先会话被证明过的，否则第一个
+  const scanner = runnable.find((a) => a.sessionOkAt) ?? runnable[0]!;
+
+  const jobId = randomUUID();
   // 一次「跑一轮」= 一个批次。scan 与它稍后派发出的 draw 共享这个 id，
   // 界面上才能显示成「一轮（3/130）」而不是 130 个独立任务。
   const batchId = randomUUID();
-
-  for (const a of accounts) {
-    // 凭证未配置的账号跳过——runner 取不到凭证只会白跑一趟
-    if (!a.credentialsEnc) continue;
-    const jobId = randomUUID();
-    db.insert(schema.jobs)
-      .values({
-        id: jobId,
-        kind: "scan",
-        status: "queued",
-        payload: JSON.stringify({ accountId: a.id, sources: ["normal", "brandFanClub", "brandFanClubViaBrand", "produceMember", "tieupCampaign"] }),
-        trigger,
-        createdAt: nextStamp(),
-        batchId,
-        batchKind: scanOnly ? "scan" : "run",
-      })
-      .run();
-    created.push({ accountId: a.id, jobId });
-  }
-  return created;
+  db.insert(schema.jobs)
+    .values({
+      id: jobId,
+      kind: "scan",
+      status: "queued",
+      payload: JSON.stringify({
+        accountId: scanner.id,
+        sources: ALL_SOURCES,
+        dispatchFor: runnable.map((a) => a.id),
+      }),
+      trigger,
+      createdAt: nextStamp(),
+      batchId,
+      batchKind: scanOnly ? "scan" : "run",
+    })
+    .run();
+  return [{ accountId: scanner.id, jobId }];
 }
 
 /**

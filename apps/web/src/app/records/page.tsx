@@ -10,6 +10,7 @@ import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { getT } from "@/i18n/server.ts";
 import { Nav } from "../nav.tsx";
+import { mergeStatus } from "../labels.ts";
 import { PresentList } from "../present-list.tsx";
 import { toItems } from "../present-item.ts";
 
@@ -41,11 +42,14 @@ export default async function RecordsPage() {
 
   const accounts = db.select().from(schema.accounts).all();
 
+  // 归并后统计：「站点已应募」在界面上就是「已投递」，
+  // 不归并的话这里的已投递数会比首页少（那 4 条凭空消失）
   const counts = rows.reduce<Record<string, number>>((acc, r) => {
-    acc[r.status] = (acc[r.status] ?? 0) + 1;
+    const k = mergeStatus(r.status);
+    acc[k] = (acc[k] ?? 0) + 1;
     return acc;
   }, {});
-  const drawn = rows.filter((r) => r.status === "drawn");
+  const drawn = rows.filter((r) => mergeStatus(r.status) === "drawn");
 
   return (
     <main className="page">
