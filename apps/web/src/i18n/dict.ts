@@ -106,6 +106,14 @@ const zh = {
     missingHint: "扫描还没覆盖到这个账号的奖品（新账号或扫描中断）。点「仅检测」为它建立记录。",
     disabled: "已停用",
     confirmOne: (label: string) => `只为「${label}」投递现有待投递，抽奖机会用掉就没了。`,
+    drill: (status: string, n: number) => `${status} · ${n} 个奖品`,
+    drillHintReset: "重置只改状态，不会自动派发投递。",
+    resetOne: "重置回待投递",
+    resetAll: (n: number) => `全部 ${n} 条重置回待投递`,
+    resetDone: "已重置",
+    goChoose: "去选择",
+    drillEmpty: "这个状态下没有奖品了。",
+    missingDrillHint: "这些奖品还没有为该账号建立记录，点「仅检测」扫描后自动建立。",
   },
 
   present: {
@@ -456,6 +464,14 @@ const ja: Dict = {
     missingHint: "このアカウント向けのレコードが未作成（新規または走査中断）。「検出のみ」で作成されます。",
     disabled: "無効",
     confirmOne: (label: string) => `「${label}」の未応募分だけに応募します。応募機会は取り消せません。`,
+    drill: (status: string, n: number) => `${status} · ${n} 件`,
+    drillHintReset: "リセットは状態を戻すだけで、応募は自動実行されません。",
+    resetOne: "未応募に戻す",
+    resetAll: (n: number) => `${n} 件すべて未応募に戻す`,
+    resetDone: "戻しました",
+    goChoose: "選択する",
+    drillEmpty: "この状態のプレゼントはありません。",
+    missingDrillHint: "このアカウントのレコードが未作成です。「検出のみ」を実行すると作成されます。",
   },
 
   present: {
@@ -784,6 +800,14 @@ const en: Dict = {
     missingHint: "No record for this account yet (new account or interrupted scan). Run “Scan only” to create them.",
     disabled: "Disabled",
     confirmOne: (label: string) => `Enters pending presents for “${label}” only. Entries cannot be undone.`,
+    drill: (status: string, n: number) => `${status} · ${n} presents`,
+    drillHintReset: "Reset only changes the status; nothing is entered automatically.",
+    resetOne: "Reset to pending",
+    resetAll: (n: number) => `Reset all ${n} to pending`,
+    resetDone: "Reset",
+    goChoose: "Choose",
+    drillEmpty: "No presents in this status anymore.",
+    missingDrillHint: "No records for this account yet — run “Scan only” to create them.",
   },
 
   present: {
