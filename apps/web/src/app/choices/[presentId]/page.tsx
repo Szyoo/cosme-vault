@@ -30,6 +30,8 @@ interface Data {
   status: string;
   present: { id: string; name: string; brand: string | null; link: string } | null;
   choices: PendingChoice[];
+  /** 有几个账号正挂在这个奖品上等选择（>1 时界面说明「选一次覆盖全部」） */
+  waitingAccounts?: number;
 }
 
 /**
@@ -224,6 +226,11 @@ export function ChoiceInner() {
             {t.resolve.openSite} ↗
           </a>
         </p>
+      )}
+
+      {/* 多个账号都挂在这个奖品上时说明一句：选一次就够，不用回来再选一遍 */}
+      {(data.waitingAccounts ?? 1) > 1 && (
+        <p className="small muted">{t.choice.appliesToAll(data.waitingAccounts!)}</p>
       )}
 
       {data.choices.map((c) => (
