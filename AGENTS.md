@@ -324,6 +324,20 @@ apps/
   **单批数量上限（原 30）已按用户决定取消（2026-08-22）**——合规靠节奏不靠批次大小；
   一次「仅抽取/跑一轮」会派发全部待投递，cron 每 12h 的自动轮同理。
 - **人工选择闭环**：runner 返回 `needsChoice` → `/api/runner/report` 发 Bark（`url` 深链接到 `/choices/<presentId>?account=<id>`）→ 用户在手机上选 → `POST /api/choices/:presentId` 记录选择、状态回 pending、派发带 `resolvedChoices` 的新 draw → runner 重跑完成。重复提交返回 409。
+- ⚠️ **同一奖品只弹一次、只选一次**（2026-09-09 用户指出）：定时任务里两个账号各自
+  挂起同一个奖品，此前**每个账号一条**——手机上两条同商品通知、首页两行、要选两遍。
+  选择结果与账号无关，故四处同时改：
+  1. **POST 推平全部挂起账号**：把答案写给这个奖品上**所有** `needsChoice` 的行、
+     一起回 pending、共享一个 `batchId` 派发（队列上是一条而非每账号一条）。
+     这与 `dispatch.ts` 的 `inheritedChoices` 是同一原则的两半——那边管「派单时借用
+     别人选过的」，这边管「选完推平已挂起的」。**少了这一半 B 账号会永久卡在
+     needsChoice**：没有任何东西会把它放回 pending 去触发那次借用。
+  2. **Bark 只推第一个**：判据是「除我之外这个奖品上还有没有别的账号已挂 needsChoice」。
+     ⚠️ 去重**不能只在单次 report 内做**——一次 report 只含一个 draw 的结果，两条通知
+     来自两次不同的 report。runner 串行，A 先落地时无人挂起 → 推；B 后落地时 A 还挂着
+     → 跳过。若 A 已选完（回 pending），B 就是唯一挂起的 → 照推，不会漏提醒。
+  3. **首页「需要你选择」按 presentId 去重**，多账号时标注「N 个账号共用这一选择」。
+  4. **选择页提示** `appliesToAll(n)`，告诉用户选一次覆盖几个号。
 - **僵死任务回收**（`reclaimStaleJobs`）：running 超过 15 分钟视为 runner 崩溃，标记 failed
   并把 `account_presents` 一并标成 failed + 「结果未知，请人工确认」。
   **刻意不自动重排 draw**——崩溃时无从查证那次投递是否已提交（@COSME 不标注「已应募」），

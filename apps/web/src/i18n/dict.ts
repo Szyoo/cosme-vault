@@ -200,6 +200,8 @@ const zh = {
     fixImagesSave: (n: number) => `用这 ${n} 张作为参考图`,
     yourChoice: "你的选择",
     needsChoiceTitle: "需要你选择",
+    coversAccounts: (n: number) => `${n} 个账号共用这一选择`,
+    appliesToAll: (n: number) => `选一次即可：这份选择会同时应用于挂起中的 ${n} 个账号。`,
   },
 
   diag: {
@@ -581,6 +583,8 @@ const ja: Dict = {
     fixImagesSave: (n: number) => `この ${n} 枚を参考画像にする`,
     yourChoice: "あなたの選択",
     needsChoiceTitle: "選択が必要です",
+    coversAccounts: (n: number) => `${n} アカウント共通`,
+    appliesToAll: (n: number) => `一度選べば、保留中の ${n} アカウントすべてに適用されます。`,
   },
 
   diag: {
@@ -940,6 +944,8 @@ const en: Dict = {
     fixImagesSave: (n: number) => `Use these ${n} as reference`,
     yourChoice: "Your choice",
     needsChoiceTitle: "Needs your choice",
+    coversAccounts: (n: number) => `shared by ${n} accounts`,
+    appliesToAll: (n: number) => `Choose once — this applies to all ${n} waiting accounts.`,
   },
 
   diag: {

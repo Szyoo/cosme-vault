@@ -88,7 +88,21 @@ export default async function Home() {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
     return acc;
   }, {});
-  const needsChoice = rows.filter((r) => r.status === "needsChoice");
+  // ⚠️ 按**奖品**去重（用户要求，2026-09-09）：两个账号会各自挂起同一个奖品，
+  // 按行列出就是同一件商品弹两条、要选两遍。选择与账号无关，选一次会推平所有
+  // 挂起的账号（见 /api/choices 的 POST），所以这里只该出现一条。
+  // 链接随便带哪个账号都行——用第一个；`accounts` 只用于告诉用户这一选覆盖几个号。
+  const needsChoice = [
+    ...rows
+      .filter((r) => r.status === "needsChoice")
+      .reduce((m, r) => {
+        const hit = m.get(r.presentId);
+        if (hit) hit.accounts++;
+        else m.set(r.presentId, { ...r, accounts: 1 });
+        return m;
+      }, new Map<string, (typeof rows)[number] & { accounts: number }>())
+      .values(),
+  ];
   const unknown = rows.filter((r) => r.status === "unknownPattern");
   // failed 多半是「投递中断、结果未知」——必须人工去原页面确认，不能埋在 138 条列表里
   const needsConfirm = rows.filter((r) => r.status === "failed");
@@ -176,13 +190,17 @@ export default async function Home() {
           <div className="stack">
             {needsChoice.map((r) => (
               <Link
-                key={`${r.accountId}-${r.presentId}`}
+                key={r.presentId}
                 className="inner row spread"
                 href={`/choices/${r.presentId}?account=${r.accountId}`}
               >
                 <span>
                   {r.brand && <strong>{r.brand} · </strong>}
                   {r.name ?? r.presentId}
+                  {/* 多个账号都挂在这个奖品上时说明一句，免得以为漏了另一个号 */}
+                  {r.accounts > 1 && (
+                    <span className="tiny muted"> · {t.choice.coversAccounts(r.accounts)}</span>
+                  )}
                 </span>
                 <span className="pill violet">{t.choice.goChoose}</span>
               </Link>

@@ -217,6 +217,8 @@ export function dispatchResolvedDraw(
   accountId: string,
   presentId: string,
   resolvedChoices: Record<string, string>,
+  /** 多个账号共用同一次选择时传入，队列上合成一条而不是每账号一条 */
+  sharedBatchId?: string,
 ): string | null {
   // 手动针对单个奖品的操作自成一批（batchKind='single'），
   // 队列上显示成「单独重跑 · <奖品名>」，与「一轮」区分开
@@ -236,7 +238,7 @@ export function dispatchResolvedDraw(
       payload: JSON.stringify({ accountId, presentId, presentLink: present.link, resolvedChoices }),
       trigger: "manual",
       createdAt: nextStamp(),
-      batchId: randomUUID(),
+      batchId: sharedBatchId ?? randomUUID(),
       batchKind: "single",
     })
     .run();
