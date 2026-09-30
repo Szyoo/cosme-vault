@@ -12,6 +12,8 @@ import {
   scryptSync,
   timingSafeEqual,
 } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 /* ────────── cosme 账号凭证：AES-256-GCM ────────── */
 
@@ -75,10 +77,44 @@ function sessionSecret(): string {
   return s;
 }
 
+/**
+ * 会话纪元：混进签名密钥，**改密码时换一个新纪元 → 之前签发的所有会话立刻作废**。
+ *
+ * 为什么需要：会话是无状态 HMAC 签名，门禁（proxy.ts）只验签名不查库，所以单改
+ * 密码哈希**不会**让已有 cookie 失效——弱密码期间若有人登进来过，他的会话还能
+ * 再用 30 天。
+ *
+ * 为什么放文件而不是数据库：门禁每个请求都要验会话，把 better-sqlite3（原生模块）
+ * 拉进 proxy 的打包产物风险太大；读一个小文件只用 `node:fs`。文件与数据库同目录
+ * （生产是命名卷 `/data`，重启与重新部署都不会丢）。
+ *
+ * 文件不存在 = 纪元为空 = 密钥就是原来的 SESSION_SECRET——**向后兼容**，
+ * 没改过密码之前签发的会话照常有效。
+ */
+const EPOCH_FILE = join(dirname(process.env.DATABASE_PATH ?? "./data/cosme.db"), "session-epoch");
+
+function sessionEpoch(): string {
+  try {
+    return readFileSync(EPOCH_FILE, "utf8").trim();
+  } catch {
+    return "";
+  }
+}
+
+/** 换一个新纪元：调用后所有旧会话签名全部对不上 */
+export function rotateSessionEpoch(): void {
+  writeFileSync(EPOCH_FILE, randomBytes(16).toString("hex"), { mode: 0o600 });
+}
+
+function sessionKey(): string {
+  const epoch = sessionEpoch();
+  return epoch ? createHmac("sha256", sessionSecret()).update(`epoch:${epoch}`).digest("hex") : sessionSecret();
+}
+
 /** 签发会话令牌：`payloadB64.signature`，payload 含用户名与过期时间 */
 export function signSession(username: string, ttlMs = 30 * 24 * 60 * 60 * 1000): string {
   const payload = Buffer.from(JSON.stringify({ u: username, exp: Date.now() + ttlMs })).toString("base64url");
-  const sig = createHmac("sha256", sessionSecret()).update(payload).digest("base64url");
+  const sig = createHmac("sha256", sessionKey()).update(payload).digest("base64url");
   return `${payload}.${sig}`;
 }
 
@@ -88,7 +124,7 @@ export function verifySession(token: string | undefined): string | null {
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return null;
 
-  const expected = createHmac("sha256", sessionSecret()).update(payload).digest("base64url");
+  const expected = createHmac("sha256", sessionKey()).update(payload).digest("base64url");
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;

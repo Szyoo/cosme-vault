@@ -153,6 +153,23 @@ apps/
   一律用宽口径选择器 + 大小写不敏感属性匹配。
 - **`packages/core/selectors.ts` 的 URL 已实测确认（2026-08-18，从 VPS）**：奖品列表真正的两个来源是 `/brandcollection/present/`（未登录可见）与 `/brandfanclub/present`（必须登录），2023 年记的 `/present/` 只是导航页；奖品详情形如 `/brandcollection/present/detail/present_id/<ID>`（用正则提 ID 比认 class 稳）；登录走集中式 `isauth` 网关而非独立表单页；页面编码是 **Shift_JIS**。**表单与按钮类选择器仍全是 TODO(inspect)**——匿名 curl 只能看到未登录视图，需登录后用 inspect 任务校验。
 - **鉴权与凭证加密已完成并实测通过**：`src/proxy.ts` 全站门禁（放行 `/api/runner/*`、`/api/auth/*`、`/login`，以及带正确 `CRON_TOKEN` 的请求——cron 无会话，必须在门禁层放行，否则路由的双通道校验根本执行不到）；`src/lib/crypto.ts` 用 Node 内置 crypto 实现 AES-256-GCM 凭证加密 + scrypt 密码哈希 + HMAC 会话签名（**刻意不用 bcrypt，避免原生依赖**——原生模块正是本项目在 Node 26 踩过的坑）；`src/lib/auth.ts` 首次登录按 `ADMIN_USERNAME/ADMIN_PASSWORD` 自动建号。
+- **管理员密码与登录防护**（2026-09-30，发现管理员密码是字面上的 `password`）：
+  - ⚠️ **改 `.env` 的 ADMIN_PASSWORD 没用**：它只在库里还没有管理员时用来建号，
+    之后校验一律看 `admin_users` 的哈希。改密码走设置页「管理员密码」
+    （`POST /api/auth/password`，需当前密码，新密码至少 10 位）。
+    ⚠️ 该接口在 `/api/auth/*` 下，门禁公开放行，**路由里必须自己校验会话**。
+  - **改密码会让所有旧会话作废**：会话是无状态 HMAC，门禁只验签名不查库，单改哈希
+    不会踢掉任何人。所以签名密钥混入「会话纪元」（`crypto.ts` 的 `sessionKey`），
+    改密码时 `rotateSessionEpoch()` 换纪元，再给当前设备重签。纪元存
+    `dirname(DATABASE_PATH)/session-epoch`（生产在命名卷 `/data`，不丢）——
+    放文件而非数据库，是为了不把 better-sqlite3 原生模块拉进 proxy 的打包产物。
+    文件不存在 = 用原 SESSION_SECRET，**向后兼容**（部署本身不会把人踢下线）。
+  - **登录防暴力是「越错越慢、永不锁死」**（`lib/login-guard.ts`）：前 5 次输错无感，
+    之后等待 1/2/4/8/16 秒、封顶 30 秒。**用户明确不要「连错 N 次锁 15 分钟」**——
+    会把自己锁在外面。暴力破解的命门是速度，人不需要速度：机器被压到一天不到
+    3000 次。等待按时间戳放行（没到点连密码都不校验），开并发也绕不过去。
+    状态在进程内存，单进程够用；上多副本要换共享存储。IP 取 X-Forwarded-For
+    **最后一段**（Caddy 会丢弃客户端自带的该头、写入真实对端）。
 - **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。
 - **runner 取凭证走独立端点** `/api/runner/credentials?accountId=`（Bearer RUNNER_TOKEN）。**刻意不把凭证塞进任务载荷**——那会把明文写进 jobs 表并留在历史里。
 - **页面已齐**：`/`（控制台）、`/presents/[presentId]`（**奖品详情**：全部字段 + @COSME 原页面链接 + 单个投递按钮，控制台与记录页的奖品名都链到这里）、`/records`（投递历史与统计）、`/diagnostics`（未识别版式的现场，含元素清单与一键复制）、`/choices/[presentId]`（Bark 深链接落点）、`/settings`、`/login`。

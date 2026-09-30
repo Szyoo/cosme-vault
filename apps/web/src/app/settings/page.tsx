@@ -12,6 +12,7 @@ import { JOB_OPTIONS } from "@cosme/core";
 import { Nav } from "../nav.tsx";
 import { BarkSection } from "./bark-section.tsx";
 import { PacingSection } from "./pacing-section.tsx";
+import { PasswordSection } from "./password-section.tsx";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 
@@ -116,6 +117,8 @@ export default function SettingsPage() {
       <BarkSection />
 
       <PacingSection />
+
+      <PasswordSection />
 
     </main>
   );
