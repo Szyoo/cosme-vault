@@ -276,6 +276,18 @@ const zh = {
       "点击后 Mac mini 上会弹出该账号的登录窗口（可能要等几秒到几十秒，runner 领到任务才弹）。" +
       "到电脑前手动完成登录——密码不会被代填（reCAPTCHA 风控红线）。最长等 12 分钟。",
     activateQueued: "已入队：去 Mac mini 屏幕前完成登录（最长等 12 分钟）",
+    pwTitle: "管理员密码",
+    pwHint: "这是登录本控制台的密码。改完后其他设备上的登录会全部失效，需要重新登录；当前这台设备保持登录。.env 里的 ADMIN_PASSWORD 只在首次建号时用，之后改它不起作用。",
+    pwCurrent: "当前密码",
+    pwNew: "新密码（至少 10 位）",
+    pwConfirm: "再输一次新密码",
+    pwSubmit: "修改密码",
+    pwSaving: "修改中…",
+    pwDone: "已修改。其他设备需要用新密码重新登录。",
+    pwMismatch: "两次输入的新密码不一致",
+    pwWrongCurrent: "当前密码不对",
+    pwTooShort: (n: number) => `新密码至少 ${n} 位`,
+    pwSame: "新密码不能和当前密码相同",
   },
 
   login: {
@@ -385,6 +397,7 @@ const zh = {
   api: {
     badRequest: "请求格式非法",
     badCredentials: "用户名或密码错误",
+    tooManyAttempts: (sec: number) => `输错次数较多，请 ${sec} 秒后再试`,
     notLoggedIn: "未登录",
     noRunnableAccount: "没有可跑的账号（需已启用且已配置凭证）",
     missingAccountParam: "缺少 account 参数",
@@ -660,6 +673,18 @@ const ja: Dict = {
       "クリックすると Mac mini にこのアカウントのログインウィンドウが開きます（runner が受け取るまで数秒〜数十秒）。" +
       "PC の前でログインしてください——パスワードの自動入力はしません（reCAPTCHA 対策のレッドライン）。最長 12 分待機。",
     activateQueued: "登録しました：Mac mini の画面でログインを完了してください（最長 12 分）",
+    pwTitle: "管理者パスワード",
+    pwHint: "このコンソールにログインするためのパスワードです。変更すると他の端末のログインはすべて無効になり、再ログインが必要です（この端末はログインしたまま）。.env の ADMIN_PASSWORD は初回作成時のみ使われ、後から変えても効きません。",
+    pwCurrent: "現在のパスワード",
+    pwNew: "新しいパスワード（10 文字以上）",
+    pwConfirm: "新しいパスワード（確認）",
+    pwSubmit: "パスワードを変更",
+    pwSaving: "変更中…",
+    pwDone: "変更しました。他の端末では新しいパスワードで再ログインしてください。",
+    pwMismatch: "新しいパスワードが一致しません",
+    pwWrongCurrent: "現在のパスワードが違います",
+    pwTooShort: (n: number) => `新しいパスワードは ${n} 文字以上にしてください`,
+    pwSame: "現在と同じパスワードは使えません",
   },
 
   login: { username: "ユーザー名", password: "パスワード", submit: "ログイン", submitting: "ログイン中…", failed: "ログインに失敗しました" },
@@ -756,6 +781,7 @@ const ja: Dict = {
   api: {
     badRequest: "リクエストの形式が不正です",
     badCredentials: "ユーザー名またはパスワードが違います",
+    tooManyAttempts: (sec: number) => `入力ミスが続いています。${sec} 秒後に再度お試しください`,
     notLoggedIn: "ログインしていません",
     noRunnableAccount: "実行できるアカウントがありません（有効かつ認証情報の設定が必要）",
     missingAccountParam: "account パラメータがありません",
@@ -1021,6 +1047,18 @@ const en: Dict = {
       "Opens a login window for this account on the Mac mini (takes a few seconds until the runner picks it up). " +
       "Complete the login there yourself — passwords are never auto-filled (reCAPTCHA red line). Waits up to 12 minutes.",
     activateQueued: "Queued — finish the login on the Mac mini screen (up to 12 min)",
+    pwTitle: "Admin password",
+    pwHint: "The password for this console. Changing it signs out every other device (this one stays signed in). ADMIN_PASSWORD in .env is only used to create the account the first time — editing it later has no effect.",
+    pwCurrent: "Current password",
+    pwNew: "New password (10+ characters)",
+    pwConfirm: "Repeat new password",
+    pwSubmit: "Change password",
+    pwSaving: "Changing…",
+    pwDone: "Changed. Other devices must sign in again with the new password.",
+    pwMismatch: "The two new passwords don’t match",
+    pwWrongCurrent: "Current password is wrong",
+    pwTooShort: (n: number) => `New password must be at least ${n} characters`,
+    pwSame: "New password must differ from the current one",
   },
 
   login: { username: "Username", password: "Password", submit: "Sign in", submitting: "Signing in…", failed: "Sign-in failed" },
@@ -1117,6 +1155,7 @@ const en: Dict = {
   api: {
     badRequest: "Malformed request",
     badCredentials: "Wrong username or password",
+    tooManyAttempts: (sec: number) => `Too many wrong attempts — try again in ${sec}s`,
     notLoggedIn: "Not signed in",
     noRunnableAccount: "No runnable account (must be enabled and have credentials)",
     missingAccountParam: "Missing account parameter",
