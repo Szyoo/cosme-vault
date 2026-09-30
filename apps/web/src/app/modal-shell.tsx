@@ -7,7 +7,8 @@
  * 用 Next 的拦截路由（`@modal/(.)presents/[presentId]`）让 URL 真实、
  * 后退键正常、还能分享，同时 children slot 不动，筛选自然保住。
  *
- * 关闭一律走 `router.back()`：这样 URL 回到列表，前进/后退历史不会错乱。
+ * 关闭一律走 `useCloseModal()`：优先 `router.back()`（URL 回到列表、前进/后退历史
+ * 不错乱），**退不回去时兜底回首页**——见该函数的说明。
  */
 "use client";
 
@@ -20,11 +21,32 @@ export function useInModal(): boolean {
   return useContext(InModalCtx);
 }
 
-export function ModalShell({ children }: { children: ReactNode }) {
+/**
+ * 关闭 modal。
+ *
+ * ⚠️ 不能只调 `router.back()`（2026-09-30 事故，叉点了关不掉）：从 Bark 推送打开的
+ * 是新页面，服务端重定向与 `replace` 都不产生历史记录，`back()` 无处可退就**什么都
+ * 不发生**。所以：没有历史直接回首页；有历史先 back，一小会儿后若 URL 纹丝未动
+ * （退不回去），同样改走首页——保证关闭按钮任何时候都有效。
+ */
+export function useCloseModal(): () => void {
   const router = useRouter();
-  const panel = useRef<HTMLDivElement | null>(null);
+  return useCallback(() => {
+    if (window.history.length <= 1) {
+      router.push("/");
+      return;
+    }
+    const here = window.location.href;
+    router.back();
+    window.setTimeout(() => {
+      if (window.location.href === here) router.push("/");
+    }, 350);
+  }, [router]);
+}
 
-  const close = useCallback(() => router.back(), [router]);
+export function ModalShell({ children }: { children: ReactNode }) {
+  const panel = useRef<HTMLDivElement | null>(null);
+  const close = useCloseModal();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
