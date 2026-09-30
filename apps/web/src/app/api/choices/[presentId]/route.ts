@@ -29,16 +29,28 @@ function loadRow(accountId: string, presentId: string) {
     .get();
 }
 
+/** 按奖品取一条记录：优先取挂起中的（needsChoice），没有就任取一条 */
+function anyRowFor(presentId: string) {
+  const rows = db
+    .select()
+    .from(schema.accountPresents)
+    .where(eq(schema.accountPresents.presentId, presentId))
+    .all();
+  return rows.find((r) => r.status === "needsChoice") ?? rows[0];
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ presentId: string }> },
 ): Promise<NextResponse> {
   const t = await getT();
   const { presentId } = await params;
+  // `account` **可选**（2026-09-30 起）：选择与账号无关、提交会推平所有挂起的账号，
+  // 所以缺了它也能定位——取这个奖品上任一挂起中的记录（没有挂起的就取任一记录，
+  // 让界面走「无需选择」）。此前缺参数直接 400，而推送链接恰恰会在
+  // 「会话过期 → 登录 → 跳回」的路上丢掉它（见 proxy.ts）。
   const accountId = new URL(req.url).searchParams.get("account");
-  if (!accountId) return NextResponse.json({ error: t.api.missingAccountParam }, { status: 400 });
-
-  const row = loadRow(accountId, presentId);
+  const row = accountId ? loadRow(accountId, presentId) : anyRowFor(presentId);
   if (!row) return NextResponse.json({ error: t.api.recordNotFound }, { status: 404 });
 
   const present = db.select().from(schema.presents).where(eq(schema.presents.id, presentId)).get();
@@ -67,7 +79,8 @@ export async function GET(
 }
 
 const Body = z.object({
-  accountId: z.string(),
+  /** 可选：缺了就按奖品定位（选择本就对所有挂起账号生效） */
+  accountId: z.string().optional(),
   /** questionId → optionId */
   selections: z.record(z.string(), z.string()),
 });
@@ -82,7 +95,7 @@ export async function POST(
   if (!parsed.success) return NextResponse.json({ error: t.api.badParams }, { status: 400 });
 
   const { accountId, selections } = parsed.data;
-  const row = loadRow(accountId, presentId);
+  const row = accountId ? loadRow(accountId, presentId) : anyRowFor(presentId);
   if (!row) return NextResponse.json({ error: t.api.recordNotFound }, { status: 404 });
   if (row.status !== "needsChoice") {
     return NextResponse.json({ error: t.choice.noNeedHint(row.status) }, { status: 409 });

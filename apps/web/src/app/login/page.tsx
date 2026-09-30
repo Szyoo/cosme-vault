@@ -2,7 +2,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
 
 /**
@@ -20,7 +20,6 @@ export default function LoginPage() {
 
 function LoginForm() {
   const t = useT();
-  const router = useRouter();
   const params = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +41,12 @@ function LoginForm() {
         setError(data.error ?? t.login.failed);
         return;
       }
-      router.replace(params.get("next") ?? "/");
+      // ⚠️ 必须**整页跳转**，不能 router.replace（2026-09-30 事故）：
+      // 客户端跳转会被 `@modal/(.)choices` 拦截路由接住，选择页被弹成
+      // **盖在登录表单上的 modal**；而 replace 又不留历史，modal 的关闭按钮
+      // （router.back）无处可退，叉点了没反应。登录后本来就该整页重载，
+      // 新会话 cookie 下的服务端组件也需要重新渲染。
+      window.location.replace(safeNext(params.get("next")));
     } finally {
       setBusy(false);
     }
@@ -78,4 +82,14 @@ function LoginForm() {
       </form>
     </main>
   );
+}
+
+/**
+ * 登录后的跳转目标只接受**站内相对路径**：以 `/` 开头、且不是 `//`（协议相对地址，
+ * 会跳去别的域名）或 `/\`（部分浏览器同样当成协议相对）。否则一律回首页——
+ * `next` 来自 URL，谁都能构造，不校验就是开放重定向。
+ */
+function safeNext(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
+  return next;
 }

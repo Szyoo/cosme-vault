@@ -12,7 +12,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { PendingChoice } from "@cosme/contract";
 import { useT } from "@/i18n/context.tsx";
-import { useInModal } from "../../modal-shell.tsx";
+import { useInModal, useCloseModal } from "../../modal-shell.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 
 /** 顶部返回条。选择页有多个状态分支，各自都要有出口，故抽成组件。 */
@@ -127,6 +127,7 @@ export default function ChoicePage() {
 export function ChoiceInner() {
   const t = useT();
   const inModal = useInModal();
+  const closeModal = useCloseModal();
   const params = useParams<{ presentId: string }>();
   const search = useSearchParams();
   const router = useRouter();
@@ -139,7 +140,8 @@ export function ChoiceInner() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/choices/${presentId}?account=${encodeURIComponent(accountId)}`);
+    const q = accountId ? `?account=${encodeURIComponent(accountId)}` : "";
+    const res = await fetch(`/api/choices/${presentId}${q}`);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       setError(body.error ?? t.choice.loadFailed);
@@ -148,13 +150,10 @@ export function ChoiceInner() {
     setData((await res.json()) as Data);
   }, [presentId, accountId, t]);
 
+  // 不再因缺 `account` 报错：服务端会按奖品定位（选择对所有挂起账号生效）
   useEffect(() => {
-    if (!accountId) {
-      setError(t.choice.missingAccount);
-      return;
-    }
     void load();
-  }, [accountId, load, t]);
+  }, [load]);
 
   async function submit() {
     if (!data) return;
@@ -170,7 +169,7 @@ export function ChoiceInner() {
       const res = await fetch(`/api/choices/${presentId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ accountId, selections }),
+        body: JSON.stringify({ accountId: accountId || undefined, selections }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -179,7 +178,7 @@ export function ChoiceInner() {
       }
       // 提交成功不弹「已提交」确认屏（用户嫌多余）：modal 直接关、
       // 整页（手机 Bark 深链接）跳回控制台——队列里能实时看到重投在跑
-      if (inModal) router.back();
+      if (inModal) closeModal();
       else router.push("/");
     } finally {
       setBusy(false);

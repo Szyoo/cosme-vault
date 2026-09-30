@@ -338,6 +338,19 @@ apps/
      → 跳过。若 A 已选完（回 pending），B 就是唯一挂起的 → 照推，不会漏提醒。
   3. **首页「需要你选择」按 presentId 去重**，多账号时标注「N 个账号共用这一选择」。
   4. **选择页提示** `appliesToAll(n)`，告诉用户选一次覆盖几个号。
+- ⚠️ **推送深链接在「会话过期 → 登录 → 跳回」的路上会坏三次**（2026-09-30 事故，
+  用户从 Bark 点进来看到「链接缺少 account 参数」且叉关不掉）。一条链上的三个 bug：
+  1. `proxy.ts` 的 `next` 只存了 pathname，**丢了查询串**（`?account=`）。
+     现在存 `pathname + search`，并清掉 clone 带来的原查询串（否则会挂到 /login 上）。
+  2. 登录后用 `router.replace` 客户端跳转 → 被 `@modal/(.)choices` **拦截路由接住**，
+     选择页弹成**盖在登录表单上的 modal**（截图背景就是登录框）。现在一律
+     `window.location.replace` **整页跳转**；`next` 经 `safeNext` 校验只许站内路径
+     （防开放重定向）。
+  3. modal 的关闭只调 `router.back()`：从推送打开的新页面，重定向与 replace 都
+     **不产生历史**，back 无处可退就**什么都不发生**。现在统一走 `useCloseModal()`：
+     无历史直接回首页；有历史先 back，URL 纹丝未动再改走首页——叉任何时候都有效。
+  - 纵深防御：`account` 参数改为**可选**。选择本就与账号无关（提交会推平所有挂起账号），
+    缺了就按奖品定位（优先取挂起中的那条），任何丢了参数的旧链接照样能用。
 - **僵死任务回收**（`reclaimStaleJobs`）：running 超过 15 分钟视为 runner 崩溃，标记 failed
   并把 `account_presents` 一并标成 failed + 「结果未知，请人工确认」。
   **刻意不自动重排 draw**——崩溃时无从查证那次投递是否已提交（@COSME 不标注「已应募」），

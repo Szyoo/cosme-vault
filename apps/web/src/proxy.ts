@@ -36,9 +36,14 @@ export function proxy(req: NextRequest): NextResponse {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "未登录" }, { status: 401 });
   }
+  // ⚠️ `next` 必须带上**查询串**（2026-09-30 事故）：原先只存 pathname，
+  // Bark 推送的 `/choices/<id>?account=<id>` 在会话过期时经登录页绕一圈，
+  // 回来就只剩 `/choices/<id>`，选择页报「链接缺少 account 参数」。
+  // 同时清掉 clone 带来的原查询串——否则它们会原样挂到 /login 的 URL 上。
   const url = req.nextUrl.clone();
   url.pathname = "/login";
-  url.searchParams.set("next", pathname);
+  url.search = "";
+  url.searchParams.set("next", pathname + req.nextUrl.search);
   return NextResponse.redirect(url);
 }
 
