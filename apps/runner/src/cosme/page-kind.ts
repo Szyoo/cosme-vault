@@ -29,7 +29,17 @@ export interface PageVerdict {
 /** 站点固有文案（结构优先，文案只作补充判据） */
 const LOGIN_TEXT = /ご利用にはログインが必要です|ログイン／メンバー登録|新規メンバー登録する/;
 const ENDED_TEXT = /募集(は)?終了|受付(は)?終了|終了しました|受付を終了|応募(は)?締め切/;
-const NOTFOUND_TEXT = /ページが見つかりません|お探しのページ|Not Found|404/i;
+/**
+ * 404 只认站点固有的两句文案（真 404 页必带，2026-09-30 复核 12053 确认）。
+ *
+ * ⚠️ **不能有裸的 `404` / `Not Found`**（2026-09-30 事故）：正则里原有裸 `404`，
+ * 任何含这三个数字的页面都会中招——tu-14651 的品牌 ID 是 **123404**、口碑数是
+ * 「クチコミ (1404)」，于是 3 个**还在募集中**的 PR 奖品（9/23 开始、10/6~10/20 结束）
+ * 被判成 404，两个账号各漏投一次。「重新加载复核」也救不了——数字是稳定存在的。
+ * 真 404 页的标题里虽也有「404 Not Found」，但总是与「ページが見つかりません」同在，
+ * 删掉裸匹配不会漏判。
+ */
+const NOTFOUND_TEXT = /ページが見つかりません|お探しのページは/;
 
 export async function classifyPage(page: Page): Promise<PageVerdict> {
   const url = page.url();
@@ -70,9 +80,10 @@ export async function classifyPage(page: Page): Promise<PageVerdict> {
     return { kind: "ended", evidence: `正文含结束文案：${ENDED_TEXT.exec(body)?.[0]}，且页面已无应募入口` };
   }
 
-  // 3. 页面不存在
-  if (NOTFOUND_TEXT.test(body)) {
-    return { kind: "notFound", evidence: `正文含 404 文案：${NOTFOUND_TEXT.exec(body)?.[0]}` };
+  // 3. 页面不存在：同样要求**应募入口已消失**（与 ended 同一道保险）——
+  // 页面上还有「今すぐ応募」就一定不是 404，文案碰巧撞上也不定案
+  if (NOTFOUND_TEXT.test(body) && !hasApplyEntry) {
+    return { kind: "notFound", evidence: `正文含 404 文案：${NOTFOUND_TEXT.exec(body)?.[0]}，且页面无应募入口` };
   }
 
   return { kind: "other", evidence: "" };
