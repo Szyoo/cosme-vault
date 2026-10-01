@@ -16,14 +16,12 @@ RUN apk add --no-cache python3 make g++ && npm ci
 FROM node:26-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
-# ⚠️ node_modules 的布局以 package-lock 为准，两边都要拷：
-# - 大部分依赖被 workspaces 提升到根 /app/node_modules
-# - @szyyw/design（github 依赖）自 0.6.2 起被 npm 固定记在
-#   apps/web/node_modules 下（lockfile 路径决定 npm ci 的落位，deps 层必有此目录）
-# 曾经只拷根（当时 lockfile 未记录子目录，硬拷会 failed to compute cache key）；
-# 现在 lockfile 记录了子目录，不拷则 next build 解析不到 @szyyw/design。
+# ⚠️ node_modules 的布局以 package-lock 为准：
+# - 所有依赖（含 @szyyw/design、@szyyw/auth）都被 workspaces 提升到根 /app/node_modules
+# - 自 design 0.7.0 / auth 0.1.0 起两者改用 codeload tarball 地址（不是 github: 简写）：
+#   node:alpine 镜像里没有 git，tarball 形式不依赖 git，lockfile 也带 integrity；
+#   提升后 apps/web/node_modules 不再存在——别再拷它，否则 failed to compute cache key。
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 # 构建期不需要真密钥，但 lib/crypto.ts 在缺失时会抛——给占位值绕过构建期求值
 ENV SESSION_SECRET="0000000000000000000000000000000000000000000000000000000000000000"
