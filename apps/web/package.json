@@ -14,8 +14,8 @@
   "dependencies": {
     "@cosme/contract": "*",
     "@cosme/core": "*",
-    "@szyyw/auth": "https://codeload.github.com/Szyoo/szyyw-auth/tar.gz/refs/tags/v0.1.0",
-    "@szyyw/design": "https://codeload.github.com/Szyoo/szyyw-design/tar.gz/refs/tags/v0.7.0",
+    "@szyyw/auth": "https://codeload.github.com/Szyoo/szyyw-auth/tar.gz/refs/tags/v0.2.0",
+    "@szyyw/design": "https://codeload.github.com/Szyoo/szyyw-design/tar.gz/refs/tags/v0.8.0",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "^16.3.1",

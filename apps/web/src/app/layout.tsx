@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
+import { ssoEnabled } from "@szyyw/auth";
 // @szyyw/design：设计令牌 + 玻璃组件层（与作者其他项目共用同一套设计语言）
 import "@szyyw/design/tokens.css";
 import "@szyyw/design/components.css";
@@ -47,7 +48,8 @@ export default async function RootLayout({
           {/* 语言切换放右上角，与设计包挂的明暗切换同列 */}
           <LocaleSwitcher />
         </I18nProvider>
-        <DesignChrome />
+        {/* 账户菜单只在门户 SSO 下挂（见 design-chrome.tsx） */}
+        <DesignChrome sso={ssoEnabled()} />
       </body>
     </html>
   );
