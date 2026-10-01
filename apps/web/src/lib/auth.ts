@@ -4,10 +4,17 @@
  * 单用户模型：库里还没有账号时，用 ADMIN_USERNAME / ADMIN_PASSWORD 首次登录自动建号
  * （与 finance-ledger 一致），之后在设置页改。
  *
- * ⚠️ Next 16：`cookies()` 必须 await，同步访问已被移除。
+ * 门户 SSO（`SZYYW_SSO=1`）：`currentUser()` / `requireUser()` 改为只认 Caddy 门禁注入的
+ * `X-User`（经 `headers()`），返回门户用户名。调用方只用到用户名（或干脆不用返回值），
+ * 而 admin_users 没有任何外键引用，所以**不往表里补行**——补行会让「库空时按 env 建号」
+ * 的逻辑失效，SSO 关掉回退本地登录时就再也建不出管理员。
+ *
+ * ⚠️ Next 16：`cookies()` / `headers()` 必须 await，同步访问已被移除。
  */
 import { randomUUID } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { ssoEnabled } from "@szyyw/auth";
+import { identityFromRequestHeaders } from "@szyyw/auth/next";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { SESSION_COOKIE, hashPassword, signSession, verifyPassword, verifySession } from "@/lib/crypto.ts";
@@ -53,6 +60,7 @@ export async function destroySession(): Promise<void> {
 
 /** 读取当前登录用户名；未登录返回 null */
 export async function currentUser(): Promise<string | null> {
+  if (ssoEnabled()) return identityFromRequestHeaders(await headers())?.user ?? null;
   const jar = await cookies();
   return verifySession(jar.get(SESSION_COOKIE)?.value);
 }

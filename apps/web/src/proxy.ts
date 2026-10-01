@@ -9,20 +9,38 @@
  * - `/api/auth/*`    登录接口自身必须公开，否则「登录需要先登录」死锁
  * - `/login`         登录页
  * 其余一律要求已登录，未登录重定向到 /login。
+ *
+ * 门户 SSO（`SZYYW_SSO=1`，见 lib/sso.ts）：已登录 ⇔ 带有 Caddy 门禁注入的 `X-User`，
+ * 会话 cookie 不再参与判定；未登录的页面请求跳门户登录页，回跳地址为当前绝对 URL。
+ * Caddy 对带 `Authorization` 的请求（runner、cron）不做 forward_auth，它们照旧走下面
+ * 的 Bearer 分支 / 路由自身的令牌校验。开关关闭时逻辑与接入前完全一致。
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { ssoEnabled, loginUrl } from "@szyyw/auth";
+import { identityFromRequestHeaders } from "@szyyw/auth/next";
 import { SESSION_COOKIE, verifySession } from "@/lib/crypto.ts";
+import { PORTAL_ORIGIN, externalUrl, siteUrl } from "@/lib/sso.ts";
+import { safeNext } from "@/app/login/safe-next.ts";
 
 const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", "/favicon.ico"];
 
 export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
+  const sso = ssoEnabled();
+
+  // SSO 下本地登录页没用了：直接 302 去门户（页面本身也会跳，这里只是省一次渲染、拿到 302）
+  if (sso && pathname === "/login") {
+    const next = safeNext(req.nextUrl.searchParams.get("next"));
+    return NextResponse.redirect(loginUrl(PORTAL_ORIGIN, siteUrl(req.headers, req.nextUrl, next)));
+  }
 
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  const user = verifySession(req.cookies.get(SESSION_COOKIE)?.value);
+  const user = sso
+    ? identityFromRequestHeaders(req.headers)?.user ?? null
+    : verifySession(req.cookies.get(SESSION_COOKIE)?.value);
   if (user) return NextResponse.next();
 
   // cron 容器没有浏览器会话，只能带 CRON_TOKEN；必须在此放行，
@@ -35,6 +53,11 @@ export function proxy(req: NextRequest): NextResponse {
   // API 请求返回 401，页面请求重定向到登录页
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "未登录" }, { status: 401 });
+  }
+  if (sso) {
+    // 查询串同样要带上（理由同下方 2026-09-30 事故）
+    const back = externalUrl(req.headers, req.nextUrl, pathname + req.nextUrl.search);
+    return NextResponse.redirect(loginUrl(PORTAL_ORIGIN, back));
   }
   // ⚠️ `next` 必须带上**查询串**（2026-09-30 事故）：原先只存 pathname，
   // Bark 推送的 `/choices/<id>?account=<id>` 在会话过期时经登录页绕一圈，
