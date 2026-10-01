@@ -14,15 +14,26 @@
  * 会话 cookie 不再参与判定；未登录的页面请求跳门户登录页，回跳地址为当前绝对 URL。
  * Caddy 对带 `Authorization` 的请求（runner、cron）不做 forward_auth，它们照旧走下面
  * 的 Bearer 分支 / 路由自身的令牌校验。开关关闭时逻辑与接入前完全一致。
+ *
+ * 匿名访客（SSO 下，cosme 在门户的公开站点列表里；@szyyw/auth v0.2.0）：门卫注入
+ * `X-Portal-Anon: 1` 且**不带**任何身份头。目前只放行首页 `/`（由 page.tsx 渲染公开落地页，
+ * 不含任何个人数据）和静态资源；其余页面照旧 307 门户登录，`/api/*` 照旧 401。
+ * 另外 SSO 下 `/api/auth/*` **不再公开**：匿名请求现在能穿过 Caddy 了，本地登录/改密
+ * 接口在 SSO 下本就无用，不能让它变成对本地管理员密码的公开爆破口。
+ * 注意 v0.2.0 起只有 `X-User`、没有 `X-Portal-Sub` 视为未登录。
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { ssoEnabled, loginUrl } from "@szyyw/auth";
-import { identityFromRequestHeaders } from "@szyyw/auth/next";
+import { identityFromRequestHeaders, isAnonymousFromRequestHeaders } from "@szyyw/auth/next";
 import { SESSION_COOKIE, verifySession } from "@/lib/crypto.ts";
 import { PORTAL_ORIGIN, externalUrl, siteUrl } from "@/lib/sso.ts";
 import { safeNext } from "@/app/login/safe-next.ts";
 
 const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", "/favicon.ico"];
+/** SSO 下的放行清单：去掉 `/api/auth/`（见文件头），`/login` 已在上面单独跳门户 */
+const SSO_PUBLIC_PREFIXES = ["/api/runner/", "/_next/", "/favicon.ico"];
+/** SSO 下匿名访客可进的页面（公开外壳）。哪些真实板块公开以后再定 */
+const ANON_PAGES = new Set(["/"]);
 
 export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
@@ -34,7 +45,8 @@ export function proxy(req: NextRequest): NextResponse {
     return NextResponse.redirect(loginUrl(PORTAL_ORIGIN, siteUrl(req.headers, req.nextUrl, next)));
   }
 
-  if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) {
+  const publicPrefixes = sso ? SSO_PUBLIC_PREFIXES : PUBLIC_PREFIXES;
+  if (publicPrefixes.some((p) => pathname === p || pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
@@ -47,6 +59,11 @@ export function proxy(req: NextRequest): NextResponse {
   // 否则门禁会在路由的双通道校验之前就把它拦掉。
   const cronToken = process.env.CRON_TOKEN;
   if (cronToken && req.headers.get("authorization") === `Bearer ${cronToken}`) {
+    return NextResponse.next();
+  }
+
+  // 匿名访客只进公开外壳（页面自己用 optionalIdentity() 判定渲染落地页）
+  if (sso && ANON_PAGES.has(pathname) && isAnonymousFromRequestHeaders(req.headers)) {
     return NextResponse.next();
   }
 

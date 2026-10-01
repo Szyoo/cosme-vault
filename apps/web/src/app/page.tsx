@@ -8,6 +8,9 @@
  * 操作按钮顶到看不见的地方；导航放底部则等于要滚完整页才能换页。
  */
 import Link from "next/link";
+import { headers } from "next/headers";
+import { ssoEnabled } from "@szyyw/auth";
+import { optionalIdentity } from "@szyyw/auth/next";
 import { and, desc, eq } from "drizzle-orm";
 import { reclaimStaleJobs } from "@/lib/queue.ts";
 import { db, schema } from "@/db/index.ts";
@@ -29,11 +32,16 @@ import { toItems } from "./present-item.ts";
 import { mergeStatus } from "./labels.ts";
 import { PresentFilterProvider } from "./present-filter.tsx";
 import { PresentOverview } from "./present-overview.tsx";
+import { Landing } from "./landing.tsx";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const t = await getT();
+
+  // SSO 下没有身份 = 匿名访客（proxy 只放 `X-Portal-Anon: 1` 的请求进来）：渲染公开外壳，
+  // **必须在任何查库之前返回**。SSO 关闭时 proxy 已保证有本地会话，照旧渲染控制台。
+  if (ssoEnabled() && !optionalIdentity(await headers())) return <Landing t={t} />;
 
   // ⚠️ 僵死任务的回收**不能只挂在 next-job 上**：那条路径要等 runner 来领任务才触发，
   // 而 runner 崩掉时恰恰没人来领——任务就永远挂在 running，界面上永远显示「执行中」。

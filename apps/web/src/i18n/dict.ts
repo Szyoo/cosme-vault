@@ -324,6 +324,18 @@ const zh = {
   /** 设计包的右上角工具（明暗切换、背景参数）也要跟着语言走 */
   chrome: { auto: "跟随系统", light: "浅色", dark: "深色", localOnly: "仅本地保存" },
 
+  /** 未登录访客看到的公开落地页（SSO 匿名模式）——只介绍站点，不含任何个人数据 */
+  landing: {
+    lead: "@COSME 抽奖（プレゼント）辅助工具：追踪 @COSME 上的奖品活动，按账号自动应募。",
+    points: [
+      "定期扫描 @COSME 的奖品活动，汇总成一张列表，按账号记录每个奖品的应募状态",
+      "浏览器执行器自动完成应募流程，包括常见问卷的自动作答",
+      "需要人工选择奖品时，经 Bark 推送到手机，在网页上选完继续",
+    ],
+    loginPrompt: "登录后查看你的控制台、奖品列表与应募记录。",
+    loginButton: "登录",
+  },
+
   ago: {
     justNow: "刚刚",
     minutes: (n: number) => `${n} 分钟前`,
@@ -712,6 +724,17 @@ const ja: Dict = {
 
   chrome: { auto: "システムに従う", light: "ライト", dark: "ダーク", localOnly: "この端末にのみ保存" },
 
+  landing: {
+    lead: "@COSME プレゼント応募アシスタント：@COSME のプレゼント企画を追跡し、アカウントごとに自動で応募します。",
+    points: [
+      "@COSME のプレゼント企画を定期的にスキャンして一覧にまとめ、アカウントごとの応募状況を記録",
+      "ブラウザ実行器が応募手続きを自動で進め、よくあるアンケートにも自動回答",
+      "賞品の選択が必要なときは Bark でスマホに通知し、Web で選んで続行",
+    ],
+    loginPrompt: "ログインすると、コンソール・プレゼント一覧・応募履歴を確認できます。",
+    loginButton: "ログイン",
+  },
+
   ago: {
     justNow: "たった今",
     minutes: (n: number) => `${n} 分前`,
@@ -1085,6 +1108,17 @@ const en: Dict = {
   common: { loading: "Loading…", none: "—", jobs: "Recent jobs", noneYet: "None" },
 
   chrome: { auto: "Follow system", light: "Light", dark: "Dark", localOnly: "saved locally only" },
+
+  landing: {
+    lead: "An @COSME giveaway assistant: tracks @COSME present campaigns and applies to them automatically, per account.",
+    points: [
+      "Periodically scans @COSME present campaigns into one list and tracks each account's application status",
+      "A browser runner completes the application flow, including auto-answering common surveys",
+      "When a prize choice is needed, a Bark push reaches your phone; pick it on the web and the run continues",
+    ],
+    loginPrompt: "Sign in to see your console, present list and application records.",
+    loginButton: "Sign in",
+  },
 
   ago: {
     justNow: "just now",
