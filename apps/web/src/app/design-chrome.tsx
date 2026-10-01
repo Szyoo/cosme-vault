@@ -1,5 +1,5 @@
 /**
- * 设计包的运行时装置：点阵背景 + 右上角工具位（明暗切换、背景参数）。
+ * 设计包的运行时装置：点阵背景 + 右上角工具位（应用切换器、明暗切换、背景参数）。
  *
  * 单独拆成客户端组件，让 layout 保持服务端组件（它要 await cookies() 读明暗设置）。
  */
@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useT } from "@/i18n/context.tsx";
 import type { DotFieldHandle } from "@szyyw/design/dotfield";
 import type { SchemeToggleHandle } from "@szyyw/design/scheme";
+import type { AppSwitcherHandle } from "@szyyw/design/switcher";
 
 export function DesignChrome() {
   const t = useT();
@@ -16,14 +17,17 @@ export function DesignChrome() {
   useEffect(() => {
     let field: DotFieldHandle | null = null;
     let toggle: SchemeToggleHandle | null = null;
+    let switcher: AppSwitcherHandle | null = null;
     let cancelled = false;
 
     void (async () => {
-      const [{ mountDotField, attachSpot }, { configureScheme, mountSchemeToggle }, settings] = await Promise.all([
-        import("@szyyw/design/dotfield"),
-        import("@szyyw/design/scheme"),
-        import("@szyyw/design/settings"),
-      ]);
+      const [{ mountDotField, attachSpot }, { configureScheme, mountSchemeToggle }, settings, { mountAppSwitcher }] =
+        await Promise.all([
+          import("@szyyw/design/dotfield"),
+          import("@szyyw/design/scheme"),
+          import("@szyyw/design/settings"),
+          import("@szyyw/design/switcher"),
+        ]);
       if (cancelled) return;
 
       // 明暗持久化用 cookie —— layout 服务端要读它，首屏才不闪白
@@ -31,6 +35,8 @@ export function DesignChrome() {
       toggle = mountSchemeToggle({
         labels: { auto: t.chrome.auto, light: t.chrome.light, dark: t.chrome.dark },
       });
+      // 九宫格应用切换器（列表来自门户 /api/apps，按门户权限矩阵过滤）
+      switcher = mountAppSwitcher({ portal: "https://szyyw.xyz" });
 
       const layer = document.querySelector<HTMLElement>(".bg-layer");
       if (layer) {
@@ -46,6 +52,7 @@ export function DesignChrome() {
       cancelled = true;
       field?.destroy();
       toggle?.destroy();
+      switcher?.destroy();
     };
     // 依赖 t：切语言后重挂一次，工具位上的文案才会跟着换
   }, [t]);

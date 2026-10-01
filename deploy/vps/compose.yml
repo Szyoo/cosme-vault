@@ -27,6 +27,11 @@ services:
       BARK_SERVER: ${BARK_SERVER:-}
       BARK_DEVICE_KEY: ${BARK_DEVICE_KEY:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://cosme.szyyw.xyz}
+      # 门户 SSO：1 = 只认 Caddy 门禁注入的 X-User/X-Role，本地登录改跳门户。
+      # ⚠️ 仅当 Caddyfile 里 cosme 站点已套上 (sso) 门禁（剥头 + forward_auth）后才能打开，
+      # 否则任何人自带 X-User 头即可进入。默认关闭 = 行为与接入前一致。
+      SZYYW_SSO: ${SZYYW_SSO:-0}
+      PORTAL_ORIGIN: ${PORTAL_ORIGIN:-https://szyyw.xyz}
     volumes:
       - cosme_data:/data
     networks:
