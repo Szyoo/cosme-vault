@@ -1,5 +1,9 @@
 /**
- * 设计包的运行时装置：点阵背景 + 右上角工具位（应用切换器、明暗切换、背景参数）。
+ * 设计包的运行时装置：点阵背景 + 右上角工具位（应用切换器、账户菜单、明暗切换、背景参数）。
+ *
+ * 账户菜单（@szyyw/design v0.8.0 `mountAccountMenu`）只在门户 SSO 打开时挂：它读门户
+ * `/api/me`，未登录显示「登录」（弹门户登录小窗），登录后显示头像 + 用户名/角色/登出。
+ * `sso` 由 layout（服务端）按 `ssoEnabled()` 传进来——客户端读不到 `SZYYW_SSO`。
  *
  * 单独拆成客户端组件，让 layout 保持服务端组件（它要 await cookies() 读明暗设置）。
  */
@@ -10,24 +14,30 @@ import { useT } from "@/i18n/context.tsx";
 import type { DotFieldHandle } from "@szyyw/design/dotfield";
 import type { SchemeToggleHandle } from "@szyyw/design/scheme";
 import type { AppSwitcherHandle } from "@szyyw/design/switcher";
+import type { AccountMenuHandle } from "@szyyw/design/account";
 
-export function DesignChrome() {
+export function DesignChrome({ sso }: { sso: boolean }) {
   const t = useT();
 
   useEffect(() => {
     let field: DotFieldHandle | null = null;
     let toggle: SchemeToggleHandle | null = null;
     let switcher: AppSwitcherHandle | null = null;
+    let account: AccountMenuHandle | null = null;
     let cancelled = false;
 
     void (async () => {
-      const [{ mountDotField, attachSpot }, { configureScheme, mountSchemeToggle }, settings, { mountAppSwitcher }] =
-        await Promise.all([
-          import("@szyyw/design/dotfield"),
-          import("@szyyw/design/scheme"),
-          import("@szyyw/design/settings"),
-          import("@szyyw/design/switcher"),
-        ]);
+      const [
+        { mountDotField, attachSpot },
+        { configureScheme, mountSchemeToggle },
+        settings,
+        { mountAppSwitcher, mountAccountMenu },
+      ] = await Promise.all([
+        import("@szyyw/design/dotfield"),
+        import("@szyyw/design/scheme"),
+        import("@szyyw/design/settings"),
+        import("@szyyw/design/switcher"),
+      ]);
       if (cancelled) return;
 
       // 明暗持久化用 cookie —— layout 服务端要读它，首屏才不闪白
@@ -37,6 +47,8 @@ export function DesignChrome() {
       });
       // 九宫格应用切换器（列表来自门户 /api/apps，按门户权限矩阵过滤）
       switcher = mountAppSwitcher({ portal: "https://szyyw.xyz" });
+      // 账户菜单（order 6，切换器右边）：只在 SSO 下有意义——本地登录模式没有门户会话
+      if (sso) account = mountAccountMenu({ portal: "https://szyyw.xyz" });
 
       const layer = document.querySelector<HTMLElement>(".bg-layer");
       if (layer) {
@@ -53,9 +65,10 @@ export function DesignChrome() {
       field?.destroy();
       toggle?.destroy();
       switcher?.destroy();
+      account?.destroy();
     };
     // 依赖 t：切语言后重挂一次，工具位上的文案才会跟着换
-  }, [t]);
+  }, [t, sso]);
 
   return null;
 }
