@@ -1,95 +1,30 @@
-/** 登录页。样式先走 @szyyw/design 的玻璃组件层，正式视觉与其他页面一起做。 */
-"use client";
-
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useT } from "@/i18n/context.tsx";
-
 /**
- * ⚠️ Next 16：`useSearchParams()` 在预渲染阶段必须包在 Suspense 边界内，
- * 否则 `next build` 直接失败（missing-suspense-with-csr-bailout）。
- * 故把用到它的部分拆成子组件，页面组件只负责包 Suspense。
+ * 登录页（服务端外壳）。
+ *
+ * 门户 SSO（`SZYYW_SSO=1`）打开时本地登录不再使用：直接跳门户登录页，回跳到本站
+ * （带上 `next`，Bark 深链接的查询串不丢）。关闭时渲染原来的本地登录表单。
+ *
+ * ⚠️ 必须 force-dynamic：否则页面在 `next build` 时被静态预渲染，开关值会按**构建期**
+ * 环境（未设置）固化进产物，运行时再开 SSO 也不生效。
  */
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<main className="page">…</main>}>
-      <LoginForm />
-    </Suspense>
-  );
-}
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { loginUrl, ssoEnabled } from "@szyyw/auth";
+import { PORTAL_ORIGIN, siteUrl } from "@/lib/sso.ts";
+import { LoginClient } from "./login-form.tsx";
+import { safeNext } from "./safe-next.ts";
 
-function LoginForm() {
-  const t = useT();
-  const params = useSearchParams();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+export const dynamic = "force-dynamic";
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? t.login.failed);
-        return;
-      }
-      // ⚠️ 必须**整页跳转**，不能 router.replace（2026-09-30 事故）：
-      // 客户端跳转会被 `@modal/(.)choices` 拦截路由接住，选择页被弹成
-      // **盖在登录表单上的 modal**；而 replace 又不留历史，modal 的关闭按钮
-      // （router.back）无处可退，叉点了没反应。登录后本来就该整页重载，
-      // 新会话 cookie 下的服务端组件也需要重新渲染。
-      window.location.replace(safeNext(params.get("next")));
-    } finally {
-      setBusy(false);
-    }
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  if (ssoEnabled()) {
+    const raw = (await searchParams).next;
+    const next = safeNext(Array.isArray(raw) ? raw[0] : raw);
+    redirect(loginUrl(PORTAL_ORIGIN, siteUrl(await headers(), new URL("http://localhost:3000"), next)));
   }
-
-  return (
-    <main className="page narrow">
-      <h1 className="page-title grad-text">{t.appName}</h1>
-      <form className="glass stack section" method="post" action="/api/auth/login" onSubmit={submit}>
-        <input
-          className="field"
-          name="username"
-          placeholder={t.login.username}
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          className="field"
-          name="password"
-          type="password"
-          placeholder={t.login.password}
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="err-text">{error}</p>}
-        <button type="submit" className="btn" disabled={busy}>
-          {busy ? t.login.submitting : t.login.submit}
-        </button>
-      </form>
-    </main>
-  );
-}
-
-/**
- * 登录后的跳转目标只接受**站内相对路径**：以 `/` 开头、且不是 `//`（协议相对地址，
- * 会跳去别的域名）或 `/\`（部分浏览器同样当成协议相对）。否则一律回首页——
- * `next` 来自 URL，谁都能构造，不校验就是开放重定向。
- */
-function safeNext(next: string | null): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
-  return next;
+  return <LoginClient />;
 }
