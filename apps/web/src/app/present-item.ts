@@ -66,6 +66,11 @@ export interface PresentItem {
   life: "active" | "expired" | "gone";
   /** 最近一次变动时间（各账号取最新），用于记录页排序展示 */
   at: string | null;
+  /**
+   * @COSME 上的原始活动页。只有奖品库的匿名只读视图用它（行链接到站外原页，
+   * 因为 `/presents/<id>` 详情页含账号状态与应募按钮，对匿名不开放）。
+   */
+  link?: string | null;
 }
 
 const shortOf = (label: string): string => label.split("@")[0] ?? label;
@@ -127,6 +132,54 @@ export function toItems(
     item.life = lifeOf(item);
   }
   return [...byPresent.values()];
+}
+
+/** 奖品库用的奖品行（`presents` 表，全站共享） */
+export interface PresentRow {
+  id: string;
+  name: string;
+  brand: string | null;
+  imageUrl: string | null;
+  period: string | null;
+  quantity: string | null;
+  source: string;
+  link: string;
+}
+
+/**
+ * 奖品库：以 `presents` 表为准出项（**含**还没有任何账号记录的奖品），账号状态照 `toItems` 挂上。
+ *
+ * `publicOnly`（匿名只读视图）：先按完整数据算出奖品自身的 `life`（那是奖品的事实，
+ * 与谁投没投无关），再把账号维度**整个剥掉**——`accounts`（含账号名、状态、错误文案）
+ * 与 `at`（账号活动时间）都不出服务端。
+ */
+export function toLibraryItems(
+  presents: PresentRow[],
+  rows: RawRow[],
+  accounts: { id: string; label: string }[],
+  t: Dict,
+  { publicOnly }: { publicOnly: boolean },
+): PresentItem[] {
+  const withAccounts = new Map(toItems(rows, accounts, t).map((i) => [i.presentId, i]));
+  return presents.map((p) => {
+    const src = sourceOf(p.source, t);
+    const base: PresentItem = withAccounts.get(p.id) ?? {
+      presentId: p.id,
+      title: p.name,
+      brand: p.brand,
+      imageUrl: p.imageUrl,
+      period: p.period,
+      quantity: p.quantity,
+      source: p.source,
+      sourceShort: src.short,
+      sourceFull: src.full,
+      sourcePill: src.pill,
+      accounts: [],
+      at: null,
+      life: isPeriodExpired(p.period) ? "expired" : "active",
+    };
+    return publicOnly ? { ...base, accounts: [], at: null, link: p.link } : base;
+  });
 }
 
 /**

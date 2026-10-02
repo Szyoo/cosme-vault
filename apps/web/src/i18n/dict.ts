@@ -22,6 +22,7 @@ const zh = {
 
   nav: {
     console: "控制台",
+    prizes: "奖品库",
     records: "记录",
     diagnostics: "诊断",
     settings: "设置",
@@ -334,6 +335,16 @@ const zh = {
     ],
     loginPrompt: "登录后查看你的控制台、奖品列表与应募记录。",
     loginButton: "登录",
+    prizesButton: "浏览奖品库",
+  },
+
+  /** 奖品库页（/prizes）：全站共享的扫描结果，匿名访客只读可见 */
+  prizes: {
+    title: "奖品库",
+    sub: "从 @COSME 扫描到的奖品活动（全站共享，与账号无关）。",
+    anonHint: "这是公开只读视图：只显示奖品活动本身。登录后可扫描、应募并查看各账号状态。",
+    empty: "奖品库还是空的。",
+    openSource: "在 @COSME 查看",
   },
 
   ago: {
@@ -436,7 +447,7 @@ const ja: Dict = {
   appName: "Cosme Vault",
   appSub: "@COSME プレゼント応募コンソール",
 
-  nav: { console: "コンソール", records: "履歴", diagnostics: "診断", settings: "設定", back: "戻る" },
+  nav: { console: "コンソール", prizes: "プレゼント一覧", records: "履歴", diagnostics: "診断", settings: "設定", back: "戻る" },
 
   runner: {
     title: "Runner",
@@ -733,6 +744,15 @@ const ja: Dict = {
     ],
     loginPrompt: "ログインすると、コンソール・プレゼント一覧・応募履歴を確認できます。",
     loginButton: "ログイン",
+    prizesButton: "プレゼント一覧を見る",
+  },
+
+  prizes: {
+    title: "プレゼント一覧",
+    sub: "@COSME から走査したプレゼント企画（サイト共通・アカウントに依存しない）。",
+    anonHint: "公開の閲覧専用ビューです。企画情報のみ表示します。ログインすると走査・応募・アカウント別の状況を確認できます。",
+    empty: "プレゼント一覧はまだ空です。",
+    openSource: "@COSME で見る",
   },
 
   ago: {
@@ -821,7 +841,7 @@ const en: Dict = {
   appName: "Cosme Vault",
   appSub: "@COSME giveaway console",
 
-  nav: { console: "Console", records: "Records", diagnostics: "Diagnostics", settings: "Settings", back: "Back" },
+  nav: { console: "Console", prizes: "Prize library", records: "Records", diagnostics: "Diagnostics", settings: "Settings", back: "Back" },
 
   runner: {
     title: "Runner",
@@ -1118,6 +1138,15 @@ const en: Dict = {
     ],
     loginPrompt: "Sign in to see your console, present list and application records.",
     loginButton: "Sign in",
+    prizesButton: "Browse the prize library",
+  },
+
+  prizes: {
+    title: "Prize library",
+    sub: "Present campaigns scanned from @COSME (site-wide, not tied to any account).",
+    anonHint: "Public read-only view: campaign info only. Sign in to scan, apply and see per-account status.",
+    empty: "The prize library is empty.",
+    openSource: "View on @COSME",
   },
 
   ago: {
