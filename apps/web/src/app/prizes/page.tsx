@@ -8,25 +8,34 @@
  *   活动本身（名称、品牌、类型、数量、期间、图片、是否还在募集），账号维度在服务端就剥掉
  *   （`toLibraryItems({ publicOnly: true })`），不渲染任何会调写接口的控件；行链接到
  *   @COSME 原页。写接口（`/api/runs` 等）本身照旧由 proxy 对匿名返回 401，这里只是不调。
+ *
+ * 分页（2026-10-02）：筛选与分页都在**服务端**按 URL（`?type=&q=&life=&status=&page=`）做，
+ * 先筛后切页，每页 `PRIZES_PAGE_SIZE` 条（见 library.ts）。行用服务端渲染的
+ * `present-row.tsx`，只有当前页的行进 HTML；`status` 参数对匿名直接忽略。
  */
 import { headers } from "next/headers";
 import { ssoEnabled } from "@szyyw/auth";
 import { optionalIdentity } from "@szyyw/auth/next";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/index.ts";
 import { getT } from "@/i18n/server.ts";
 import { Nav } from "../nav.tsx";
 import { RunButton } from "../run-button.tsx";
-import { PresentList } from "../present-list.tsx";
-import { PresentOverview } from "../present-overview.tsx";
-import { PresentFilterProvider } from "../present-filter.tsx";
+import { PublicRow, Row } from "../present-row.tsx";
 import { toLibraryItems } from "../present-item.ts";
+import { filterAndPage, parseQuery } from "./library.ts";
+import { LibraryFilters, LibraryOverview, Pager } from "./views.tsx";
 
 export const dynamic = "force-dynamic";
 
-export default async function PrizesPage() {
+export default async function PrizesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getT();
   const anon = ssoEnabled() && !optionalIdentity(await headers());
+  const query = parseQuery(await searchParams, { allowStatus: !anon });
 
   const presents = db
     .select({
@@ -40,7 +49,8 @@ export default async function PrizesPage() {
       link: schema.presents.link,
     })
     .from(schema.presents)
-    .orderBy(desc(schema.presents.scannedAt))
+    // 同一时刻扫到的奖品按 id 定序：分页要求顺序稳定，否则翻页可能重复/漏行
+    .orderBy(desc(schema.presents.scannedAt), asc(schema.presents.id))
     .all();
 
   // 账号状态只用来算奖品自身的 life（gone/expired 是 runner 在站点上看到的奖品事实）；
@@ -66,32 +76,50 @@ export default async function PrizesPage() {
 
   const items = toLibraryItems(presents, rows, accounts, t, { publicOnly: anon });
 
+  const { rows: shown, matched, page, pages } = filterAndPage(items, query, t);
+  const pager = <Pager query={query} page={page} pages={pages} matched={matched} total={items.length} t={t} />;
+
   return (
-    <PresentFilterProvider>
-      <main className="page">
-        <Nav current="/prizes" anon={anon} t={t} />
+    <main className="page">
+      <Nav current="/prizes" anon={anon} t={t} />
 
-        <div className="row spread">
-          <h1 className="page-title">{t.prizes.title}</h1>
-          {!anon && <RunButton />}
-        </div>
-        <p className="page-sub">{t.prizes.sub}</p>
-        {anon && <p className="small muted">{t.prizes.anonHint}</p>}
+      <div className="row spread">
+        <h1 className="page-title">{t.prizes.title}</h1>
+        {!anon && <RunButton />}
+      </div>
+      <p className="page-sub">{t.prizes.sub}</p>
+      {anon && <p className="small muted">{t.prizes.anonHint}</p>}
 
-        {items.length > 0 && <PresentOverview items={items} />}
+      {items.length > 0 && <LibraryOverview items={items} query={query} t={t} />}
 
-        <section className="glass section" id="presents">
-          <div className="section-name">{t.present.listTitle}</div>
-          {items.length === 0 ? (
-            <div className="empty">
-              <div>🎁</div>
-              <p>{t.prizes.empty}</p>
-            </div>
-          ) : (
-            <PresentList items={items} readOnly={anon} />
-          )}
-        </section>
-      </main>
-    </PresentFilterProvider>
+      <section className="glass section" id="presents">
+        <div className="section-name">{t.present.listTitle}</div>
+        {items.length === 0 ? (
+          <div className="empty">
+            <div>🎁</div>
+            <p>{t.prizes.empty}</p>
+          </div>
+        ) : (
+          <>
+            <LibraryFilters items={items} query={query} matched={matched} showStatus={!anon} t={t} />
+            {pager}
+            {shown.length === 0 ? (
+              <p className="small muted">{t.filter.noMatch}</p>
+            ) : (
+              <ul className="plist">
+                {shown.map((i) =>
+                  anon ? (
+                    <PublicRow key={i.presentId} item={i} openSource={t.prizes.openSource} />
+                  ) : (
+                    <Row key={i.presentId} item={i} statusFilter={query.status} />
+                  ),
+                )}
+              </ul>
+            )}
+            {pager}
+          </>
+        )}
+      </section>
+    </main>
   );
 }
