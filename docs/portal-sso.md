@@ -46,7 +46,17 @@
 - **匿名**：导航只有「奖品库」；只出活动本身（名称、品牌、类型、数量、期间、图片、是否还在募集）。
   账号维度在**服务端**剥掉（`toLibraryItems(..., { publicOnly: true })`：`accounts: []`、`at: null`，
   账号表不查），`PresentList readOnly` 不渲染状态筛选与改判控件，行链接到 @COSME 原页（新标签）。
-  「募集中/已下架/404」是奖品自身的事实，照常显示。类型/关键词筛选是纯客户端，不调接口。
+  「募集中/已下架/404」是奖品自身的事实，照常显示。
+- **分页与筛选（2026-10-02 起，服务端）**：此前一次下发全部 ~588 个（匿名 ~830 KB）、筛选在客户端。
+  现在筛选与分页都在 URL 里、服务端先筛后切页（`src/app/prizes/library.ts`）：
+  `?type=<source 枚举值>&q=<关键词>&life=active|expired|gone&status=<账号状态>&page=N`，
+  每页 `PRIZES_PAGE_SIZE = 50`。`page` 非数字当 1、越界**钳到末页**（不出空页）。
+  `type` 用稳定的枚举值（`brandFanClub` 与 `brandFanClubViaBrand` 同短名，按一组筛）；
+  `status` 是账号维度，**只对登录用户生效，匿名直接忽略**（不会因此泄露账号状态）。
+  列表上下各一份分页条（上一页 / 页码窗口、当前页高亮 / 下一页 + 筛出数 / 总数），
+  概览与筛选 chip 都是链接、关键词是 GET 表单，无 JS 也能用。行组件 `present-row.tsx`
+  在服务端渲染，只有当前页的行进 HTML。排序仍是 `scannedAt` 倒序（同时刻按 id 定序，翻页稳定）。
+  控制台 `/` 与记录页仍用客户端筛选的 `PresentList`（数据量小、首页自动刷新），不分页。
 - 写接口不动：`/api/runs`、`/api/account-presents/*` 等对匿名照旧由 proxy 返回 401；
   `/presents/<id>`、`/records`、`/settings` 等对匿名照旧 307 门户。应用没有 server action。
 
@@ -69,6 +79,9 @@ npm run build --workspace @cosme/web
 cd apps/web && npm run db:migrate && SZYYW_SSO=1 npx next start -p 3917
 curl -si -H 'X-Portal-Anon: 1' localhost:3917/            # 200 落地页（含 href="/prizes"）
 curl -si -H 'X-Portal-Anon: 1' localhost:3917/prizes      # 200 只读奖品库（无「仅检测/仅抽取/跑一轮」、无账号名）
+curl -s -H 'X-Portal-Anon: 1' localhost:3917/prizes | grep -o 'class="prow"' | wc -l   # 50（每页条数）
+curl -s -H 'X-Portal-Anon: 1' 'localhost:3917/prizes?page=999' | grep -o 'aria-current="page">[0-9]*'  # 钳到末页
+curl -s -H 'X-Portal-Anon: 1' 'localhost:3917/prizes?type=brandFanClub&q=xx&page=2'  # 先筛后分页
 curl -si -H 'X-Portal-Anon: 1' -X POST localhost:3917/api/runs   # 401
 curl -si -H 'X-Portal-Anon: 1' localhost:3917/settings    # 307 门户
 curl -si -H 'X-Portal-Anon: 1' localhost:3917/api/jobs    # 401
