@@ -16,8 +16,9 @@
  * 的 Bearer 分支 / 路由自身的令牌校验。开关关闭时逻辑与接入前完全一致。
  *
  * 匿名访客（SSO 下，cosme 在门户的公开站点列表里；@szyyw/auth v0.2.0）：门卫注入
- * `X-Portal-Anon: 1` 且**不带**任何身份头。目前只放行首页 `/`（由 page.tsx 渲染公开落地页，
- * 不含任何个人数据）和静态资源；其余页面照旧 307 门户登录，`/api/*` 照旧 401。
+ * `X-Portal-Anon: 1` 且**不带**任何身份头。只放行首页 `/`（由 page.tsx 渲染公开落地页，
+ * 不含任何个人数据）、奖品库 `/prizes`（全站共享的扫描结果，页面对匿名只读、剥掉账号维度）
+ * 和静态资源；其余页面照旧 307 门户登录，`/api/*`（含 `/api/runs` 扫描/投递）照旧 401。
  * 另外 SSO 下 `/api/auth/*` **不再公开**：匿名请求现在能穿过 Caddy 了，本地登录/改密
  * 接口在 SSO 下本就无用，不能让它变成对本地管理员密码的公开爆破口。
  * 注意 v0.2.0 起只有 `X-User`、没有 `X-Portal-Sub` 视为未登录。
@@ -32,8 +33,11 @@ import { safeNext } from "@/app/login/safe-next.ts";
 const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", "/favicon.ico"];
 /** SSO 下的放行清单：去掉 `/api/auth/`（见文件头），`/login` 已在上面单独跳门户 */
 const SSO_PUBLIC_PREFIXES = ["/api/runner/", "/_next/", "/favicon.ico"];
-/** SSO 下匿名访客可进的页面（公开外壳）。哪些真实板块公开以后再定 */
-const ANON_PAGES = new Set(["/"]);
+/**
+ * SSO 下匿名访客可进的页面（精确匹配，不含子路径）。用户决定（2026-10-02）：匿名只看
+ * 奖品库，别的一概不开放——`/presents/<id>` 详情含账号状态与应募按钮，**不在**这里。
+ */
+const ANON_PAGES = new Set(["/", "/prizes"]);
 
 export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
