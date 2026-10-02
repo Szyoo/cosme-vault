@@ -345,6 +345,13 @@ const zh = {
     anonHint: "这是公开只读视图：只显示奖品活动本身。登录后可扫描、应募并查看各账号状态。",
     empty: "奖品库还是空的。",
     openSource: "在 @COSME 查看",
+    // 分页（服务端，?page=N；筛选也走 URL：?type=&q=&life=&status=）
+    pager: "分页",
+    prev: "上一页",
+    next: "下一页",
+    pageOf: (p: number, all: number) => `第 ${p} / ${all} 页`,
+    total: (n: number, all: number) => (n === all ? `共 ${all} 个` : `筛出 ${n} 个 / 共 ${all} 个`),
+    searchGo: "搜索",
   },
 
   ago: {
@@ -753,6 +760,12 @@ const ja: Dict = {
     anonHint: "公開の閲覧専用ビューです。企画情報のみ表示します。ログインすると走査・応募・アカウント別の状況を確認できます。",
     empty: "プレゼント一覧はまだ空です。",
     openSource: "@COSME で見る",
+    pager: "ページ送り",
+    prev: "前へ",
+    next: "次へ",
+    pageOf: (p: number, all: number) => `${p} / ${all} ページ`,
+    total: (n: number, all: number) => (n === all ? `全 ${all} 件` : `${n} 件 / 全 ${all} 件`),
+    searchGo: "検索",
   },
 
   ago: {
@@ -1147,6 +1160,12 @@ const en: Dict = {
     anonHint: "Public read-only view: campaign info only. Sign in to scan, apply and see per-account status.",
     empty: "The prize library is empty.",
     openSource: "View on @COSME",
+    pager: "Pagination",
+    prev: "Previous",
+    next: "Next",
+    pageOf: (p: number, all: number) => `Page ${p} of ${all}`,
+    total: (n: number, all: number) => (n === all ? `${all} in total` : `${n} matching of ${all}`),
+    searchGo: "Search",
   },
 
   ago: {

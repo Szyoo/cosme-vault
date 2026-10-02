@@ -976,3 +976,27 @@ iframe.diag-shot {
 .ov-foot {
   margin-top: 8px;
 }
+
+/* 奖品库分页条（/prizes，列表上下各一份） */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 10px 0;
+}
+.pager-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.pager-links .chip {
+  font-size: 12px;
+  text-decoration: none;
+}
+.pager-off {
+  opacity: 0.4;
+  pointer-events: none;
+}
