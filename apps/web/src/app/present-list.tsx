@@ -8,6 +8,10 @@
  *
  * 行的排版刻意不用表格：8 列信息在手机上必然横向溢出，表格只能横滚、一屏看不全。
  * 改成**两行一条**——图片跨两行、第一行标题（单行省略）、第二行参数（可换行）。
+ *
+ * `readOnly`（奖品库的匿名视图）：不出「按状态」筛选行（那是账号维度）、不出 404 改判控件，
+ * 行链接到 @COSME 原页而不是 `/presents/<id>`（详情页对匿名不开放）。数据本身已在服务端
+ * 剥掉账号状态（见 present-item.ts 的 `toLibraryItems`），这里只是不渲染对应的入口。
  */
 "use client";
 
@@ -18,7 +22,7 @@ import { tallySource, tallyStatus, type PresentItem } from "./present-item.ts";
 import { usePresentFilter } from "./present-filter.tsx";
 import { GoneFix } from "./gone-fix.tsx";
 
-export function PresentList({ items }: { items: PresentItem[] }) {
+export function PresentList({ items, readOnly = false }: { items: PresentItem[]; readOnly?: boolean }) {
   const t = useT();
   // 筛选状态与顶部的「奖品概览」共享（见 present-filter.tsx）：
   // 上面点一个类型/状态，下面这份列表跟着筛
@@ -72,6 +76,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
           ))}
         </div>
 
+        {!readOnly && (
         <div className="filter-row">
           <span className="filter-label">{t.filter.byStatus}</span>
           <FilterChip active={status === null} onClick={() => setStatus(null)} label={t.filter.all} count={items.length} />
@@ -85,6 +90,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
             />
           ))}
         </div>
+        )}
 
         <div className="filter-foot">
           <span className="tiny muted">{t.filter.shown(shown.length, items.length)}</span>
@@ -105,7 +111,11 @@ export function PresentList({ items }: { items: PresentItem[] }) {
       ) : (
         <ul className="plist">
           {shown.map((i) => (
-            <Row key={i.presentId} item={i} statusFilter={status} />
+            readOnly ? (
+              <PublicRow key={i.presentId} item={i} />
+            ) : (
+              <Row key={i.presentId} item={i} statusFilter={status} />
+            )
           ))}
         </ul>
       )}
@@ -129,6 +139,41 @@ function FilterChip({
       {label}
       <span className="filter-count num">{count}</span>
     </button>
+  );
+}
+
+/** 匿名只读行：同一套排版，但不含账号状态，链接到 @COSME 原页（新标签） */
+function PublicRow({ item }: { item: PresentItem }) {
+  const t = useT();
+  const body = (
+    <>
+      {item.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
+        <img className="prow-img" src={item.imageUrl} alt="" loading="lazy" width={52} height={52} />
+      ) : (
+        <span className="prow-img prow-img-none" aria-hidden />
+      )}
+      <span className="prow-name">{item.title}</span>
+      <span className="prow-meta">
+        <span className={`pill ${item.sourcePill}`} title={item.sourceFull}>
+          {item.sourceShort}
+        </span>
+        {item.brand && <span className="prow-brand">{item.brand}</span>}
+        {item.quantity && <span className="prow-tag num">{item.quantity}</span>}
+        {item.period && <span className="prow-tag num">{item.period}</span>}
+      </span>
+    </>
+  );
+  return (
+    <li>
+      {item.link ? (
+        <a className="prow" href={item.link} target="_blank" rel="noopener noreferrer" title={`${item.title} — ${t.prizes.openSource}`}>
+          {body}
+        </a>
+      ) : (
+        <div className="prow">{body}</div>
+      )}
+    </li>
   );
 }
 
