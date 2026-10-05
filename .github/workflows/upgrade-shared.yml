@@ -18,11 +18,11 @@ jobs:
   upgrade:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: feat/monorepo-v6
       # 脚本要用 npm 刷新锁文件，先装好与 Docker 镜像一致的 Node（.nvmrc = 26）
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - name: 检查并升级
