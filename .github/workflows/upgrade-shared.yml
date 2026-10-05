@@ -1,0 +1,60 @@
+# 共享包（@szyyw/design、@szyyw/auth）有新正式版 → 升级 → 类型检查 + next build 通过就推到部署分支
+# feat/monorepo-v6 → VPS 的 szyyw-autodeploy 在 2 分钟内上线
+# （任一步失败就不推；上线后健康检查失败由 deploy-app.sh 自动回滚）。
+#
+# ⚠️ schedule 只认默认分支（main）上的工作流文件，所以本文件在 main 与 feat/monorepo-v6 上各放一份、保持一致；
+# 实际干活的永远是 checkout 出来的 feat/monorepo-v6（脚本、package.json、锁文件都以它为准）。
+name: upgrade-shared
+on:
+  schedule:
+    - cron: '41 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: upgrade-shared
+  cancel-in-progress: false
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/monorepo-v6
+      # 脚本要用 npm 刷新锁文件，先装好与 Docker 镜像一致的 Node（.nvmrc = 26）
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: 检查并升级
+        id: up
+        run: |
+          summary=$(scripts/upgrade-shared.sh)
+          echo "summary=$summary" >> "$GITHUB_OUTPUT"
+          echo "${summary:-已是最新}"
+      - name: 安装依赖
+        if: steps.up.outputs.summary != ''
+        run: npm ci --no-audit --no-fund
+      - name: 类型检查（全部 workspace）
+        if: steps.up.outputs.summary != ''
+        run: npm run typecheck
+      - name: next build
+        if: steps.up.outputs.summary != ''
+        working-directory: apps/web
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          # 构建期不需要真密钥，占位值与 apps/web/Dockerfile 一致
+          SESSION_SECRET: '0000000000000000000000000000000000000000000000000000000000000000'
+          CREDENTIAL_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+        run: |
+          # 预先把空库切成 WAL：否则 next build 的多个 worker 同时首次打开新库、并发设 journal_mode 会撞 SQLITE_BUSY
+          mkdir -p data
+          node -e "new (require('better-sqlite3'))('data/cosme.db').pragma('journal_mode = WAL')"
+          npm run build
+      - name: 提交并推送
+        if: steps.up.outputs.summary != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/package.json package-lock.json
+          git commit -m "chore(deps): ${{ steps.up.outputs.summary }}（自动升级，构建通过）"
+          git push origin HEAD:feat/monorepo-v6
