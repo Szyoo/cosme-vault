@@ -279,7 +279,7 @@ apps/
   ⚠️ Dockerfile 别拷 `apps/web/node_modules`——workspaces 提升后容器里没有这个目录（VPS 实测）。
   Bark 配置进了 `app_settings`（网页可改、.env 兜底），服务器复用 jppost 的自建 bark（bark.szyyw.xyz）。
 - **上线方式（2026-10）**：**推送 `feat/monorepo-v6` = 上线**（部署分支≠默认分支 `main`）。VPS 的
-  `szyyw-autodeploy.timer` 每 2 分钟调 szyyw-platform 的 `/opt/ingress/deploy/deploy-app.sh cosme`：
+  `szyyw-autodeploy.timer` 每 10 分钟调 szyyw-platform 的 `/opt/ingress/deploy/deploy-app.sh cosme`：
   拉取 → `compose build` → `up -d --no-deps` → 健康检查，失败自动回滚；只改 docs/、*.md、.github/ 不重建。
   立即部署 `ssh vultr-jp /opt/ingress/deploy/deploy-app.sh cosme`，回滚加 `--ref <标签或提交>`（固定期间自动部署跳过，
   不带 `--ref` 再跑一次恢复）。**不要**在 VPS 上手动 `git pull` + `compose build`。

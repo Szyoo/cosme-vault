@@ -24,7 +24,7 @@ VPS(`ssh vultr-jp`)上的 `/opt/cosme-vault` 是本仓库的 **git clone**,由�
 → `up -d --no-deps` → 健康检查,**失败自动回滚**到上一个镜像。
 
 **部署分支是 `feat/monorepo-v6`(不是默认分支 `main`)。推送到它 = 上线**:VPS 上的
-`szyyw-autodeploy.timer` 每 2 分钟检查一次,有新提交就跑上面的流程(Next 构建约 4 分钟)。
+`szyyw-autodeploy.timer` 每 10 分钟检查一次,有新提交就跑上面的流程(Next 构建约 4 分钟)。
 只改 `docs/`、`*.md`、`.github/` 的提交不会触发重建。
 
 ```bash
