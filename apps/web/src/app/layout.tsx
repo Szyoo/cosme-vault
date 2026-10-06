@@ -15,7 +15,18 @@ import { LocaleSwitcher } from "@/i18n/switcher.tsx";
 /** 标题也跟着语言走（⚠️ Next 16：generateMetadata 里同样要 await cookies） */
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
-  return { title: t.appName, description: t.appSub };
+  return {
+    title: t.appName,
+    description: t.appSub,
+    // 统一图标（平台 branding/ 生成，文件在 public/）：svg 首选，ico 兜底
+    icons: {
+      icon: [
+        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: "/favicon.ico", sizes: "any" },
+      ],
+      apple: "/apple-touch-icon.png",
+    },
+  };
 }
 
 export default async function RootLayout({

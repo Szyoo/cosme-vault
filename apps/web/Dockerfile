@@ -40,6 +40,8 @@ ENV DATABASE_PATH=/data/cosme.db
 # 且内部保留 workspace 结构，入口为 apps/web/server.js（已实测确认）。
 COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+# public/（favicon 等）standalone 不会带，必须手动拷
+COPY --from=builder /app/apps/web/public ./apps/web/public
 # 迁移文件与 drizzle 配置：容器启动时跑迁移
 COPY --from=builder /app/apps/web/drizzle ./apps/web/drizzle
 COPY --from=builder /app/apps/web/drizzle.config.ts ./apps/web/drizzle.config.ts
