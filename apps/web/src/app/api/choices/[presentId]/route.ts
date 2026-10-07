@@ -136,7 +136,7 @@ export async function POST(
   // 而不是每个账号一条
   const batchId = randomUUID();
   const jobIds = pending
-    .map((r) => dispatchResolvedDraw(r.accountId, presentId, selections, batchId))
+    .map((r) => dispatchResolvedDraw(r.accountId, presentId, selections, { batchId }))
     .filter((id): id is string => id !== null);
   if (jobIds.length === 0) return NextResponse.json({ error: t.api.presentNotFound }, { status: 404 });
   publish("queue");

@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, lt } from "drizzle-orm";
 import { type Job, type JobReport } from "@cosme/contract";
 import { db, schema } from "@/db/index.ts";
-import { dispatchPendingDraws } from "@/lib/dispatch.ts";
+import { dispatchPendingDraws, dispatchResolvedDraw, inheritedChoices } from "@/lib/dispatch.ts";
 import { nextStamp } from "@/lib/stamp.ts";
 
 /** 卡死判定阈值：超过这么久还是 running 的任务视为 runner 已崩溃 */
@@ -123,14 +123,34 @@ export function claimNextJob(): Job | null {
       .get();
     if (!row) return null;
 
+    let payload = JSON.parse(row.payload) as Record<string, unknown>;
+
+    // ⚠️ **选择在交给 runner 的这一刻才取，不在入队时定死**（2026-10-07 事故）。
+    //
+    // 「跑一轮」把两个账号的 draw 在同一秒全部入队，那时谁都没选过，载荷里的
+    // resolvedChoices 是空的。A 先跑到 → 挂起 → 推送 → 用户选了；但 B 那条
+    // 早已入队的任务**载荷不会自己变**，轮到它时照样空着手去 → 又挂起 → 又推送。
+    // 用户眼里就是「同一件商品两个账号各弹一次」，跨账号复用形同虚设。
+    // 所以派发时若载荷还空着，就现取一次任意账号已有的选择，并写回任务行
+    // （任务历史里能看到实际用的是哪份选择）。
+    if (row.kind === "draw" && !hasChoices(payload.resolvedChoices)) {
+      const presentId = String(payload.presentId ?? "");
+      const accountId = String(payload.accountId ?? "");
+      const late = presentId && accountId ? inheritedChoices(tx, presentId, accountId) : {};
+      if (Object.keys(late).length > 0) payload = { ...payload, resolvedChoices: late };
+    }
+
     tx.update(schema.jobs)
-      .set({ status: "running", startedAt: new Date().toISOString() })
+      .set({ status: "running", startedAt: new Date().toISOString(), payload: JSON.stringify(payload) })
       .where(eq(schema.jobs.id, row.id))
       .run();
 
-    const payload = JSON.parse(row.payload) as Record<string, unknown>;
     return { kind: row.kind, id: row.id, ...payload } as Job;
   });
+}
+
+function hasChoices(v: unknown): boolean {
+  return !!v && typeof v === "object" && Object.keys(v as object).length > 0;
 }
 
 /** 入队一个任务，返回 jobId */
@@ -370,7 +390,11 @@ export function applyReport(report: JobReport): ReportEffects {
       // draw 任务的 accountId/presentId 需从 job payload 取
       const job = tx.select().from(schema.jobs).where(eq(schema.jobs.id, report.jobId)).get();
       if (!job) return;
-      const p = JSON.parse(job.payload) as { accountId?: string; presentId?: string };
+      const p = JSON.parse(job.payload) as {
+        accountId?: string;
+        presentId?: string;
+        resolvedChoices?: Record<string, string>;
+      };
       if (!p.accountId || !p.presentId) return;
       // 顺手采下的问卷题库落库（每奖品保留最新一份），供重建匹配库
       if (outcome.surveyCapture && outcome.surveyCapture.questions.length > 0) {
@@ -443,7 +467,42 @@ export function applyReport(report: JobReport): ReportEffects {
         .run();
 
       if (outcome.status === "needsChoice") {
-        effects.needsChoice.push({ accountId: p.accountId, presentId: p.presentId });
+        // ⚠️ 兜底：别的账号**已经选过**这个奖品 → 沿用并自动重投，不推送、不挂给用户。
+        //
+        // 派发时晚绑定（claimNextJob）挡住了绝大多数情况，但挡不住「B 已经在跑，
+        // 用户恰好此刻选了 A」这一下：B 是空着手出发的，回来照样挂起。选择与账号无关，
+        // 没有理由再问一遍。
+        //
+        // 只在**本次任务是空着手跑的**时候才这么做：若带着选择仍然挂起，说明那份选择
+        // 覆盖不了这道题（题目变了 / 有新题），必须交人——否则会无限重投同一份选择。
+        const donor = hasChoices(p.resolvedChoices) ? {} : inheritedChoices(tx, p.presentId, p.accountId);
+        if (Object.keys(donor).length > 0) {
+          tx.update(schema.accountPresents)
+            .set({ status: "pending", resolvedChoices: JSON.stringify(donor), updatedAt: new Date().toISOString() })
+            .where(
+              and(
+                eq(schema.accountPresents.accountId, p.accountId),
+                eq(schema.accountPresents.presentId, p.presentId),
+              ),
+            )
+            .run();
+          // 归回原来那一轮的批次，队列上不会多冒出一条「单独重跑」
+          dispatchResolvedDraw(p.accountId, p.presentId, donor, {
+            batchId: job.batchId ?? undefined,
+            batchKind: (job.batchKind ?? undefined) as "run" | "scan" | "draw" | "single" | undefined,
+            tx,
+          });
+          tx.insert(schema.runnerLogs)
+            .values({
+              jobId: report.jobId,
+              at: new Date().toISOString(),
+              level: "info",
+              text: "该奖品已有其他账号的选择，直接沿用并重新投递（不再询问）",
+            })
+            .run();
+        } else {
+          effects.needsChoice.push({ accountId: p.accountId, presentId: p.presentId });
+        }
       } else if (outcome.status === "unknownPattern" && outcome.diagnostics) {
         // ── 异常聚合 + 可复现性判定（用户设计）──
         //
