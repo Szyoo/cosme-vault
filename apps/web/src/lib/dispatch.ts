@@ -121,7 +121,7 @@ export function startDrawOnly(
  * A 账号选过的色号/套装，给 B 账号派单时直接带上——不用每个账号都再选一遍。
  * 自己账号已有的选择优先；否则借用任意其他账号的。
  */
-function inheritedChoices(tx: DbLike, presentId: string, accountId: string): Record<string, string> {
+export function inheritedChoices(tx: DbLike, presentId: string, accountId: string): Record<string, string> {
   const rows = tx
     .select({
       accountId: schema.accountPresents.accountId,
@@ -217,12 +217,19 @@ export function dispatchResolvedDraw(
   accountId: string,
   presentId: string,
   resolvedChoices: Record<string, string>,
-  /** 多个账号共用同一次选择时传入，队列上合成一条而不是每账号一条 */
-  sharedBatchId?: string,
+  opts: {
+    /** 多个账号共用同一次选择时传入，队列上合成一条而不是每账号一条 */
+    batchId?: string;
+    /** 继承所在批次的类型；不传则自成「单独重跑」 */
+    batchKind?: "run" | "scan" | "draw" | "single";
+    /** 在 applyReport 的事务里调用时传入事务句柄 */
+    tx?: DbLike;
+  } = {},
 ): string | null {
+  const tx = opts.tx ?? db;
   // 手动针对单个奖品的操作自成一批（batchKind='single'），
   // 队列上显示成「单独重跑 · <奖品名>」，与「一轮」区分开
-  const present = db
+  const present = tx
     .select({ link: schema.presents.link })
     .from(schema.presents)
     .where(eq(schema.presents.id, presentId))
@@ -230,7 +237,7 @@ export function dispatchResolvedDraw(
   if (!present) return null;
 
   const jobId = randomUUID();
-  db.insert(schema.jobs)
+  tx.insert(schema.jobs)
     .values({
       id: jobId,
       kind: "draw",
@@ -238,8 +245,8 @@ export function dispatchResolvedDraw(
       payload: JSON.stringify({ accountId, presentId, presentLink: present.link, resolvedChoices }),
       trigger: "manual",
       createdAt: nextStamp(),
-      batchId: sharedBatchId ?? randomUUID(),
-      batchKind: "single",
+      batchId: opts.batchId ?? randomUUID(),
+      batchKind: opts.batchKind ?? "single",
     })
     .run();
   return jobId;
