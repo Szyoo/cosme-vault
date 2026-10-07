@@ -19,7 +19,7 @@ runner 主动出站长轮询控制面,**不开入站端口、不依赖 tailscale
 
 ## 一、控制面(VPS)
 
-VPS(`ssh vultr-jp`)上的 `/opt/cosme-vault` 是本仓库的 **git clone**,由平台仓库 szyyw-platform 的
+VPS(`ssh szyyw-lighthouse`)上的 `/opt/cosme-vault` 是本仓库的 **git clone**,由平台仓库 szyyw-platform 的
 `/opt/ingress/deploy/deploy-app.sh` 统一部署(部署名 `cosme`):拉取部署分支 → `docker compose build`
 → `up -d --no-deps` → 健康检查,**失败自动回滚**到上一个镜像。
 
@@ -29,12 +29,12 @@ VPS(`ssh vultr-jp`)上的 `/opt/cosme-vault` 是本仓库的 **git clone**,由�
 
 ```bash
 # 立即部署(不等 timer)
-ssh vultr-jp /opt/ingress/deploy/deploy-app.sh cosme
+ssh szyyw-lighthouse /opt/ingress/deploy/deploy-app.sh cosme
 # 回滚:部署指定标签/提交并固定在那里,固定期间自动部署跳过它;
 # 修好后再跑一次不带 --ref 的命令即恢复跟随 feat/monorepo-v6
-ssh vultr-jp /opt/ingress/deploy/deploy-app.sh cosme --ref <标签或提交>
+ssh szyyw-lighthouse /opt/ingress/deploy/deploy-app.sh cosme --ref <标签或提交>
 # 查看各应用部署状态
-ssh vultr-jp /opt/ingress/deploy/deploy-app.sh --status
+ssh szyyw-lighthouse /opt/ingress/deploy/deploy-app.sh --status
 ```
 
 **不要**再手动在 VPS 上 `git pull` + `docker compose build/up`:应用 compose 的项目名都是 `vps`,

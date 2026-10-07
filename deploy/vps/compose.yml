@@ -1,4 +1,4 @@
-# vultr-jp 部署：对外只经 Caddy（ingress 网络），刻意不写任何 ports:
+# szyyw-lighthouse 部署：对外只经 Caddy（ingress 网络），刻意不写任何 ports:
 # Docker 的 iptables 会绕过 ufw，publish 端口 = 直接暴露公网，勿改。
 #
 # 注意 runner 不在这里：它跑在 Mac mini（launchd，见 apps/runner/README.md）。

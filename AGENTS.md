@@ -281,7 +281,7 @@ apps/
 - **上线方式（2026-10）**：**推送 `feat/monorepo-v6` = 上线**（部署分支≠默认分支 `main`）。VPS 的
   `szyyw-autodeploy.timer` 每 10 分钟调 szyyw-platform 的 `/opt/ingress/deploy/deploy-app.sh cosme`：
   拉取 → `compose build` → `up -d --no-deps` → 健康检查，失败自动回滚；只改 docs/、*.md、.github/ 不重建。
-  立即部署 `ssh vultr-jp /opt/ingress/deploy/deploy-app.sh cosme`，回滚加 `--ref <标签或提交>`（固定期间自动部署跳过，
+  立即部署 `ssh szyyw-lighthouse /opt/ingress/deploy/deploy-app.sh cosme`，回滚加 `--ref <标签或提交>`（固定期间自动部署跳过，
   不带 `--ref` 再跑一次恢复）。**不要**在 VPS 上手动 `git pull` + `compose build`。
   共享包 `@szyyw/design` / `@szyyw/auth` 由 `.github/workflows/upgrade-shared.yml` + `scripts/upgrade-shared.sh`
   每 6 小时自动升级（typecheck + next build 通过才推 `feat/monorepo-v6`），详见 docs/deploy.md。
