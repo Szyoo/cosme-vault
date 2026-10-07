@@ -60,7 +60,7 @@ apps/
 | 运行时 | Node **26**（原生 type-stripping，runner 直接 `node src/x.ts`） |
 | Web | Next.js **16** App Router + React **19** + TypeScript **7** |
 | DB | SQLite + Drizzle ORM + `better-sqlite3` **13**（13 起有 Node 26 预编译包，无需 node-gyp；11.x 编译不过）。Drizzle 0.45 **尚未提供** `node:sqlite` 驱动，故内置 sqlite 暂不可用 |
-| 执行器 | Playwright 最新版，`channel: 'chrome'`，持久化 context 保登录态 |
+| 执行器 | Playwright 最新版，`channel: 'chrome-beta'`（Mac mini，见下「Chrome 单例冲突」），持久化 context 保登录态 |
 | 协议 | zod v4，置于 `packages/contract` |
 | 设计 | `@szyyw/design`（github 依赖，纯 CSS/JS） |
 | 推送 | Bark（官方 API 文档存 `docs/vendor/bark/bark-server-api-v2.md`） |
@@ -443,6 +443,14 @@ apps/
 - **不能用「正文含『必須』」判断送信失败**：问卷正文本身就印着「（ * は必須回答です。）」这句说明。改为看「是否还停在问卷表单上」（`[name=send]` 是否仍存在）。
 - **送信按钮有两种**：`input[type=submit]` 与 `input[type=image]`（图片按钮），都带 `name="send"`，故按 name 定位而非 type。
 - **失败的 draw 也必须回写 `account_presents`**：原先 `applyReport` 见 `ok=false` 就提前 return，导致失败在界面上完全看不见、记录永远停在 pending。
+- **Chrome 单例冲突（2026-10-01）**：runner 原用 `channel: chrome`，即 `/Applications/Google Chrome.app`。
+  浏览器上下文是常驻的（任务结束不关），macOS 把这个无头进程登记成「Google Chrome 已在运行」，
+  用户点图标或点链接时请求转给它、没有窗口出来——表现为日常 Chrome「有时候打不开」。
+  改用 **`chrome-beta`**（`brew install --cask google-chrome@beta`）：仍是正版 Chrome 指纹，
+  但 bundle id 不同（`com.google.Chrome.beta`），与日常 Chrome 互不干扰。
+  ⚠️ launchd plist 的 `EnvironmentVariables` 也写了 `PLAYWRIGHT_CHANNEL`，**它优先于 `.env`**
+  （Node 的 `--env-file` 不覆盖已存在的变量），两处要一起改。profile 可跨通道沿用：
+  Playwright 在 macOS 默认带 `--use-mock-keychain --password-store=basic`，cookie 不绑系统钥匙串。
 - **Chrome 单例锁**：runner 被强杀后 `profile/Singleton*` 残留，下次启动会**无限等待**（任务永远卡 running）。`browser.ts` 已加 30 秒启动超时 + 失败后清锁重试一次。
 
 ## 期间必须归一化（`@cosme/core` 的 `normalizePeriod`）

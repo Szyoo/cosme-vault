@@ -104,5 +104,5 @@ cd apps/runner && ./install.sh
 | `BARK_SERVER` / `BARK_DEVICE_KEY` | ✅ | — | 留空则跳过推送 |
 | `PUBLIC_BASE_URL` | ✅ | — | Bark 深链接的基址,必须公网可达 |
 | `CONTROL_PLANE_URL` | — | ✅ | runner 指向控制面 |
-| `PLAYWRIGHT_CHANNEL` | — | ✅ | `chrome` 用真 Chrome |
+| `PLAYWRIGHT_CHANNEL` | — | ✅ | `chrome-beta` 用正版 Chrome Beta（不与本机日常 Chrome 冲突）；`chrome` 会占住日常 Chrome |
 | `RUNNER_HEADLESS` | — | ✅ | 调选择器时设 `false` 看画面 |
