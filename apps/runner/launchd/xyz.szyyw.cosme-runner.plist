@@ -36,7 +36,7 @@
     <key>RUNNER_HEADLESS</key>
     <string>true</string>
     <key>PLAYWRIGHT_CHANNEL</key>
-    <string>chrome</string>
+    <string>chrome-beta</string>
   </dict>
 </dict>
 </plist>

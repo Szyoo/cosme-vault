@@ -3,7 +3,10 @@
 #
 # 前提：
 #   1. 仓库已 clone 到本机，且已在仓库根跑过 npm install
-#   2. 已装 Google Chrome（PLAYWRIGHT_CHANNEL=chrome 用真 Chrome，指纹更自然）
+#   2. 已装 Google Chrome Beta（PLAYWRIGHT_CHANNEL=chrome-beta：正版 Chrome 指纹，
+#      又与日常用的 Chrome 是两个 App——用 chrome 通道时 runner 常驻的无头进程
+#      会被 macOS 当成「Chrome 已在运行」，用户点图标/链接打不开窗口）
+#      brew install --cask google-chrome@beta
 #   3. 仓库根的 .env 里配好 CONTROL_PLANE_URL 与 RUNNER_TOKEN
 #   4. 已跑过 `npm run login` 建立 @COSME 会话（人工登录一次，见 README）
 set -euo pipefail
