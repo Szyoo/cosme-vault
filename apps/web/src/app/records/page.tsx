@@ -63,29 +63,29 @@ export default async function RecordsPage() {
       <p className="page-sub">{t.records.sub}</p>
 
       <section className="stat-grid section">
-        <div className="stat-card">
+        <div className="glass stat-card">
           <div className="stat-label">{t.stat.total}</div>
           <div className="stat-value num">{rows.length}</div>
           <div className="stat-sub">{t.stat.rows}</div>
         </div>
-        <div className="stat-card">
+        <div className="glass stat-card">
           <div className="stat-label">{t.stat.drawn}</div>
           <div className="stat-value num">{drawn.length}</div>
           <div className="stat-sub">{t.status.drawn}</div>
         </div>
-        <div className="stat-card">
+        <div className="glass stat-card">
           <div className="stat-label">{t.stat.failed}</div>
           <div className="stat-value num">{counts.failed ?? 0}</div>
           <div className="stat-sub">{t.stat.needsReview}</div>
         </div>
-        <div className="stat-card">
+        <div className="glass stat-card">
           <div className="stat-label">{t.stat.accounts}</div>
           <div className="stat-value num">{accounts.length}</div>
           <div className="stat-sub">{t.stat.configured}</div>
         </div>
       </section>
 
-      <section className="glass section">
+      <section className="glass panel section">
         <div className="section-name">{t.records.detailTable}</div>
         {rows.length === 0 ? (
           <div className="empty">

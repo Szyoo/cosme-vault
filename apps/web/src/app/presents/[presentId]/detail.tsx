@@ -55,8 +55,8 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         {src.full}
       </p>
 
-      <section className="glass section">
-        <div className="row" style={{ alignItems: "flex-start", gap: 18 }}>
+      <section className="glass panel section">
+        <div className="row wrap" style={{ alignItems: "flex-start", gap: 18 }}>
           {present.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
             <img
@@ -79,7 +79,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
             />
           )}
 
-          <dl className="kv" style={{ flex: 1, minWidth: 220, marginTop: 0 }}>
+          <dl className="kv" style={{ flex: 1, minWidth: 220 }}>
             <dt>{t.present.type}</dt>
             <dd>
               <span className={`pill ${src.pill}`}>{src.short}</span>
@@ -108,7 +108,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         </p>
       </section>
 
-      <section className="glass section">
+      <section className="glass panel section">
         <div className="section-name">{t.present.perAccountStatus}</div>
         {links.length === 0 ? (
           <p className="small muted">{t.present.noAccountRecord}</p>
@@ -118,12 +118,12 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
               const st = statusOf(l.status, t);
               const account = accounts.find((a) => a.id === l.accountId);
               return (
-                <div key={l.id} className="inner row spread">
+                <div key={l.id} className="inner pad row wrap spread">
                   <span>
                     <strong>{account?.label ?? l.accountId}</strong>
                     {l.pattern && <span className="mono tiny muted"> · {l.pattern}</span>}
                   </span>
-                  <span className="row" style={{ gap: 8 }}>
+                  <span className="row wrap" style={{ gap: 8 }}>
                     {l.status === "needsChoice" && (
                       <Link className="btn-ghost btn-small" href={`/choices/${present.id}?account=${l.accountId}`}>
                         {t.choice.goChoose}
@@ -177,7 +177,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
           if (picked.length === 0) return null;
           const account = accounts.find((a) => a.id === l.accountId);
           return (
-            <div key={`choice-${l.id}`} className="inner" style={{ marginTop: 10 }}>
+            <div key={`choice-${l.id}`} className="inner pad" style={{ marginTop: 10 }}>
               <div className="tiny muted">
                 {t.choice.yourChoice}
                 {accounts.length > 1 && account ? `（${account.label}）` : ""}
@@ -206,11 +206,11 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
       </section>
 
       {jobs.length > 0 && (
-        <section className="glass section">
+        <section className="glass panel section">
           <div className="section-name">{t.present.relatedJobs}</div>
           <div className="stack">
             {jobs.map((j) => (
-              <div key={j.id} className="inner row spread">
+              <div key={j.id} className="inner pad row wrap spread">
                 <span className="tiny">
                   {j.trigger} · {fmtDateTime(j.createdAt)}
                 </span>

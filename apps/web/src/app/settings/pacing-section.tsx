@@ -82,7 +82,7 @@ export function PacingSection() {
   );
 
   return (
-    <section className="glass section">
+    <section className="glass panel section">
       <div className="section-name">{t.pacing.title}</div>
       <p className="tiny muted">{t.pacing.hint}</p>
       <div className="stack" style={{ marginTop: 10 }}>

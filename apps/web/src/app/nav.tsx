@@ -5,6 +5,8 @@
  *
  * `anon`：SSO 下的匿名访客只看得到「奖品库」一项（其余页面对匿名 307 门户，放出来只会
  * 点一下就被踢去登录）。登录入口在右上角账户菜单。
+ *
+ * 样子用设计包的 `.tabs > .tab`；`.corner-clear` 让开右上角工具位（窄屏上 tab 行会伸到那里）。
  */
 import type { Dict } from "@/i18n/dict.ts";
 
@@ -29,9 +31,14 @@ export function Nav({
         { href: "/settings", label: t.nav.settings },
       ];
   return (
-    <nav className="chip-row nav-top">
+    <nav className="tabs nav-top corner-clear">
       {items.map((i) => (
-        <a key={i.href} className={`chip ${current === i.href ? "active" : ""}`} href={i.href}>
+        <a
+          key={i.href}
+          className={`tab${current === i.href ? " active" : ""}`}
+          href={i.href}
+          aria-current={current === i.href ? "page" : undefined}
+        >
           {i.label}
         </a>
       ))}

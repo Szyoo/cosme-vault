@@ -83,7 +83,7 @@ export default async function PrizesPage({
     <main className="page">
       <Nav current="/prizes" anon={anon} t={t} />
 
-      <div className="row spread">
+      <div className="row wrap spread">
         <h1 className="page-title">{t.prizes.title}</h1>
         {!anon && <RunButton />}
       </div>
@@ -92,7 +92,7 @@ export default async function PrizesPage({
 
       {items.length > 0 && <LibraryOverview items={items} query={query} t={t} />}
 
-      <section className="glass section" id="presents">
+      <section className="glass panel section" id="presents">
         <div className="section-name">{t.present.listTitle}</div>
         {items.length === 0 ? (
           <div className="empty">

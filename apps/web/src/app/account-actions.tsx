@@ -48,7 +48,7 @@ export function AccountActions({ accountId, label }: { accountId: string; label:
 
   if (confirming) {
     return (
-      <span className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+      <span className="row wrap" style={{ gap: 6, flexWrap: "wrap" }}>
         <span className="tiny warn-text" style={{ margin: 0 }}>
           {t.matrix.confirmOne(label)}
         </span>
@@ -63,7 +63,7 @@ export function AccountActions({ accountId, label }: { accountId: string; label:
   }
 
   return (
-    <span className="row acct-actions" style={{ gap: 6 }}>
+    <span className="row wrap acct-actions" style={{ gap: 6 }}>
       <button
         type="button"
         className="btn-ghost btn-small"

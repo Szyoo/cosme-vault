@@ -233,7 +233,7 @@ export function ChoiceInner() {
       )}
 
       {data.choices.map((c) => (
-        <section key={c.questionId} className="glass section">
+        <section key={c.questionId} className="glass panel section">
           <div className="section-name">{c.prompt || t.choice.pick}</div>
           {/* 奖品参考图：整组原样展示，不与选项一一对应（PR 页多为合成图，
               图内自带「or」等说明；对应关系让用户自己看图判断） */}

@@ -63,18 +63,22 @@ export function ModalShell({ children }: { children: ReactNode }) {
   }, [close]);
 
   return (
+    // 外观用设计包的 .overlay + .sheet（手机底部抽屉、桌面居中卡片，.sheet-body 内部滚动）+ .close-x；
+    // .wide / .cv-modal 是本应用的修饰类（详情要更宽、内嵌整页组件要去掉整页留白），见 globals.css
     <div
-      className="modal-backdrop"
+      className="overlay"
       onClick={(e) => {
         // 只有点在遮罩本身（而不是面板内部）才关闭
         if (e.target === e.currentTarget) close();
       }}
     >
-      <div className="modal-panel" ref={panel} role="dialog" aria-modal="true">
-        <button type="button" className="modal-close" onClick={close} aria-label="close">
-          ✕
-        </button>
-        <div className="modal-body">
+      <div className="sheet wide cv-modal" ref={panel} role="dialog" aria-modal="true">
+        <div className="sheet-head">
+          <button type="button" className="close-x" onClick={close} aria-label="close">
+            ✕
+          </button>
+        </div>
+        <div className="sheet-body">
           <InModalCtx.Provider value={true}>{children}</InModalCtx.Provider>
         </div>
       </div>

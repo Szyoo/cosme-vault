@@ -1,7 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { ssoEnabled } from "@szyyw/auth";
+import {
+  appearanceAttrs,
+  appearanceCookieNames,
+  readAppearanceFromCookies,
+  themeColorFor,
+} from "@szyyw/design/appearance-data";
 // @szyyw/design：设计令牌 + 玻璃组件层（与作者其他项目共用同一套设计语言）
 import "@szyyw/design/tokens.css";
 import "@szyyw/design/components.css";
@@ -10,7 +16,36 @@ import "./globals.css";
 import { DesignChrome } from "./design-chrome.tsx";
 import { getI18n } from "@/i18n/server.ts";
 import { I18nProvider } from "@/i18n/context.tsx";
-import { LocaleSwitcher } from "@/i18n/switcher.tsx";
+import { PORTAL_ORIGIN } from "@/lib/sso.ts";
+
+/**
+ * 外观三项（主题 / 配色 / 明暗）的 cookie：前缀 "cosme_" → cosme_theme / cosme_palette / cosme_scheme，
+ * 与客户端 mountChrome 的 cookiePrefix 同一组（design-chrome.tsx）。cosme_scheme 沿用旧名，已存偏好不丢。
+ */
+const APPEARANCE_COOKIES = appearanceCookieNames("cosme_");
+
+/** SSR 首屏读外观（设计规范 §2.1）。明暗没选过时按本应用一贯的缺省「跟随系统」 */
+function readAppearance(jar: { get(name: string): { value: string } | undefined }) {
+  return readAppearanceFromCookies(
+    (name) => jar.get(name)?.value ?? (name === APPEARANCE_COOKIES.scheme ? "auto" : undefined),
+    APPEARANCE_COOKIES,
+  );
+}
+
+/** 浏览器 chrome 着色跟随配色与明暗，服务端算好（auto 时按系统明暗各给一条） */
+export async function generateViewport(): Promise<Viewport> {
+  const { palette, scheme } = readAppearance(await cookies());
+  if (scheme === "auto") {
+    const c = themeColorFor(palette, "auto");
+    return {
+      themeColor: [
+        { media: "(prefers-color-scheme: dark)", color: c.dark },
+        { media: "(prefers-color-scheme: light)", color: c.light },
+      ],
+    };
+  }
+  return { themeColor: themeColorFor(palette, scheme) };
+}
 
 /** 标题也跟着语言走（⚠️ Next 16：generateMetadata 里同样要 await cookies） */
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,14 +75,12 @@ export default async function RootLayout({
    */
   modal: ReactNode;
 }) {
-  // 明暗模式持久化在 cookie 里：SSR 项目必须服务端读到，首屏才不闪白
-  // （设计规范第 5 节，与 scheme.ts 的 persist: "cookie" 对应）
-  const jar = await cookies();
-  const scheme = jar.get("cosme_scheme")?.value ?? "auto";
+  // 外观持久化在 cookie 里：SSR 项目必须服务端读到并铺到 <html>，首屏才不闪
+  const appearance = readAppearance(await cookies());
   const { locale } = await getI18n();
 
   return (
-    <html lang={locale} data-theme="nebula" data-scheme={scheme}>
+    <html lang={locale} {...appearanceAttrs(appearance)}>
       <body>
         {/* z-index 0：点阵背景独立合成层 */}
         <div className="bg-layer" />
@@ -56,11 +89,9 @@ export default async function RootLayout({
           <div className="app-frame">{children}</div>
           {/* modal 层：children 保持挂载，所以列表的筛选状态不会丢 */}
           {modal}
-          {/* 语言切换放右上角，与设计包挂的明暗切换同列 */}
-          <LocaleSwitcher />
+          {/* 右上角工具位（切换器 / 账户只在门户 SSO 下挂；语言、明暗、外观都在这里） */}
+          <DesignChrome portal={ssoEnabled() ? PORTAL_ORIGIN : null} />
         </I18nProvider>
-        {/* 账户菜单只在门户 SSO 下挂（见 design-chrome.tsx） */}
-        <DesignChrome sso={ssoEnabled()} />
       </body>
     </html>
   );

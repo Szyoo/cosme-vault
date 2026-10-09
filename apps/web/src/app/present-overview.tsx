@@ -45,8 +45,8 @@ export function PresentOverview({ items }: { items: PresentItem[] }) {
     k === "active" ? t.overview.active : k === "expired" ? t.status.expired : t.status.gone;
 
   return (
-    <section className="glass section">
-      <div className="row spread">
+    <section className="glass panel section">
+      <div className="row wrap spread">
         <div className="section-name">{t.overview.title}</div>
         <span className="tiny muted num">{t.overview.activeOf(active.length, items.length)}</span>
       </div>

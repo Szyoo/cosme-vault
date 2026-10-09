@@ -23,8 +23,8 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
   const types = tallyTypes(active);
   const typeLabel = query.type ? sourceOf(query.type, t).short : null;
   return (
-    <section className="glass section">
-      <div className="row spread">
+    <section className="glass panel section">
+      <div className="row wrap spread">
         <div className="section-name">{t.overview.title}</div>
         <span className="tiny muted num">{t.overview.activeOf(active.length, items.length)}</span>
       </div>
@@ -100,7 +100,7 @@ export function LibraryFilters({
   const filtering = query.type !== null || query.status !== null || query.life !== null || query.q !== "";
   return (
     <div className="filters">
-      <form className="row" style={{ gap: 8 }} method="get" action="/prizes">
+      <form className="row wrap" style={{ gap: 8 }} method="get" action="/prizes">
         <input className="field filter-search" style={{ flex: 1 }} name="q" defaultValue={query.q} placeholder={t.filter.search} />
         {query.type && <input type="hidden" name="type" value={query.type} />}
         {query.life && <input type="hidden" name="life" value={query.life} />}

@@ -9,12 +9,6 @@ export const LOCALES = ["zh", "ja", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "zh";
 
-export const LOCALE_NAMES: Record<Locale, string> = {
-  zh: "中文",
-  ja: "日本語",
-  en: "English",
-};
-
 /** 字典结构以中文为准，其余语言必须提供同样的键（类型会强制） */
 const zh = {
   appName: "Cosme Vault",
@@ -321,9 +315,6 @@ const zh = {
     showAll: "显示全部",
   },
   common: { loading: "读取中…", none: "—", jobs: "最近任务", noneYet: "暂无" },
-
-  /** 设计包的右上角工具（明暗切换、背景参数）也要跟着语言走 */
-  chrome: { auto: "跟随系统", light: "浅色", dark: "深色", localOnly: "仅本地保存" },
 
   /** 未登录访客看到的公开落地页（SSO 匿名模式）——只介绍站点，不含任何个人数据 */
   landing: {
@@ -740,8 +731,6 @@ const ja: Dict = {
   },
   common: { loading: "読み込み中…", none: "—", jobs: "最近のタスク", noneYet: "なし" },
 
-  chrome: { auto: "システムに従う", light: "ライト", dark: "ダーク", localOnly: "この端末にのみ保存" },
-
   landing: {
     lead: "@COSME プレゼント応募アシスタント：@COSME のプレゼント企画を追跡し、アカウントごとに自動で応募します。",
     points: [
@@ -1139,8 +1128,6 @@ const en: Dict = {
     showAll: "Show all",
   },
   common: { loading: "Loading…", none: "—", jobs: "Recent jobs", noneYet: "None" },
-
-  chrome: { auto: "Follow system", light: "Light", dark: "Dark", localOnly: "saved locally only" },
 
   landing: {
     lead: "An @COSME giveaway assistant: tracks @COSME present campaigns and applies to them automatically, per account.",

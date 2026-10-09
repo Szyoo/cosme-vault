@@ -22,7 +22,7 @@ export function QueuePanel({
   t: Dict;
 }) {
   return (
-    <section className="glass section">
+    <section className="glass panel section">
       <div className="section-name">
         {t.runner.queueTitle}
         {batches.length > 0 && (
@@ -60,8 +60,8 @@ export function QueuePanel({
 
                     {/* 多任务的批次才有进度可言；单个任务显示进度条没有信息量 */}
                     {b.total > 1 && (
-                      <span className="qbar" aria-label={`${finished}/${b.total}`}>
-                        <span className="qbar-fill" style={{ width: `${pct}%` }} />
+                      <span className="bar" aria-label={`${finished}/${b.total}`}>
+                        <span className="bar-fill" style={{ width: `${pct}%` }} />
                       </span>
                     )}
 
