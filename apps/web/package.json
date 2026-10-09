@@ -15,7 +15,7 @@
     "@cosme/contract": "*",
     "@cosme/core": "*",
     "@szyyw/auth": "https://codeload.github.com/Szyoo/szyyw-auth/tar.gz/refs/tags/v0.2.0",
-    "@szyyw/design": "https://codeload.github.com/Szyoo/szyyw-design/tar.gz/refs/tags/v0.14.2",
+    "@szyyw/design": "https://codeload.github.com/Szyoo/szyyw-design/tar.gz/refs/tags/v0.15.0",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "^16.3.1",
