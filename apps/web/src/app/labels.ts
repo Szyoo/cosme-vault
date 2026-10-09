@@ -67,9 +67,8 @@ export function statusOf(status: string, t: Dict): { label: string; pill: string
     case "failed":
       return { label: s.failed, pill: "red" };
     case "unknownPattern":
-      // 与「已下架」的黄（amber）区分——进度条上同色会分不出来；
-      // 色取包的 --chart-6（靛蓝），见 globals.css 的 .pill.pill-unknown
-      return { label: s.unknownPattern, pill: "pill-unknown" };
+      // 包的中性灰蓝 slate（「未知 / 未定」），与「已下架」的 amber 分开——进度条上同色会分不出来
+      return { label: s.unknownPattern, pill: "slate" };
     default:
       return { label: status, pill: "" };
   }

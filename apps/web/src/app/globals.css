@@ -268,18 +268,8 @@
 /* ---------- 详情 / 下钻弹层 ----------
    用包的 .overlay + .sheet（.sheet-head / .sheet-body 内部滚动）+ .close-x。
    奖品详情从列表点进来是弹层（拦截路由），底下的列表保持挂载，筛选状态不会丢。
-   这里只有两处应用自己的差异，写成 .sheet 的修饰类：
-   - .sheet.wide：详情有大图 + 键值表，包的 560px 太窄，放宽到 760px（桌面）
-   - .cv-modal 内嵌整页组件（选择页带着自己的 .page.narrow）时去掉整页留白与返回条 */
-@media (min-width: 900px) {
-  .sheet.wide {
-    max-width: 760px;
-  }
-}
-.cv-modal .sheet-head {
-  justify-content: flex-end;
-  padding-bottom: 0;
-}
+   宽版用包的 .sheet.wide（v0.14），只有 ✕ 的头用包的无标题 .sheet-head。
+   本应用只剩一处差异：.cv-modal 内嵌整页组件（选择页带着自己的 .page.narrow）时去掉整页留白与返回条 */
 .cv-modal .page,
 .cv-modal .page.narrow {
   max-width: 100%;
@@ -427,10 +417,6 @@
   margin-left: auto;
   display: flex;
   gap: 4px;
-}
-.term-tools .term-lvl:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 /* 「回到最新」浮钮要相对日志窗定位 */
@@ -705,14 +691,6 @@ iframe.diag-shot {
   margin: 7px 0 6px;
 }
 
-/* 「未知模式」要与「已下架」（--warn 黄）在进度条上一眼分得开，又不能在应用里造新颜色：
-   取包的图表分类色 --chart-6（靛蓝，default / aurora 两套配色里都不与状态色撞）。
-   包的 .pill 只有 cyan/violet/green/red/amber 五色，这一档写成 .pill 的修饰类。 */
-.pill.pill-unknown {
-  color: var(--chart-6);
-  border-color: color-mix(in srgb, var(--chart-6) 50%, transparent);
-  background: color-mix(in srgb, var(--chart-6) 14%, transparent);
-}
 
 /* 清空后的提示条：明确「数据还在」并给回退入口——
    否则用户不敢按，按了也不知道日志是不是被删了 */
