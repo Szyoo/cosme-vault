@@ -164,10 +164,10 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
   }
 
   return (
-    <div className="glass spot diag-card">
-      <div className="row spread">
+    <div className="glass panel spot diag-card">
+      <div className="row wrap spread">
         <strong>{a.title || a.url}</strong>
-        <span className="row" style={{ gap: 8 }}>
+        <span className="row wrap" style={{ gap: 8 }}>
           <span className="pill amber">{t.diag.seenTimes(a.seenCount)}</span>
           {a.affected.length > 0 && <span className="pill">{t.diag.affected(a.affected.length)}</span>}
         </span>
@@ -192,7 +192,7 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
       )}
 
       {a.triedPatterns.length > 0 && (
-        <dl className="kv">
+        <dl className="kv spaced">
           <dt>{t.diag.triedPatterns}</dt>
           <dd>
             {a.triedPatterns.map((x) => (
@@ -255,8 +255,8 @@ function Card({
   }
 
   return (
-    <div className="glass spot diag-card">
-      <div className="row spread">
+    <div className="glass panel spot diag-card">
+      <div className="row wrap spread">
         <strong>{title}</strong>
         {at && <span className="tiny muted num">{at}</span>}
       </div>
@@ -270,7 +270,7 @@ function Card({
 
       {diagnostics && (
         <>
-          <dl className="kv">
+          <dl className="kv spaced">
             <dt>{t.diag.stuckAt}</dt>
             <dd>
               <code className="mono tiny">{diagnostics.url}</code>

@@ -26,55 +26,14 @@
   padding-top: 12vh;
 }
 
-/* .glass 只管外观（底色/边框/模糊），内边距由应用决定 */
-.glass,
-.stat-card {
-  padding: 16px 18px;
-}
-.stat-card {
-  /* stat-card 在包里已有 padding，这里只补玻璃质感 */
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
+/* 卡片内边距：卡片一律 `glass panel`（包的 .panel），统计卡 `glass stat-card`。
+   ⚠️ 别再写全局 `.glass { padding }`——它会盖掉包里同样挂 .glass 的工具位弹层
+   （应用切换器 / 账户菜单）的内边距（v0.13 迁移时修掉的线上 bug）。
+   .stack / .row / .actions / .table-wrap 用包里的原样；需要换行的横排写 `row wrap`。 */
 
-/* 卡内嵌套块 */
-.inner {
+/* 卡内嵌套块：包的 .inner 只给底色与描边，这里补内边距（修饰类，不改 .inner 本身） */
+.inner.pad {
   padding: 12px 14px;
-  border-radius: 12px;
-}
-
-/* 竖向堆叠 */
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* 横向一行，默认两端对齐留给 .spread */
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.row.spread {
-  justify-content: space-between;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-/* 表格容器：窄屏横向滚动，避免整页横滚。
-   现在只有诊断页的元素清单还是表格——那是给人抄选择器用的，列宽本就该保持原样。 */
-.table-wrap {
-  overflow-x: auto;
 }
 
 /* 选择页的选项卡：整块可点，命中区域够大（手机优先） */
@@ -111,34 +70,9 @@
    固定在视口右上角的工具按钮，让位纯属多余；真正会重叠的只有
    窄窗口的第一屏右上角，那点重叠可以接受。保持左右对称。 */
 
-/* 键值对列表（诊断页用）。
-   注意别用包里的 .form-grid —— 它是 auto-fit minmax(180px,1fr) 的表单网格，
-   宽屏上会摊成四列，dt/dd 会错位。 */
-.kv {
-  display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  gap: 8px 14px;
-  margin: 12px 0 0;
-  align-items: start;
-}
-.kv dt {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.kv dd {
-  margin: 0;
-  font-size: 13px;
-  min-width: 0;
-  word-break: break-word;
-}
-@media (max-width: 520px) {
-  .kv {
-    grid-template-columns: 1fr;
-    gap: 2px 0;
-  }
-  .kv dd {
-    margin-bottom: 8px;
-  }
+/* 键值列表用包的 dl.kv（v0.13.0），这里只补与上文的间距 */
+.kv.spaced {
+  margin-top: 12px;
 }
 
 /* 缩略图（现在只有奖品详情页在用；列表用的是 .prow-img）。
@@ -164,15 +98,6 @@
   gap: 8px;
   margin-bottom: 14px;
   flex-wrap: wrap;
-}
-
-/* ---------- 语言切换按钮 ----------
-   进的是设计包的 .corner-tool（定位与层级都由包负责），这里只调字号：
-   「EN」两个字母在 16px 下会顶满 34px 的方钮。 */
-.lang-tool {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
 }
 
 /* ---------- 奖品列表：两行一条 ----------
@@ -263,7 +188,7 @@
   white-space: nowrap;
 }
 .prow-tag.err {
-  color: var(--red, var(--text-dim));
+  color: var(--err);
 }
 
 /* 窄屏：图小一点，参数行字更紧 */
@@ -285,9 +210,6 @@
 /* ---------- 顶部导航（tab） ----------
    原先在页面底部：奖品列表有一百多条，等于要滚完整页才能换页。 */
 .nav-top {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
   margin: 0 0 16px;
 }
 
@@ -343,131 +265,38 @@
   gap: 10px;
 }
 
-/* 警示文字。包里有 .err-text / .ok-text，缺一个居中档的；
-   颜色用包里已有的 --warn token，不新造颜色。 */
-.warn-text {
-  color: var(--warn);
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-/* ---------- 详情 modal ----------
-   奖品详情从列表点进来是 modal（拦截路由），底下的列表保持挂载，
-   所以客户端的筛选状态不会丢。见 modal-shell.tsx 的说明。 */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  /* 高于设计包的右上角工具位(45)，低于它的弹层(50) */
-  z-index: 46;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 5vh 16px 16px;
-  /* 滚动在面板内部（.modal-body），遮罩自己不滚 */
-  overflow: hidden;
-  /* 遮罩用包里的 --overlay-bg 再加深一档（用户反馈原先太浅）；
-     加深用叠 token 自身而不是硬编码颜色 */
-  background: color-mix(in srgb, var(--overlay-bg) 100%, rgb(0 0 0 / 0.25));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  animation: modal-in 0.16s var(--ease);
-}
-@keyframes modal-in {
-  from {
-    opacity: 0;
+/* ---------- 详情 / 下钻弹层 ----------
+   用包的 .overlay + .sheet（.sheet-head / .sheet-body 内部滚动）+ .close-x。
+   奖品详情从列表点进来是弹层（拦截路由），底下的列表保持挂载，筛选状态不会丢。
+   这里只有两处应用自己的差异，写成 .sheet 的修饰类：
+   - .sheet.wide：详情有大图 + 键值表，包的 560px 太窄，放宽到 760px（桌面）
+   - .cv-modal 内嵌整页组件（选择页带着自己的 .page.narrow）时去掉整页留白与返回条 */
+@media (min-width: 900px) {
+  .sheet.wide {
+    max-width: 760px;
   }
 }
-
-.modal-panel {
-  position: relative;
-  width: 100%;
-  max-width: 760px;
-  /* 限高 + 内部滚动：内容超高时在面板里滚，而不是把面板撑到比视口还高
-     （撑高会带着整页滚，modal 的意义就没了——用户报过） */
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  /* 水平内边距放在 .modal-body 里而不是面板上：滚动条长在滚动容器右缘，
-     若面板留 20px 内边距，滚动条就悬在内容区右侧、正好和关闭键重叠（用户报过）。
-     挪进去之后滚动条贴面板最外缘，与 12px 处的关闭键错开。 */
-  padding: 22px 0 16px;
-  border-radius: 18px;
-  /* 圆角要裁住贴边的滚动条 */
-  overflow: hidden;
-  /* 面板要接近实底（用户反馈玻璃底太透，叠在正文上看不清）：
-     以 --bg 为基、掺一点前景色做“抬升面”，明暗两套都成立 */
-  background: color-mix(in srgb, var(--bg) 93%, var(--text) 7%);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 24px 60px color-mix(in srgb, #000 34%, transparent);
+.cv-modal .sheet-head {
+  justify-content: flex-end;
+  padding-bottom: 0;
 }
-
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  appearance: none;
-  cursor: pointer;
-  font-size: 14px;
-  border-radius: 10px;
-  color: var(--text);
-  background: var(--inner-bg);
-  border: 1px solid var(--glass-border);
-}
-.modal-close:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.modal-body {
-  overflow-y: auto;
-  min-height: 0;
-  padding: 0 20px;
-}
-
-/* 面板里第一个标题不要再顶一段外边距，右侧留出关闭按钮的位置 */
-.modal-body > .page-title:first-child {
-  margin-top: 0;
-  padding-right: 40px;
-  font-size: 1.35rem;
-}
-
-/* modal 里嵌整页组件（选择页带着自己的 .page.narrow 手机版式）时：
-   铺满 modal 宽度、去掉整页的留白与顶部返回条（关闭键就是出口） */
-.modal-body .page,
-.modal-body .page.narrow {
+.cv-modal .page,
+.cv-modal .page.narrow {
   max-width: 100%;
   padding: 0;
 }
-.modal-body .back-row {
+.cv-modal .back-row {
   display: none;
 }
-.modal-body .page-title {
+.cv-modal .page-title {
   margin-top: 0;
-  padding-right: 40px;
-  font-size: 1.35rem;
 }
-
-/* modal 里的参考图放大：铺满宽度，但单张限高，绝不高过面板 */
-.modal-body .ref-img {
+/* 弹层里的参考图：铺满宽度，但单张限高，绝不高过面板 */
+.cv-modal .ref-img {
   max-height: 52vh;
   width: auto;
   max-width: 100%;
   margin: 0 auto;
-}
-
-@media (max-width: 520px) {
-  .modal-backdrop {
-    padding: 2vh 8px 8px;
-  }
-  .modal-panel {
-    padding: 18px 12px 12px;
-  }
 }
 
 /* ---------- 任务队列 ----------
@@ -523,21 +352,7 @@
   flex: none;
 }
 
-/* 批次进度条。只在「一轮」上出现——单个任务画进度条没有信息量。 */
-.qbar {
-  display: block;
-  height: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-  overflow: hidden;
-}
-.qbar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--accent);
-  transition: width 0.3s var(--ease);
-}
+/* 批次进度条用包的 .bar / .bar-fill（只在「一轮」上出现——单个任务画进度条没有信息量） */
 .qsub {
   color: var(--text-dim);
   font-weight: 400;
@@ -545,15 +360,12 @@
 
 /* 投递类操作的确认条：把整组按钮换成说明 + 确认/取消。
    不用「再点一次」的隐式确认——文字突变 + 隐形时限，实测把用户卡住了。 */
-.confirm-strip {
+/* 外观用包的 .callout.warn，这里只管一行排版 */
+.callout.confirm-strip {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent);
-  background: color-mix(in srgb, var(--warn) 8%, transparent);
 }
 
 /* 节奏设置：一行 = 名称 + min/max 两个窄输入框 */
@@ -608,23 +420,17 @@
   max-width: 100%;
 }
 
-/* ---------- 运行日志：复制与贴底跟随 ---------- */
-.term-tool-btn {
-  /* ⚠️ 只有**第一个**工具按钮吃掉左侧空白（见下面的 :first-of-type 覆盖）。
-     两个按钮都写 margin-left:auto 的话，剩余空间会在两个 auto 之间平分，
-     结果是按钮被拉开分散在标题栏两端。 */
-  margin-left: 6px;
-  appearance: none;
-  padding: 2px 10px;
-  font-size: 11px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--term-text, #9fb0c3);
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--term-text, #9fb0c3) 30%, transparent);
+/* ---------- 运行日志：复制与贴底跟随 ----------
+   标题栏按钮用包的 .term-lvl（复制再加 .term-copy / .copied），这里只排版：
+   整组靠右（只给一个 margin-left:auto——两个都写会把按钮拉开到两端）。 */
+.term-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
 }
-.term-tool-btn:hover {
-  border-color: color-mix(in srgb, var(--term-text, #9fb0c3) 60%, transparent);
+.term-tools .term-lvl:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* 「回到最新」浮钮要相对日志窗定位 */
@@ -640,9 +446,9 @@
   font-size: 11px;
   border-radius: 999px;
   cursor: pointer;
-  color: var(--term-text, #9fb0c3);
-  background: color-mix(in srgb, #000 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--term-text, #9fb0c3) 35%, transparent);
+  color: var(--term-text);
+  background: var(--term-bg);
+  border: 1px solid color-mix(in srgb, var(--term-text) 35%, transparent);
   backdrop-filter: blur(6px);
 }
 
@@ -751,7 +557,9 @@
   margin: 10px 0;
   border-radius: 10px;
   border: 1px solid var(--glass-border);
-  background: #fff;
+  /* 抓下来的网页快照按浅色页面渲染：钉 light 后 Canvas 就是纸面白，不写死颜色 */
+  color-scheme: light;
+  background: Canvas;
   object-fit: contain;
   object-position: top;
 }
@@ -767,7 +575,7 @@ iframe.diag-shot {
 
 /* ─────────────────────────────────────────────────────────
  * 账号进度下钻 modal（状态 chip / 色条段点开）
- * 外观复用 .modal-backdrop/.modal-panel（所有 modal 同款，用户定的）；
+ * 外观用包的 .overlay/.sheet（所有弹层同款，用户定的）；
  * 这里只补列表行与操作区。
  * ───────────────────────────────────────────────────────── */
 
@@ -784,10 +592,6 @@ iframe.diag-shot {
   filter: brightness(1.12);
 }
 
-.mm-title {
-  font-size: 16px;
-  margin: 2px 0 8px;
-}
 .mm-toolbar {
   margin: 0 0 8px;
   gap: 8px;
@@ -844,7 +648,7 @@ iframe.diag-shot {
 }
 /* 结论依据（error/reason）：一行省略，悬停看全文 */
 .mm-err {
-  color: var(--warn, #d9a441);
+  color: var(--warn);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -897,28 +701,17 @@ iframe.diag-shot {
 /* 任务分隔：终端里换一个 job 就画一条双线。
    用 CSS 双线而不是一串「─」字符——固定长度的字符串在 375px 上会折行成两截。 */
 .term-sep {
-  border-top: 3px double color-mix(in srgb, var(--term-text, #9fb0c3) 38%, transparent);
+  border-top: 3px double color-mix(in srgb, var(--term-text) 38%, transparent);
   margin: 7px 0 6px;
 }
 
-/* 未知模式专用的明黄：与「已下架」的酱黄（--warn）在进度条上必须一眼分得开。
-   light-dark 两侧都要能读——浅色下纯亮黄看不清，用金褐；深色下用柠檬黄。 */
-:root {
-  --unknown: light-dark(#9a7d00, #ffe94d);
-}
-.pill.yellow {
-  color: var(--unknown);
-  border-color: color-mix(in srgb, var(--unknown) 50%, transparent);
-  background: color-mix(in srgb, var(--unknown) 14%, transparent);
-}
-
-/* 工具按钮：第一个靠右对齐，其余紧跟其后 */
-.term-head .term-tool-btn:first-of-type {
-  margin-left: auto;
-}
-.term-tool-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
+/* 「未知模式」要与「已下架」（--warn 黄）在进度条上一眼分得开，又不能在应用里造新颜色：
+   取包的图表分类色 --chart-6（靛蓝，default / aurora 两套配色里都不与状态色撞）。
+   包的 .pill 只有 cyan/violet/green/red/amber 五色，这一档写成 .pill 的修饰类。 */
+.pill.pill-unknown {
+  color: var(--chart-6);
+  border-color: color-mix(in srgb, var(--chart-6) 50%, transparent);
+  background: color-mix(in srgb, var(--chart-6) 14%, transparent);
 }
 
 /* 清空后的提示条：明确「数据还在」并给回退入口——
@@ -929,10 +722,10 @@ iframe.diag-shot {
   gap: 8px;
   padding: 5px 12px;
   font-size: 11px;
-  color: color-mix(in srgb, var(--term-text, #9fb0c3) 75%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--term-text, #9fb0c3) 18%, transparent);
+  color: color-mix(in srgb, var(--term-text) 75%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--term-text) 18%, transparent);
 }
-.term-hidden .term-tool-btn {
+.term-hidden .term-lvl {
   margin-left: auto;
 }
 

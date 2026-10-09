@@ -140,8 +140,8 @@ export default async function Home() {
       <h1 className="page-title grad-text">{t.appName}</h1>
       <p className="page-sub">{t.appSub}</p>
 
-      <section className="glass spot section">
-        <div className="row spread">
+      <section className="glass panel spot section">
+        <div className="row wrap spread">
           <div>
             <div className="section-name">{t.runner.title}</div>
             {/* ⚠️ 「执行中」只在**在线**时才成立。心跳行里的 busyJobId 是上次心跳那一刻的
@@ -161,7 +161,7 @@ export default async function Home() {
               )}
             </p>
           </div>
-          <div className="row">
+          <div className="row wrap">
             <StopButton queued={queuedBatches} />
             <RunButton />
           </div>
@@ -193,13 +193,13 @@ export default async function Home() {
       {items.length > 0 && <PresentOverview items={items} />}
 
       {needsChoice.length > 0 && (
-        <section className="glass section">
+        <section className="glass panel section">
           <div className="section-name">{t.choice.needsChoiceTitle}</div>
           <div className="stack">
             {needsChoice.map((r) => (
               <Link
                 key={r.presentId}
-                className="inner row spread"
+                className="inner pad row wrap spread"
                 href={`/choices/${r.presentId}?account=${r.accountId}`}
               >
                 <span>
@@ -218,13 +218,13 @@ export default async function Home() {
       )}
 
       {needsConfirm.length > 0 && (
-        <section className="glass section">
+        <section className="glass panel section">
           <div className="section-name">{t.attention.needsConfirm}</div>
           <p className="tiny muted">{t.attention.needsConfirmHint}</p>
           <div className="stack" style={{ marginTop: 10 }}>
             {needsConfirm.map((r) => (
               // 整块不能是 <a>：里面有按钮，嵌套交互元素点不准（奖品名单独给链接）
-              <div key={`${r.accountId}-${r.presentId}`} className="inner row spread">
+              <div key={`${r.accountId}-${r.presentId}`} className="inner pad row wrap spread">
                 <span style={{ minWidth: 0 }}>
                   <Link href={`/presents/${r.presentId}`}>
                     {r.brand && <strong>{r.brand} · </strong>}
@@ -240,7 +240,7 @@ export default async function Home() {
       )}
 
       {diagnosticsCount > 0 && (
-        <section className="glass section">
+        <section className="glass panel section">
           <div className="section-name">{t.diag.banner(diagnosticsCount)}</div>
           <p className="small">
             {t.diag.bannerHint} <a href="/diagnostics">{t.diag.title} →</a>
@@ -261,7 +261,7 @@ export default async function Home() {
           .map((l) => ({ key: l.id, time: fmtLogTime(l.at) ?? "", level: l.level, text: l.text, jobId: l.jobId }))}
       />
 
-      <section className="glass section" id="presents">
+      <section className="glass panel section" id="presents">
         <div className="section-name">{t.present.listTitle}</div>
         {rows.length === 0 ? (
           <div className="empty">

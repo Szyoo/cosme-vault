@@ -51,7 +51,7 @@ export function ResolveButtons({
   if (msg) return <span className="tiny muted">{msg}</span>;
 
   return (
-    <span className="row" style={{ gap: 6 }}>
+    <span className="row wrap" style={{ gap: 6 }}>
       {link && (
         <a className="btn-ghost btn-small" href={link} target="_blank" rel="noreferrer">
           {t.resolve.openSite} ↗

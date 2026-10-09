@@ -1,74 +1,62 @@
 /**
- * 设计包的运行时装置：点阵背景 + 右上角工具位（应用切换器、账户菜单、明暗切换、背景参数）。
+ * 设计包的运行时装置：点阵背景 + 右上角工具位，一个 `mountChrome()`（@szyyw/design v0.13）挂齐：
+ * 应用切换器 + 账户菜单（只在门户 SSO 下）、明暗 🌗、语言、外观（配色 / 明暗 / 背景参数）。
  *
- * 账户菜单（@szyyw/design v0.8.0 `mountAccountMenu`）只在门户 SSO 打开时挂：它读门户
- * `/api/me`，未登录显示「登录」（弹门户登录小窗），登录后显示头像 + 用户名/角色/登出。
- * `sso` 由 layout（服务端）按 `ssoEnabled()` 传进来——客户端读不到 `SZYYW_SSO`。
- *
- * 单独拆成客户端组件，让 layout 保持服务端组件（它要 await cookies() 读明暗设置）。
+ * - 工具位全部文案（含语言按钮）由包内置三语，按 `locale` 取——字典里不再抄一份。
+ * - 外观三项存 cookie `cosme_theme / cosme_palette / cosme_scheme`（cookiePrefix "cosme_"）；
+ *   `cosme_scheme` 就是旧版明暗 cookie 的名字，用户已存的偏好照常生效。layout 服务端用同一前缀读。
+ * - 语言按钮选了新语言：包先自己 `setLocale` 换好工具位文案，再回调这里写 `cosme_locale`
+ *   并 `router.refresh()` 让服务端组件用新语言重渲染（SSR 首屏必须由服务端决定语言）。
+ * - `portal` 由 layout（服务端）按 `ssoEnabled()` 传：非 SSO 为 null，不挂切换器与账户菜单
+ *   （客户端读不到 `SZYYW_SSO`）。
  */
 "use client";
 
-import { useEffect } from "react";
-import { useT } from "@/i18n/context.tsx";
-import type { DotFieldHandle } from "@szyyw/design/dotfield";
-import type { SchemeToggleHandle } from "@szyyw/design/scheme";
-import type { AppSwitcherHandle } from "@szyyw/design/switcher";
-import type { AccountMenuHandle } from "@szyyw/design/account";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useLocale } from "@/i18n/context.tsx";
+import { LOCALES } from "@/i18n/dict.ts";
+import type { ChromeHandle } from "@szyyw/design/chrome";
 
-export function DesignChrome({ sso }: { sso: boolean }) {
-  const t = useT();
+export function DesignChrome({ portal }: { portal: string | null }) {
+  const locale = useLocale();
+  const router = useRouter();
+  const chrome = useRef<ChromeHandle | null>(null);
+  // 挂载时用当时的语言；之后的语言变化走下面的 setLocale，不整个重挂
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   useEffect(() => {
-    let field: DotFieldHandle | null = null;
-    let toggle: SchemeToggleHandle | null = null;
-    let switcher: AppSwitcherHandle | null = null;
-    let account: AccountMenuHandle | null = null;
     let cancelled = false;
-
     void (async () => {
-      const [
-        { mountDotField, attachSpot },
-        { configureScheme, mountSchemeToggle },
-        settings,
-        { mountAppSwitcher, mountAccountMenu },
-      ] = await Promise.all([
-        import("@szyyw/design/dotfield"),
-        import("@szyyw/design/scheme"),
-        import("@szyyw/design/settings"),
-        import("@szyyw/design/switcher"),
-      ]);
+      const { mountChrome } = await import("@szyyw/design/chrome");
       if (cancelled) return;
-
-      // 明暗持久化用 cookie —— layout 服务端要读它，首屏才不闪白
-      configureScheme({ persist: "cookie", storageKey: "cosme_scheme" });
-      toggle = mountSchemeToggle({
-        labels: { auto: t.chrome.auto, light: t.chrome.light, dark: t.chrome.dark },
+      chrome.current = mountChrome({
+        background: document.querySelector<HTMLElement>(".bg-layer"),
+        cookiePrefix: "cosme_",
+        locale: localeRef.current,
+        portal,
+        localeToggle: {
+          locales: [...LOCALES],
+          onChange: (next) => {
+            document.cookie = `cosme_locale=${next}; path=/; max-age=31536000; samesite=lax`;
+            router.refresh();
+          },
+        },
       });
-      // 九宫格应用切换器（列表来自门户 /api/apps，按门户权限矩阵过滤）
-      switcher = mountAppSwitcher({ portal: "https://szyyw.xyz" });
-      // 账户菜单（order 6，切换器右边）：只在 SSO 下有意义——本地登录模式没有门户会话
-      if (sso) account = mountAccountMenu({ portal: "https://szyyw.xyz" });
-
-      const layer = document.querySelector<HTMLElement>(".bg-layer");
-      if (layer) {
-        // restore 把用户上次调过的参数带回来（只恢复真正动过的键）
-        field = mountDotField(layer, settings.restoreDotFieldSettings());
-        settings.mountDotFieldSettings({ field, note: t.chrome.localOnly });
-      }
-      // 卡片 hover 光斑：事件委托一次挂载，动态元素自动覆盖
-      attachSpot();
     })();
-
     return () => {
       cancelled = true;
-      field?.destroy();
-      toggle?.destroy();
-      switcher?.destroy();
-      account?.destroy();
+      chrome.current?.destroy();
+      chrome.current = null;
     };
-    // 依赖 t：切语言后重挂一次，工具位上的文案才会跟着换
-  }, [t, sso]);
+  }, [portal, router]);
+
+  // 语言变了（服务端重渲染后 context 更新）：只同步工具位文案，画布不重建
+  useEffect(() => {
+    const c = chrome.current;
+    if (c && c.locale !== locale) c.setLocale(locale);
+  }, [locale]);
 
   return null;
 }

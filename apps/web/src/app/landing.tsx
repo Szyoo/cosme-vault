@@ -19,7 +19,7 @@ export function Landing({ t }: { t: Dict }) {
       <h1 className="page-title grad-text">{t.appName}</h1>
       <p className="page-sub">{t.appSub}</p>
 
-      <section className="glass spot section">
+      <section className="glass panel spot section">
         <p>{t.landing.lead}</p>
         <ul className="stack">
           {t.landing.points.map((p) => (
@@ -30,10 +30,10 @@ export function Landing({ t }: { t: Dict }) {
         </ul>
       </section>
 
-      <section className="glass section">
-        <div className="row spread">
+      <section className="glass panel section">
+        <div className="row wrap spread">
           <span className="small muted">{t.landing.loginPrompt}</span>
-          <span className="row" style={{ gap: 8 }}>
+          <span className="row wrap" style={{ gap: 8 }}>
             <a className="btn" href="/prizes" data-landing-prizes>
               {t.landing.prizesButton}
             </a>

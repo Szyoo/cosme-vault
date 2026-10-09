@@ -67,9 +67,10 @@
 
 ## 右上角工具位
 
-`design-chrome.tsx`：应用切换器（一直挂）+ SSO 下的账户菜单 `mountAccountMenu({ portal })`
-（`@szyyw/design` v0.8.0，order 6）——未登录显示「登录」弹门户小窗，登录后头像 + 用户名 / 角色 /
-登出（登出走门户 `/api/logout`）。`sso` 由 layout 服务端按 `ssoEnabled()` 传入。
+`design-chrome.tsx`：`@szyyw/design` v0.13 的 `mountChrome()` 一次挂齐——**只在 SSO 下**挂应用切换器（order 5）
+与账户菜单（order 6，未登录显示「登录」弹门户小窗，登录后头像 + 用户名 / 角色 / 登出，登出走门户
+`/api/logout`），任何模式都挂 🌗 / 语言 / 外观。`portal` 由 layout 服务端传入：`ssoEnabled() ? PORTAL_ORIGIN : null`。
+外观三项存 cookie `cosme_theme / cosme_palette / cosme_scheme`，layout 用 `appearance-data` 在服务端铺到 `<html>` 并算 theme-color。
 本地的 `POST /api/auth/logout` 仍保留（SSO 下返回 `redirect: PORTAL_ORIGIN`），前端没有调用方。
 
 ## 本地验证

@@ -67,7 +67,7 @@ export function BarkSection() {
   }
 
   return (
-    <section className="glass section">
+    <section className="glass panel section">
       <div className="section-name">{t.barkSettings.title}</div>
       <p className="tiny muted">{t.barkSettings.hint}</p>
       {cfg?.source === "env" && <p className="tiny muted">{t.barkSettings.fromEnv}</p>}

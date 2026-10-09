@@ -80,13 +80,13 @@ export function SettingsClient({ sso }: { sso: boolean }) {
         <div className="section-name">{t.settings.accounts}</div>
         <p className="page-sub">{t.settings.accountsHint}</p>
 
-        <form className="row section" onSubmit={addAccount}>
+        {/* 输入框 + 按钮一行用包的 .field-row；.form-row 给块底间距，与下面的账号卡不再贴死 */}
+        <form className="form-row field-row section" onSubmit={addAccount}>
           <input
             className="field"
             placeholder={t.settings.newLabel}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            style={{ flex: 1 }}
           />
           <button type="submit" className="btn" disabled={busy || !newLabel.trim()}>
             {t.settings.add}
@@ -182,16 +182,16 @@ function AccountCard({
   const sessionFresh =
     !!account.sessionOkAt && Date.now() - new Date(account.sessionOkAt).getTime() < 72 * 3600 * 1000;
   return (
-    <div className="glass spot diag-card">
+    <div className="glass panel spot diag-card">
       {/* 布局三段式：名称 | 状态（占满余宽）| 操作簇。
           原先 5 个子元素直接被 space-between 均摊，间距忽大忽小显得散乱粘连 */}
-      <div className="row spread">
+      <div className="row wrap spread">
         <strong>{account.label}</strong>
         <span className="small" style={{ flex: 1, minWidth: 160 }}>
           {c.configured ? `🔑 ${t.settings.credConfigured}` : `⚠️ ${t.settings.credMissing}`}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
-        <span className="row" style={{ gap: 8, flex: "none" }}>
+        <span className="row wrap" style={{ gap: 8, flex: "0 1 auto", minWidth: 0 }}>
           {/* 会话状态：任何成功任务都是证明。72 小时内有证明就认为已登录、
               藏起「激活登录」（已激活还摆着按钮是噪音——用户问过）；
               证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}

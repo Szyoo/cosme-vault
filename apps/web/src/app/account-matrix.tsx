@@ -35,8 +35,8 @@ const SEG: Record<string, string> = {
   drawn: "var(--ok)",
   needsChoice: "var(--accent2)",
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
-  // 明黄，与「已下架」的酱黄（--warn）分开——同色段挨着就分不出来了
-  unknownPattern: "var(--unknown)",
+  // 与「已下架」的黄（--warn）分开——同色段挨着就分不出来了；包的图表色 --chart-6（靛蓝）
+  unknownPattern: "var(--chart-6)",
   failed: "var(--err)",
   // 已下架给黄——之前用淡灰，进度条上和「待投递」的灰分不出区别（用户指出）；
   // 404 给红——它要么是站点异常撤了页面，要么是我们的链接有错，都值得人瞟一眼
@@ -75,8 +75,8 @@ export function AccountMatrix({
   const [drill, setDrill] = useState<Drill | null>(null);
 
   return (
-    <section className="glass section">
-      <div className="row spread">
+    <section className="glass panel section">
+      <div className="row wrap spread">
         <div className="section-name">{t.matrix.title}</div>
         <span className="tiny muted">{t.matrix.totalPresents(totalPresents)}</span>
       </div>
@@ -152,7 +152,7 @@ export function AccountMatrix({
  * 下钻 modal：某账号某状态的奖品一览 + 进一步操作。
  *
  * 与奖品详情的拦截路由 modal 是两套机制（这里是纯客户端临时视图，URL 不需要真实），
- * 但**外观用同一套 class**（modal-backdrop / modal-panel，用户要求所有 modal 同款）。
+ * 但**外观用同一套 class**（设计包的 .overlay / .sheet，用户要求所有 modal 同款）。
  * 列表数据不另拉接口：首页的 `PresentItem[]` 已带每账号状态，client 过滤即可，
  * 重置成功后 `router.refresh()`，SSE/props 更新会让列表与计数自己变。
  */
@@ -217,21 +217,27 @@ function DrillModal({
 
   return (
     <div
-      className="modal-backdrop"
+      className="overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-panel" role="dialog" aria-modal="true">
-        <button type="button" className="modal-close" onClick={onClose} aria-label="close">
-          ✕
-        </button>
-        <div className="modal-body">
-          <div className="section-name">{drill.accountLabel}</div>
-          <h2 className="mm-title">{t.matrix.drill(statusLabel, list.length)}</h2>
+      <div className="sheet wide" role="dialog" aria-modal="true" aria-labelledby="drill-title">
+        <div className="sheet-head">
+          <div>
+            <div className="section-name">{drill.accountLabel}</div>
+            <h2 className="sheet-title" id="drill-title">
+              {t.matrix.drill(statusLabel, list.length)}
+            </h2>
+          </div>
+          <button type="button" className="close-x" onClick={onClose} aria-label="close">
+            ✕
+          </button>
+        </div>
+        <div className="sheet-body">
           {drill.status === "missing" && <p className="tiny muted">{t.matrix.missingDrillHint}</p>}
           {resettable && list.length > 0 && (
-            <div className="row spread mm-toolbar">
+            <div className="row wrap spread mm-toolbar">
               <span className="tiny muted">{t.matrix.drillHintReset}</span>
               <button type="button" className="btn-ghost btn-small" disabled={busy} onClick={() => void reset()}>
                 {t.matrix.resetAll(list.length)}

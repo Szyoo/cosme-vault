@@ -55,11 +55,11 @@ export function RunButton() {
   // 确认态：整组按钮换成一条说明 + 确认/取消，杜绝“哪个按钮变了”的猜谜
   if (confirming) {
     return (
-      <div className="confirm-strip">
+      <div className="callout warn confirm-strip">
         <span className="small">
           {confirming === "draw" ? t.runner.confirmDraw : t.runner.confirmRun}
         </span>
-        <span className="row" style={{ gap: 6, flex: "none" }}>
+        <span className="row wrap" style={{ gap: 6, flex: "none" }}>
           <button type="button" className="btn danger btn-small" onClick={() => void fire(confirming)}>
             {t.runner.confirmGo}
           </button>
@@ -72,7 +72,7 @@ export function RunButton() {
   }
 
   return (
-    <div className="row" style={{ gap: 6 }}>
+    <div className="row wrap" style={{ gap: 6 }}>
       {msg && <span className="tiny muted">{msg}</span>}
       <button
         type="button"

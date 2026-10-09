@@ -50,7 +50,7 @@ export function PasswordSection() {
   }
 
   return (
-    <section className="glass section">
+    <section className="glass panel section">
       <div className="section-name">{t.settings.pwTitle}</div>
       <p className="tiny muted">{t.settings.pwHint}</p>
       {/* autoComplete 让浏览器 / 密码管理器认出这是「改密码」表单并提示保存新密码 */}
@@ -89,7 +89,7 @@ export function PasswordSection() {
             {busy ? t.settings.pwSaving : t.settings.pwSubmit}
           </button>
           {msg && (
-            <span className="small" style={{ color: msg.ok ? "var(--ok)" : "var(--err)" }}>
+            <span className={msg.ok ? "ok-text" : "err-text"}>
               {msg.text}
             </span>
           )}

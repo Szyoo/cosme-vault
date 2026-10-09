@@ -81,7 +81,7 @@ export function Row({ item, statusFilter }: { item: PresentItem; statusFilter: s
       {goneStates.length > 0 && (
         <div className="prow-fix">
           {goneStates.map((a) => (
-            <span key={a.accountId} className="row" style={{ gap: 6 }}>
+            <span key={a.accountId} className="row wrap" style={{ gap: 6 }}>
               {item.accounts.length > 1 && <span className="tiny muted">{a.short}</span>}
               <GoneFix accountId={a.accountId} presentId={item.presentId} />
             </span>

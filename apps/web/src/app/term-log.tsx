@@ -110,17 +110,19 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
       <div className="term-head">
         <span className="term-dot" data-live={live ? "1" : "0"} />
         <span className="term-title">{title}</span>
-        <button type="button" className="term-tool-btn" onClick={() => void copyAll()}>
-          {copied ? copiedLabel : copyLabel}
-        </button>
-        <button type="button" className="term-tool-btn" onClick={clearView} disabled={shown.length === 0}>
-          {clearLabel}
-        </button>
+        <span className="term-tools">
+          <button type="button" className={`term-lvl term-copy${copied ? " copied" : ""}`} onClick={() => void copyAll()}>
+            {copied ? copiedLabel : copyLabel}
+          </button>
+          <button type="button" className="term-lvl" onClick={clearView} disabled={shown.length === 0}>
+            {clearLabel}
+          </button>
+        </span>
       </div>
       {cleared && (
         <div className="term-hidden">
           {hiddenLabel}
-          <button type="button" className="term-tool-btn" onClick={showAll}>
+          <button type="button" className="term-lvl" onClick={showAll}>
             {showAllLabel}
           </button>
         </div>

@@ -173,7 +173,12 @@ apps/
 - **账号管理与凭证录入已完成并实测通过**：设置页 `src/app/settings/page.tsx` + `/api/accounts` CRUD + `/api/accounts/:id/credentials`。语义：**留空字段=不改动**（可只改密码），列表接口只返回「哪些字段已填」绝不回显值，明文只存在于录入那一次请求。
 - **runner 取凭证走独立端点** `/api/runner/credentials?accountId=`（Bearer RUNNER_TOKEN）。**刻意不把凭证塞进任务载荷**——那会把明文写进 jobs 表并留在历史里。
 - **页面已齐**：`/`（控制台）、`/presents/[presentId]`（**奖品详情**：全部字段 + @COSME 原页面链接 + 单个投递按钮，控制台与记录页的奖品名都链到这里）、`/records`（投递历史与统计）、`/diagnostics`（未识别版式的现场，含元素清单与一键复制）、`/choices/[presentId]`（Bark 深链接落点）、`/settings`、`/login`。
-  **视觉尚未统一到 @szyyw/design**（目前只引了 tokens/components 的 CSS，未真正用其组件与 DotField 背景），是下一步。
+  **视觉已统一到 @szyyw/design**（v0.13）：卡片 `glass panel`、统计卡 `glass stat-card`、导航 `.tabs`、
+  弹层 `.overlay + .sheet + .close-x`、终端按钮 `.term-lvl / .term-copy`、进度条 `.bar`、键值 `dl.kv`、
+  确认条 `.callout.warn`；右上角工具位一个 `mountChrome()` 挂齐（`design-chrome.tsx`）。
+  ⚠️ `globals.css` 只放本应用自有组件与**修饰类**（`.inner.pad`、`.kv.spaced`、`.sheet.wide`、`.pill.pill-unknown`…），
+  不要整条重写包的公开类——尤其别写全局 `.glass { padding }`，它曾盖掉切换器 / 账户菜单弹层的内边距。
+  颜色只用包的 token（「未知模式」用 `--chart-6`，不另造颜色）。
 - **界面三语（中 / 日 / 英）**，字典在 `apps/web/src/i18n/dict.ts`：
   - 范围界线：**只译界面自己的文案**。从 @COSME 抓来的内容（奖品名、品牌、文案、
     数量原文如 `計20名様現品`、期间 `8/19～9/15`）一律原样展示——那是数据不是 UI。
@@ -187,8 +192,10 @@ apps/
     服务端组件之间可以直接把 `t` 当 prop 传。
   - 会被前端直接显示的 API 报错也走字典（`t.api.*`，route handler 里 `await getT()`）；
     runner 端点的报错是给日志看的，不进字典。
-  - 语言切换按钮进 @szyyw/design 的 `mountCornerTool`（order 15，明暗 10、背景参数 20），
-    别自己写 position:fixed——那必然和明暗按钮打架。
+  - 语言切换按钮是设计包 `mountChrome` 的 `localeToggle`（order 15，按钮与列表文案包内置）：
+    选了新语言 → 包先换工具位文案 → 回调写 `cosme_locale` 并 `router.refresh()`；
+    语言变化后 `chrome.setLocale()` 同步，不整个重挂。工具位（切换器 / 账户 / 🌗 / 外观）的文案
+    全在包里，字典里**不要**再抄一份。
 - **奖品列表是「一奖品一行」，账号状态收在行内**（2026-08-25 修，用户指出）：
   此前按「奖品 × 账号」出行，两个账号就是 376 行同名奖品。奖品是全局的、
   账号状态是它的属性，不该把行数乘以账号数。`toItems()` 按 presentId 聚合，
@@ -604,7 +611,7 @@ audit 把同一期间报成「不一致」**79 次**。`isPeriodExpired()` 用�
 - 数据不另拉接口：首页的 `PresentItem[]` 已带每账号状态（矩阵与奖品列表共用同一份），
   client 过滤即可；操作后 `router.refresh()`，计数与列表自己更新。
 - 与奖品详情的拦截路由 modal 是**两套机制**（这里是纯客户端临时视图，URL 不需要真实），
-  但外观共用 `.modal-backdrop/.modal-panel`（所有 modal 同款是用户定的）。
+  但外观共用设计包的 `.overlay + .sheet`（所有 modal 同款是用户定的）。
   点行内奖品名会先关本 modal 再让拦截路由接管，避免叠两层遮罩。
 - 「未建记录」也可下钻：= 该账号在这个奖品上没有任何 AccountState 的那些。
 - **重置回待投递只改状态、绝不派发**（`POST /api/account-presents/reset`）：
