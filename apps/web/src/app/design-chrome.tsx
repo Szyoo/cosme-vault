@@ -36,6 +36,8 @@ export function DesignChrome({ portal }: { portal: string | null }) {
         cookiePrefix: "cosme_",
         locale: localeRef.current,
         portal,
+        // 外观弹层页脚的「仅保存在本浏览器」（包内置三语，v0.14）
+        appearance: { dotField: { note: true } },
         localeToggle: {
           locales: [...LOCALES],
           onChange: (next) => {

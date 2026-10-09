@@ -64,7 +64,8 @@ export function ModalShell({ children }: { children: ReactNode }) {
 
   return (
     // 外观用设计包的 .overlay + .sheet（手机底部抽屉、桌面居中卡片，.sheet-body 内部滚动）+ .close-x；
-    // .wide / .cv-modal 是本应用的修饰类（详情要更宽、内嵌整页组件要去掉整页留白），见 globals.css
+    // .sheet.wide（桌面 760px）与只放 ✕ 的无标题 .sheet-head 都是包的（v0.14）；.cv-modal 是本应用的修饰类
+    // （内嵌整页组件时去掉整页留白），见 globals.css。挂载点是 layout 的 @modal slot，直接在 <body> 下（规范 §3）
     <div
       className="overlay"
       onClick={(e) => {

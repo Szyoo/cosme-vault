@@ -17,6 +17,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
@@ -35,8 +36,8 @@ const SEG: Record<string, string> = {
   drawn: "var(--ok)",
   needsChoice: "var(--accent2)",
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
-  // 与「已下架」的黄（--warn）分开——同色段挨着就分不出来了；包的图表色 --chart-6（靛蓝）
-  unknownPattern: "var(--chart-6)",
+  // 与「已下架」的黄（--warn）分开——同色段挨着就分不出来了；包的 --slate，与 .pill.slate 同色
+  unknownPattern: "var(--slate)",
   failed: "var(--err)",
   // 已下架给黄——之前用淡灰，进度条上和「待投递」的灰分不出区别（用户指出）；
   // 404 给红——它要么是站点异常撤了页面，要么是我们的链接有错，都值得人瞟一眼
@@ -215,7 +216,9 @@ function DrillModal({
     }
   }
 
-  return (
+  // ⚠️ 必须 Portal 到 body 下（设计规范 §3）：本组件渲染在 .glass 卡片里，那里有 backdrop-filter，
+  // 会成为 fixed 遮罩的包含块并让遮罩的毛玻璃失效（手机上弹层「透字」就是这个原因）
+  return createPortal(
     <div
       className="overlay"
       onClick={(e) => {
@@ -305,6 +308,7 @@ function DrillModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

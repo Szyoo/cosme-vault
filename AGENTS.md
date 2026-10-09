@@ -176,9 +176,11 @@ apps/
   **视觉已统一到 @szyyw/design**（v0.13）：卡片 `glass panel`、统计卡 `glass stat-card`、导航 `.tabs`、
   弹层 `.overlay + .sheet + .close-x`、终端按钮 `.term-lvl / .term-copy`、进度条 `.bar`、键值 `dl.kv`、
   确认条 `.callout.warn`；右上角工具位一个 `mountChrome()` 挂齐（`design-chrome.tsx`）。
-  ⚠️ `globals.css` 只放本应用自有组件与**修饰类**（`.inner.pad`、`.kv.spaced`、`.sheet.wide`、`.pill.pill-unknown`…），
+  ⚠️ `globals.css` 只放本应用自有组件与**修饰类**（`.inner.pad`、`.kv.spaced`、`.cv-modal`…），
   不要整条重写包的公开类——尤其别写全局 `.glass { padding }`，它曾盖掉切换器 / 账户菜单弹层的内边距。
-  颜色只用包的 token（「未知模式」用 `--chart-6`，不另造颜色）。
+  颜色只用包的 token（「未知模式」用包的 `.pill.slate` / `--slate`，不另造颜色）。
+  弹层（`.overlay`）一律挂在 `<body>` 下：拦截路由的 @modal slot 本来就在 body 下；在卡片里渲染的
+  下钻弹层用 `createPortal(…, document.body)`——`.glass` 的 backdrop-filter 会让遮罩的毛玻璃失效、手机上透字。
 - **界面三语（中 / 日 / 英）**，字典在 `apps/web/src/i18n/dict.ts`：
   - 范围界线：**只译界面自己的文案**。从 @COSME 抓来的内容（奖品名、品牌、文案、
     数量原文如 `計20名様現品`、期间 `8/19～9/15`）一律原样展示——那是数据不是 UI。
