@@ -98,7 +98,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         </div>
 
         <div className="actions">
-          {/* 用户明确要的：能跳到 @COSME 的原页面 */}
+          {/* 能跳到 @COSME 的原页面 */}
           <a className="btn" href={present.link} target="_blank" rel="noreferrer">
             {t.present.openOriginal} ↗
           </a>

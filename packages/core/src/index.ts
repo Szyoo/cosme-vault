@@ -15,8 +15,8 @@ export * as selectors from "./selectors.ts";
  * runner 经 /api/runner/config 动态拉取）；这里只作两处兜底：
  * 设置页没改过时的初值，以及 runner 拉不到配置时的降级值。
  *
- * 单批数量上限（原 maxPresentsPerRun=30）已按用户决定取消：合规靠节奏不靠批次大小。
- * 区间数值也按用户决定调整过（原 4~12 秒 → 1~4 秒，2026-08-22）。
+ * 单批数量上限（原 maxPresentsPerRun=30）已取消：合规靠节奏不靠批次大小。
+ * 区间数值也调整过（原 4~12 秒 → 1~4 秒，2026-08-22）。
  */
 export const PACING = {
   /** 单步操作后的随机停顿区间（毫秒） */

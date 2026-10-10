@@ -165,7 +165,7 @@ export const CONFIRM = {
 /**
  * 问卷题目页。
  * TODO(recon)：需要 POST 过确认页才能看到，尚未侦察——那一步会真实关注品牌并推进投递，
- * 需用户明确同意后再做。初版（2023）结构为 form>table 深层嵌套 + label>input，仅作参考。
+ * 需人工确认后再做。初版（2023）结构为 form>table 深层嵌套 + label>input，仅作参考。
  */
 export const SURVEY = {
   questionSection: "", // TODO(recon)

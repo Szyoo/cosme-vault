@@ -45,7 +45,7 @@ export const tieupCampaignPattern: FlowPattern = {
     //    `product-img_pc.png` 是最常见的奖品本体图命名），剔除 tit/obi/ttl 等装饰件，
     //    最多 4 张、保持页面顺序。
     // 这些图作为**参考图**整组展示、不与选项对应（合成图教训），放漏比放错好，
-    // 但参考图语义下宽一点没关系——选色号没有图基本没法选（用户反馈）。
+    // 但参考图语义下宽一点没关系——选色号没有图基本没法选。
     const collected = await page.evaluate(() => {
       const all = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="tieup_images"]'));
 
@@ -63,7 +63,7 @@ export const tieupCampaignPattern: FlowPattern = {
 
       // ⚠️ present 命名**优先于** product（アルビオン页实测教训）：
       // 奖品栏（box-present）的图叫 pc--14_present-1，正文产品介绍图组叫
-      // pc--08_product-0..3——按 DOM 顺序先到先得会把介绍图当奖品图（用户报「图不对」）。
+      // pc--08_product-0..3——按 DOM 顺序先到先得会把介绍图当奖品图（实测出现过「图不对」）。
       // 「奖品是什么」永远比「产品长什么样」更贴选择场景，present 有就不要 product。
       const pick = (re: RegExp): string[] => {
         const seen = new Set<string>();

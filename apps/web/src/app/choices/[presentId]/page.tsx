@@ -176,7 +176,7 @@ export function ChoiceInner() {
         setError(body.error ?? t.choice.submitFailed);
         return;
       }
-      // 提交成功不弹「已提交」确认屏（用户嫌多余）：modal 直接关、
+      // 提交成功不弹「已提交」确认屏（多余）：modal 直接关、
       // 整页（手机 Bark 深链接）跳回控制台——队列里能实时看到重投在跑
       if (inModal) closeModal();
       else router.push("/");

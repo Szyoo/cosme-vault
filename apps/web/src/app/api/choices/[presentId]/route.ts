@@ -123,7 +123,7 @@ export async function POST(
   // 记下选择并回到 pending，随后派发带 resolvedChoices 的 draw。
   // ⚠️ pendingChoices **刻意保留**：它是题目与选项文本的唯一快照——
   // resolvedChoices 里只有选项 ID，清掉快照后「历史里看自己选了什么」
-  // 就只剩一串 ID 没法翻译成人话（需求能回看）。
+  // 就只剩一串 ID 没法翻译成人话（历史选择必须能回看）。
   const now = new Date().toISOString();
   for (const r of pending) {
     db.update(schema.accountPresents)

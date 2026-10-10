@@ -82,7 +82,7 @@ export const DrawStatus = z.enum([
   /**
    * 募集已结束（期间过了）。**这是正常边界，不是错误**——尤其第二个账号晚跑时常遇到。
    * 与 `gone` 分开是因为用户会问「为什么跳过」：一个是奖品过期、一个是站点下架了，
-   * 混成一个「已跳过」等于什么都没说（2026-08-26 反馈）。
+   * 混成一个「已跳过」等于什么都没说（2026-08-26 拆分）。
    */
   "expired",
   /** 页面已不存在（404）——站点把这个奖品撤了 */
@@ -116,8 +116,7 @@ export type MsRange = z.infer<typeof MsRange>;
 /**
  * runner 的运行配置（GET /api/runner/config，Bearer RUNNER_TOKEN）。
  *
- * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，需求**在设置页可看可改**
- * （而不是要从对话里察觉再追问）。runner 每次心跳后拉取一次，改完即生效、无需重启。
+ * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，现改为**在设置页可看可改**。runner 每次心跳后拉取一次，改完即生效、无需重启。
  */
 export const RunnerConfig = z.object({
   /** 单步操作后的随机停顿 */
@@ -395,7 +394,7 @@ export const DrawResult = z.object({
    * 这个结论的**依据**（如「正文含结束文案：受付は終了」）。
    *
    * 此前 expired/gone 只写状态不写理由，库里 `error` 是空的，界面上就只有一个
-   * 「已跳过」，没人知道为什么跳过（用户为此提过）。凡是非 drawn 的终态都该带一句。
+   * 「已跳过」，没人知道为什么跳过。凡是非 drawn 的终态都该带一句。
    */
   reason: z.string().nullable().default(null),
 });
