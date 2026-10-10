@@ -3,7 +3,7 @@
  * 样式一律用 @szyyw/design 的类（.glass / .stat-grid / .pill / .term …），
  * 不硬编码颜色——规范要求新颜色先进 tokens.css。
  *
- * 版面顺序（用户定的）：**导航在最上**，然后状态与统计，接着运行日志，
+ * 版面顺序：**导航在最上**，然后状态与统计，接着运行日志，
  * 最后才是奖品列表。理由是奖品有 138 条、很长，放在最后才不会把日志和
  * 操作按钮顶到看不见的地方；导航放底部则等于要滚完整页才能换页。
  */
@@ -52,7 +52,7 @@ export default async function Home() {
   const runner = getRunnerStatus();
   const queue = loadQueue();
   // 「任务」一律按用户的操作单位数（跑一轮=1、单独重跑=1），别再数内部 job——
-  // 曾在这里显示「25 个任务在排队」，其实那是一轮里的 25 个奖品（用户指出误导）
+  // 曾在这里显示「25 个任务在排队」，其实那是一轮里的 25 个奖品，容易误导
   const queuedBatches = queue.batches.filter((b) => b.queued > 0).length;
 
   const rows = db
@@ -96,7 +96,7 @@ export default async function Home() {
     acc[r.status] = (acc[r.status] ?? 0) + 1;
     return acc;
   }, {});
-  // ⚠️ 按**奖品**去重（用户要求，2026-09-09）：两个账号会各自挂起同一个奖品，
+  // ⚠️ 按**奖品**去重（2026-09-09）：两个账号会各自挂起同一个奖品，
   // 按行列出就是同一件商品弹两条、要选两遍。选择与账号无关，选一次会推平所有
   // 挂起的账号（见 /api/choices 的 POST），所以这里只该出现一条。
   // 链接随便带哪个账号都行——用第一个；`accounts` 只用于告诉用户这一选覆盖几个号。
@@ -189,7 +189,7 @@ export default async function Home() {
       <AccountMatrix rows={accountRows} totalPresents={totalPresents} items={items} />
 
       {/* 奖品概览：这些数字原先只在列表的筛选栏里，而列表在一百多条奖品之后的页尾，
-          等于要滚到底才看得见（用户要求搬上来）。chip 可点，筛的是下面同一份列表。 */}
+          等于要滚到底才看得见，所以搬上来。chip 可点，筛的是下面同一份列表。 */}
       {items.length > 0 && <PresentOverview items={items} />}
 
       {needsChoice.length > 0 && (
@@ -281,7 +281,7 @@ export default async function Home() {
  * runner 所在位置。
  * ⚠️ `unknown` 是 contract 里 `RUNNER_LOCATION` 未设时的**枚举默认值**，
  * 原先被原样印成「🟢 在线 · unknown · 执行中」——内部枚举值不该给人看，
- * 取不到位置就干脆不显示这一段（用户为此问过）。
+ * 取不到位置就干脆不显示这一段。
  */
 function where(location: string): string {
   return location && location !== "unknown" ? ` · ${location}` : "";

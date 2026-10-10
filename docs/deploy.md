@@ -10,7 +10,7 @@ runner 主动出站长轮询控制面,**不开入站端口、不依赖 tailscale
 
 ## 为什么 runner 不在 VPS
 
-@COSME 登录受 reCAPTCHA Enterprise 保护,本项目不做自动填密码登录(见 AGENTS.md),
+@COSME 登录受 reCAPTCHA Enterprise 保护,本项目不做自动填密码登录,
 改为人工登录一次 + 持久化 profile 复用会话。这需要住宅 IP 与可见浏览器窗口,
 故放 Mac mini。投递流程本身无 reCAPTCHA。
 

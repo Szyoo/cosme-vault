@@ -60,7 +60,7 @@ export async function collectDiagnostics(
   const url = page.url();
 
   // 截图内嵌回传（视口尺寸 + JPEG 压缩）：控制面在 VPS 上，读不到 Mac mini 的
-  // 本地文件——不内嵌就等于没有截图（用户指出「要能看到页面截图」）。
+  // 本地文件——不内嵌就等于没有截图（诊断必须能看到页面截图）。
   // fullPage 的 PNG 动辄数 MB，视口 JPEG q55 通常在 100~250KB。
   const screenshot = await page
     .screenshot({ type: "jpeg", quality: 55 })

@@ -143,7 +143,7 @@ function AccountCard({
   const [open, setOpen] = useState(false);
   const [activateMsg, setActivateMsg] = useState<string | null>(null);
   const [activating, setActivating] = useState(false);
-  // 预填已存的值（用户要求：配置完点开要能看见，否则没法核对）。
+  // 预填已存的值：配置完点开要能看见，否则没法核对。
   // 密码刻意不回显也不预填：placeholder 提示「已设置，留空不改」。
   const c0 = account.credentials;
   const [form, setForm] = useState({
@@ -193,7 +193,7 @@ function AccountCard({
         </span>
         <span className="row wrap" style={{ gap: 8, flex: "0 1 auto", minWidth: 0 }}>
           {/* 会话状态：任何成功任务都是证明。72 小时内有证明就认为已登录、
-              藏起「激活登录」（已激活还摆着按钮是噪音——用户问过）；
+              藏起「激活登录」（已激活还摆着按钮是噪音）；
               证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}
           {sessionFresh ? (
             <span className="pill green" title={t.settings.sessionOkHint}>

@@ -44,7 +44,7 @@ export function PublicRow({ item, openSource }: { item: PresentItem; openSource:
 }
 
 export function Row({ item, statusFilter }: { item: PresentItem; statusFilter: string | null }) {
-  // 筛选到 404 时给行内改判入口（用户要求：所有展示 404 的界面都要有操作）。
+  // 筛选到 404 时给行内改判入口（所有展示 404 的界面都要有操作）。
   // 控件放在 Link 外面——放里面点下拉会触发整行导航。
   const goneStates = statusFilter === "gone" ? item.accounts.filter((a) => a.status === "gone") : [];
   return (

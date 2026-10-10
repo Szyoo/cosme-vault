@@ -33,7 +33,7 @@ export function sourceOf(source: string, t: Dict): Badge {
 }
 
 /**
- * 展示用的状态归并：`alreadyEntered` 并入 `drawn`（用户要求：不分那么细）。
+ * 展示用的状态归并：`alreadyEntered` 并入 `drawn`（界面上不分那么细）。
  *
  * **库里仍然分开存**——`alreadyEntered` 是「这次什么都没提交、站点显示早已应募」，
  * 是任务中断后能安全自动重跑的依据（见 contract 里 DrawStatus 的说明）。

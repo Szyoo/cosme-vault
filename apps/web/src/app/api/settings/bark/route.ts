@@ -1,6 +1,6 @@
 /**
  * Bark 推送配置：
- *   GET  当前配置（server 与 deviceKey **原样回显**——用户明确要求可见；
+ *   GET  当前配置（server 与 deviceKey **原样回显**——刻意可见；
  *        它是推送地址不是登录凭证，泄露风险 = 会收到垃圾通知，可随时在 App 里换）
  *   PUT  保存 { server, deviceKey }，存 app_settings（库优先、.env 兜底）
  *   POST 发一条测试推送——配置对不对，手机响一下最直观

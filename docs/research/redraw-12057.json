@@ -16,5 +16,5 @@
       "duplicateContext": []
     }
   ],
-  "note": "重复应募检测实验的证据：12057 于 08-19 投递成功后，08-21 重走同一条 is-enq 流程，落点仍是 ans_pc.php 但题数 0、无 [name=send]——站点在问卷页摊牌「已应募」。alreadyEntered 状态与自动重试策略据此而来（见 AGENTS.md）。此文件原本覆盖掉了 surveys.json（harvest 会话失效时的窄范围运行），已拆出另存。"
+  "note": "重复应募检测实验的证据：12057 于 08-19 投递成功后，08-21 重走同一条 is-enq 流程，落点仍是 ans_pc.php 但题数 0、无 [name=send]——站点在问卷页摊牌「已应募」。alreadyEntered 状态与自动重试策略据此而来。此文件原本覆盖掉了 surveys.json（harvest 会话失效时的窄范围运行），已拆出另存。"
 }

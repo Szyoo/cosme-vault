@@ -34,7 +34,7 @@ function statusOf(enc: string | null): CredentialStatus {
     return {
       configured: filled.includes("email") && filled.includes("password"),
       filledFields: filled,
-      // 用户要求：配置完点开要能看见存了什么（否则没法核对）。密码除外。
+      // 配置完点开要能看见存了什么（否则没法核对）。密码除外。
       email: c.email ?? "",
       hasPassword: !!c.password,
       profile: { name: c.profile?.name ?? "", age: c.profile?.age ?? "", job: c.profile?.job ?? "" },

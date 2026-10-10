@@ -37,7 +37,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   const body = (await req.json().catch(() => ({}))) as { mode?: string; accountId?: string };
   const mode = body.mode === "scan" || body.mode === "draw" ? body.mode : "full";
   const trigger = cron ? "cron" : "manual";
-  // accountId 指定时只跑这一个账号（账号矩阵里的单账号按钮，用户要求）
+  // accountId 指定时只跑这一个账号（账号矩阵里的单账号按钮）
   const only = body.accountId;
 
   if (mode === "draw") {

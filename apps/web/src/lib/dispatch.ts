@@ -7,7 +7,7 @@
  * 崩溃重启也不会有半吊子批次。
  *
  * 合规：单账号低频。任务之间的人类速度停顿由 runner 侧保证
- * （它领完一个 draw 会等 betweenPresentsMs）。单批数量上限已按用户决定取消——
+ * （它领完一个 draw 会等 betweenPresentsMs）。单批数量上限已取消——
  * 合规靠节奏，不靠批次大小。
  */
 import { randomUUID } from "node:crypto";
@@ -26,7 +26,7 @@ const ALL_SOURCES = ["normal", "brandFanClub", "brandFanClubViaBrand", "produceM
 /**
  * 入队**一个**扫描任务，返回入队结果。
  *
- * ⚠️ **扫描与账号无关**（用户反复强调）：同一个站点的同一批奖品，一个账号扫过，
+ * ⚠️ **扫描与账号无关**：同一个站点的同一批奖品，一个账号扫过，
  * `presents` 就是全局的，`applyReport` 也会为**所有**启用账号建立 account_presents。
  * 此前这里对每个启用账号各入队一个 scan——两个账号就把整站扫两遍，
  * 纯属白跑，还平白多一倍站点访问（合规上更不该）。
@@ -117,7 +117,7 @@ export function startDrawOnly(
  * - 已有 queued/running 的 draw 任务的奖品要跳过，避免同一奖品被派两次
  */
 /**
- * 跨账号复用选择结果（用户要求）：同一个奖品的问卷对所有账号都是同一份，
+ * 跨账号复用选择结果：同一个奖品的问卷对所有账号都是同一份，
  * A 账号选过的色号/套装，给 B 账号派单时直接带上——不用每个账号都再选一遍。
  * 自己账号已有的选择优先；否则借用任意其他账号的。
  */

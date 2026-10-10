@@ -320,7 +320,7 @@ export function applyReport(report: JobReport): ReportEffects {
         // 为该账号建立待抽记录；已存在则保持原状态不动
         // （关键：绝不能把已投递的记录重置为 pending，否则会重复投递——
         //  @COSME 不标注「已应募」，去重全靠这张表）
-        // ⚠️ 扫描结果**与账号无关**（同一个站点的同一批奖品，用户指出）：
+        // ⚠️ 扫描结果**与账号无关**（同一个站点的同一批奖品）：
         // 为**所有启用账号**建立待投递记录，而不是只给执行扫描的那个账号。
         // 否则新账号必须自己再扫一遍才有记录——白跑一趟且毫无意义
         //（实测后果：第二个账号 59 个奖品「未建记录」，界面上凭空缺一块）。
@@ -362,7 +362,7 @@ export function applyReport(report: JobReport): ReportEffects {
         }
       }
 
-      // ── 扫描汇总（用户要求：每次扫描完终端要有一条结论行）──
+      // ── 扫描汇总：每次扫描完终端要有一条结论行 ──
       //
       // 逐来源的流水由 runner 打，但「新增了什么」只有控制面知道（它才有旧数据），
       // 所以汇总必须在这里写。一次扫描打十几行来源流水、却没有一句结论，
@@ -504,7 +504,7 @@ export function applyReport(report: JobReport): ReportEffects {
           effects.needsChoice.push({ accountId: p.accountId, presentId: p.presentId });
         }
       } else if (outcome.status === "unknownPattern" && outcome.diagnostics) {
-        // ── 异常聚合 + 可复现性判定（用户设计）──
+        // ── 异常聚合 + 可复现性判定 ──
         //
         // 同一种异常（指纹相同）只留一份现场并累计次数：127 个奖品撞同一个
         // 登录墙 → 1 行 seen_count=127，而不是 127 份重复现场包。

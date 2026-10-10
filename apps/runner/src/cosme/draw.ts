@@ -51,7 +51,7 @@ export function isAuthWalled(accountId: string): boolean {
  * - 404    → `gone`（站点把这个奖品撤了）
  *
  * ⚠️ 两者**必须分开**、且**必须带上依据**：合成一个「已跳过」+ 空理由，
- * 界面上就只剩一个说不清是过期还是出问题的状态（用户 2026-08-26 指出）。
+ * 界面上就只剩一个说不清是过期还是出问题的状态（2026-08-26 发现）。
  */
 async function concludeKnownPage(v: PageVerdict, deps: DrawDeps): Promise<DrawResult | null> {
   const base = {
@@ -78,7 +78,7 @@ async function concludeKnownPage(v: PageVerdict, deps: DrawDeps): Promise<DrawRe
 }
 
 /**
- * 404 结论的二次确认（用户要求：先自动核实，仍是 404 才定案交人工瞟一眼）。
+ * 404 结论的二次确认：先自动核实，仍是 404 才定案交人工瞟一眼。
  *
  * 实测教训（tu-8946，2026-08-26）：c.w1.to 追踪链瞬时故障落到错误页，
  * 一次判定就把**还在募集中**的奖品（期间 8/5～9/1）记成了 404 下架。
@@ -159,7 +159,7 @@ export async function drawOnce(
   let usedPattern = picked.pattern;
   let outcome = await picked.pattern.execute(page, ctx);
 
-  // ── 5. 未知落点的兜底阶梯（用户要求：先重试、再全量重认、最后才报未知）──
+  // ── 5. 未知落点的兜底阶梯：先重试、再全量重认、最后才报未知 ──
   //
   // 顺序有讲究：
   //   a. 先看是不是**已知的非流程页**（登录墙 / 已结束 / 404）——这类有确定结论，

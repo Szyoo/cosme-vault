@@ -36,7 +36,7 @@ const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", ...I
 /** SSO 下的放行清单：去掉 `/api/auth/`（见文件头），`/login` 已在上面单独跳门户 */
 const SSO_PUBLIC_PREFIXES = ["/api/runner/", "/_next/", ...ICON_PATHS];
 /**
- * SSO 下匿名访客可进的页面（精确匹配，不含子路径）。用户决定（2026-10-02）：匿名只看
+ * SSO 下匿名访客可进的页面（精确匹配，不含子路径）。2026-10-02 起：匿名只看
  * 奖品库，别的一概不开放——`/presents/<id>` 详情含账号状态与应募按钮，**不在**这里。
  */
 const ANON_PAGES = new Set(["/", "/prizes"]);

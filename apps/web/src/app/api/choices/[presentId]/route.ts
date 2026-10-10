@@ -101,7 +101,7 @@ export async function POST(
     return NextResponse.json({ error: t.choice.noNeedHint(row.status) }, { status: 409 });
   }
 
-  // ⚠️ **一次选择解析全部挂起的账号**（用户要求，2026-09-09）：
+  // ⚠️ **一次选择解析全部挂起的账号**（2026-09-09）：
   // 同一奖品的问卷对所有账号是同一份，定时任务里两个账号会各自挂起同一个奖品，
   // 于是同一件商品弹两条、要选两遍。选择结果与账号无关，故凡是**这个奖品**上
   // 处于 needsChoice 的账号一律套用同一份答案。
@@ -123,7 +123,7 @@ export async function POST(
   // 记下选择并回到 pending，随后派发带 resolvedChoices 的 draw。
   // ⚠️ pendingChoices **刻意保留**：它是题目与选项文本的唯一快照——
   // resolvedChoices 里只有选项 ID，清掉快照后「历史里看自己选了什么」
-  // 就只剩一串 ID 没法翻译成人话（用户要求能回看）。
+  // 就只剩一串 ID 没法翻译成人话（历史选择必须能回看）。
   const now = new Date().toISOString();
   for (const r of pending) {
     db.update(schema.accountPresents)

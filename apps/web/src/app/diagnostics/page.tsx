@@ -136,7 +136,7 @@ export default function DiagnosticsPage() {
 /**
  * 一种异常的现场卡。
  *
- * 「可视证据」是硬要求（用户）：优先显示截图；截图缺失时用 **sandbox iframe**
+ * 「可视证据」是硬要求：优先显示截图；截图缺失时用 **sandbox iframe**
  * 还原 HTML 快照——留给人看的是页面，不是 DOM 文本。元素清单收在折叠里，
  * 需要写选择器时再展开。
  */

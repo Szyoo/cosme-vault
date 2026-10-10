@@ -82,7 +82,7 @@ export const DrawStatus = z.enum([
   /**
    * 募集已结束（期间过了）。**这是正常边界，不是错误**——尤其第二个账号晚跑时常遇到。
    * 与 `gone` 分开是因为用户会问「为什么跳过」：一个是奖品过期、一个是站点下架了，
-   * 混成一个「已跳过」等于什么都没说（2026-08-26 用户指出）。
+   * 混成一个「已跳过」等于什么都没说（2026-08-26 拆分）。
    */
   "expired",
   /** 页面已不存在（404）——站点把这个奖品撤了 */
@@ -116,8 +116,7 @@ export type MsRange = z.infer<typeof MsRange>;
 /**
  * runner 的运行配置（GET /api/runner/config，Bearer RUNNER_TOKEN）。
  *
- * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，用户要求**在设置页可看可改**
- * （而不是要从对话里察觉再追问）。runner 每次心跳后拉取一次，改完即生效、无需重启。
+ * 节奏参数原先硬编码在 @cosme/core 的 PACING 里，现改为**在设置页可看可改**。runner 每次心跳后拉取一次，改完即生效、无需重启。
  */
 export const RunnerConfig = z.object({
   /** 单步操作后的随机停顿 */
@@ -159,7 +158,7 @@ export type AccountCredentials = z.infer<typeof AccountCredentials>;
 /**
  * 凭证配置状态。
  *
- * 2026-08-21 语义放宽（用户要求）：**除密码外的字段回显明文**——配置好之后
+ * 2026-08-21 语义放宽：**除密码外的字段回显明文**——配置好之后
  * 点开看不见存的是什么，没法核对也没法发现填错（此前只报「哪些字段已填」）。
  * 密码仍然绝不回显：`hasPassword` 只说有没有。
  */
@@ -310,7 +309,7 @@ export const PatternDiagnostics = z.object({
   /**
    * 异常指纹：同一种异常的稳定身份 = 规范化 URL + 元素选择器集合的哈希。
    *
-   * 用途（用户要求）：**同一异常只留一份**。127 个奖品全撞同一个登录墙时，
+   * 用途：**同一异常只留一份**。127 个奖品全撞同一个登录墙时，
    * 诊断页该显示「1 种异常 × 127 次」而不是 127 份一模一样的现场包；
    * 同时用出现次数判断「是否可复现」——首次可自动重试，重现即需人工。
    */
@@ -319,11 +318,11 @@ export const PatternDiagnostics = z.object({
    * 现场截图（JPEG 的 data URI，视口尺寸、质量压过）。
    *
    * ⚠️ 必须内嵌传回：`artifacts` 里那几个是**Mac mini 上的本地文件路径**，
-   * 控制面在 VPS 上根本读不到——「要能看到截图」此前完全落空（用户指出）。
+   * 控制面在 VPS 上根本读不到——「要能看到截图」此前完全落空。
    */
   screenshot: z.string().nullable().default(null),
   /**
-   * 页面 HTML 快照（截图失败或超大时的降级方案，用户要求）。
+   * 页面 HTML 快照（截图失败或超大时的降级方案）。
    *
    * 诊断页把它塞进 **sandbox iframe** 还原成「看得见的页面」——留存的是
    * 可视证据，不是让人读 DOM 文本。已内联 base 标签让相对资源仍能加载。
@@ -395,7 +394,7 @@ export const DrawResult = z.object({
    * 这个结论的**依据**（如「正文含结束文案：受付は終了」）。
    *
    * 此前 expired/gone 只写状态不写理由，库里 `error` 是空的，界面上就只有一个
-   * 「已跳过」，没人知道为什么跳过（用户为此提过）。凡是非 drawn 的终态都该带一句。
+   * 「已跳过」，没人知道为什么跳过。凡是非 drawn 的终态都该带一句。
    */
   reason: z.string().nullable().default(null),
 });
