@@ -1,4 +1,4 @@
-# runner 容器：VPS 无头部署形态。被风控则改跑 Mac mini（launchd，不用此镜像）。
+# runner 容器：VPS 无头部署形态。被风控则改跑常驻 Mac（launchd，不用此镜像）。
 # 用 Playwright 官方镜像，自带 Chromium 与系统依赖，省去 playwright install-deps。
 FROM mcr.microsoft.com/playwright:v1.62.1-noble
 

@@ -1,6 +1,6 @@
 /**
  * GET /api/runner/accounts —— 账号清单（id + 备注名 + 是否启用）。
- * 给 Mac mini 上的 `npm run login -- --account <备注名>` 解析 profile 目录用；
+ * 给常驻 Mac 上的 `npm run login -- --account <备注名>` 解析 profile 目录用；
  * 不含任何凭证。鉴权同其他 runner 端点（Bearer RUNNER_TOKEN）。
  */
 import { NextResponse } from "next/server";

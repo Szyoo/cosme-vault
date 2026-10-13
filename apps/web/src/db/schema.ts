@@ -16,7 +16,7 @@ export const accounts = sqliteTable("accounts", {
   credentialsEnc: text("credentials_enc"),
   /**
    * 最近一次「会话有效」的证明时刻。任何一次成功的 scan/draw/login 任务都算证明
-   * （会话在 Mac mini 的 profile 里，网页无从直接探测，只能靠任务侧回传的事实）。
+   * （会话在常驻 Mac 的 profile 里，网页无从直接探测，只能靠任务侧回传的事实）。
    * 驱动设置页「激活登录」按钮显隐：近期有证明就不显示。
    */
   sessionOkAt: text("session_ok_at"),
@@ -180,7 +180,7 @@ export const anomalies = sqliteTable("anomalies", {
   triedPatterns: text("tried_patterns").notNull(),
   elements: text("elements").notNull(),
   bodyExcerpt: text("body_excerpt").notNull(),
-  /** 现场截图（JPEG data URI，由 runner 内嵌回传——控制面读不到 Mac mini 的文件） */
+  /** 现场截图（JPEG data URI，由 runner 内嵌回传——控制面读不到常驻 Mac 的文件） */
   screenshot: text("screenshot"),
   /** 截图失败时的降级：HTML 快照，诊断页用 sandbox iframe 还原成可视页面 */
   htmlSnapshot: text("html_snapshot"),

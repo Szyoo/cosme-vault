@@ -218,7 +218,7 @@ export const InspectJob = z.object({
 });
 
 /**
- * 登录任务：网页点「激活登录」→ 入队 → Mac mini 的 runner 领到后**弹出有头
+ * 登录任务：网页点「激活登录」→ 入队 → 常驻 Mac 的 runner 领到后**弹出有头
  * 浏览器窗口**（该账号自己的 profile），由人完成登录（reCAPTCHA 红线，绝不代填），
  * runner 轮询检测到登录态后自动收尾。pull 模型的天然用法——控制面不需要
  * 任何入站通道就能「让电脑弹窗」。
@@ -317,7 +317,7 @@ export const PatternDiagnostics = z.object({
   /**
    * 现场截图（JPEG 的 data URI，视口尺寸、质量压过）。
    *
-   * ⚠️ 必须内嵌传回：`artifacts` 里那几个是**Mac mini 上的本地文件路径**，
+   * ⚠️ 必须内嵌传回：`artifacts` 里那几个是**常驻 Mac 上的本地文件路径**，
    * 控制面在 VPS 上根本读不到——「要能看到截图」此前完全落空。
    */
   screenshot: z.string().nullable().default(null),

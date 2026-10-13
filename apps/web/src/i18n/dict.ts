@@ -35,7 +35,7 @@ const zh = {
     diedMidJob:
       "掉线时手上还有任务——那次投递有没有真的提交出去无从查证（@COSME 不标注「已应募」），" +
       "已按超时回收并标成失败，请人工到原页面确认。",
-    startHint: "在 Mac mini 上跑 `npm run runner` 让它上线。",
+    startHint: "在常驻 Mac 上跑 `npm run runner` 让它上线。",
     stop: "终止排队",
     stopping: "终止中…",
     stopConfirm: "再点一次确认终止",
@@ -268,9 +268,9 @@ const zh = {
     sessionOkHint: "最近 72 小时内有成功任务，会话有效；失效后此处会重新出现「激活登录」",
     activating: "已通知电脑…",
     activateHint:
-      "点击后 Mac mini 上会弹出该账号的登录窗口（可能要等几秒到几十秒，runner 领到任务才弹）。" +
+      "点击后常驻 Mac 上会弹出该账号的登录窗口（可能要等几秒到几十秒，runner 领到任务才弹）。" +
       "到电脑前手动完成登录——密码不会被代填（reCAPTCHA 风控红线）。最长等 12 分钟。",
-    activateQueued: "已入队：去 Mac mini 屏幕前完成登录（最长等 12 分钟）",
+    activateQueued: "已入队：去常驻 Mac 屏幕前完成登录（最长等 12 分钟）",
     pwTitle: "管理员密码",
     pwHint: "这是登录本控制台的密码。改完后其他设备上的登录会全部失效，需要重新登录；当前这台设备保持登录。.env 里的 ADMIN_PASSWORD 只在首次建号时用，之后改它不起作用。",
     pwCurrent: "当前密码",
@@ -373,7 +373,7 @@ const zh = {
   barkSettings: {
     title: "Bark 推送",
     hint: "奖品需要人工选择时推送到手机。改完保存即生效，无需重启；留空则回落到服务器环境变量。",
-    server: "Bark 服务器（如 https://bark.szyyw.xyz）",
+    server: "Bark 服务器（如 https://bark.example.com）",
     deviceKey: "设备 Key（Bark App 首页可复制）",
     save: "保存",
     saving: "保存中…",
@@ -459,7 +459,7 @@ const ja: Dict = {
     diedMidJob:
       "切断時にタスクを保持していました——その応募が実際に送信されたかは確認できません" +
       "（@COSME は「応募済み」を表示しない）。タイムアウトとして回収し失敗扱いにしました。元ページで確認してください。",
-    startHint: "Mac mini で `npm run runner` を実行してください。",
+    startHint: "常駐 Mac で `npm run runner` を実行してください。",
     stop: "キューを停止",
     stopping: "停止中…",
     stopConfirm: "もう一度押して停止",
@@ -691,9 +691,9 @@ const ja: Dict = {
     sessionOkHint: "直近 72 時間以内に成功タスクあり。セッション切れになるとここに「ログインを起動」が再表示されます",
     activating: "PC に通知しました…",
     activateHint:
-      "クリックすると Mac mini にこのアカウントのログインウィンドウが開きます（runner が受け取るまで数秒〜数十秒）。" +
+      "クリックすると常駐 Mac にこのアカウントのログインウィンドウが開きます（runner が受け取るまで数秒〜数十秒）。" +
       "PC の前でログインしてください——パスワードの自動入力はしません（reCAPTCHA 対策のレッドライン）。最長 12 分待機。",
-    activateQueued: "登録しました：Mac mini の画面でログインを完了してください（最長 12 分）",
+    activateQueued: "登録しました：常駐 Mac の画面でログインを完了してください（最長 12 分）",
     pwTitle: "管理者パスワード",
     pwHint: "このコンソールにログインするためのパスワードです。変更すると他の端末のログインはすべて無効になり、再ログインが必要です（この端末はログインしたまま）。.env の ADMIN_PASSWORD は初回作成時のみ使われ、後から変えても効きません。",
     pwCurrent: "現在のパスワード",
@@ -785,7 +785,7 @@ const ja: Dict = {
   barkSettings: {
     title: "Bark 通知",
     hint: "選択が必要なプレゼントをスマホに通知します。保存すると即時反映（再起動不要）。空欄ならサーバーの環境変数を使用。",
-    server: "Bark サーバー（例 https://bark.szyyw.xyz）",
+    server: "Bark サーバー（例 https://bark.example.com）",
     deviceKey: "デバイスキー（Bark アプリのトップでコピー可）",
     save: "保存",
     saving: "保存中…",
@@ -857,7 +857,7 @@ const en: Dict = {
     diedMidJob:
       "It still held a job when it dropped off — whether that entry actually got submitted cannot be verified " +
       "(@COSME never marks “already entered”). It was reclaimed as timed out and marked failed; please check the original page.",
-    startHint: "Run `npm run runner` on the Mac mini to bring it back.",
+    startHint: "Run `npm run runner` on the always-on Mac to bring it back.",
     stop: "Stop queue",
     stopping: "Stopping…",
     stopConfirm: "Click again to stop",
@@ -1089,9 +1089,9 @@ const en: Dict = {
     sessionOkHint: "A task succeeded within 72h, session is live; the activate button reappears if it expires",
     activating: "Notified the Mac…",
     activateHint:
-      "Opens a login window for this account on the Mac mini (takes a few seconds until the runner picks it up). " +
+      "Opens a login window for this account on the always-on Mac (takes a few seconds until the runner picks it up). " +
       "Complete the login there yourself — passwords are never auto-filled (reCAPTCHA red line). Waits up to 12 minutes.",
-    activateQueued: "Queued — finish the login on the Mac mini screen (up to 12 min)",
+    activateQueued: "Queued — finish the login on the always-on Mac screen (up to 12 min)",
     pwTitle: "Admin password",
     pwHint: "The password for this console. Changing it signs out every other device (this one stays signed in). ADMIN_PASSWORD in .env is only used to create the account the first time — editing it later has no effect.",
     pwCurrent: "Current password",
@@ -1183,7 +1183,7 @@ const en: Dict = {
   barkSettings: {
     title: "Bark push",
     hint: "Pushes to your phone when a present needs a manual choice. Takes effect on save, no restart; blank falls back to server env vars.",
-    server: "Bark server (e.g. https://bark.szyyw.xyz)",
+    server: "Bark server (e.g. https://bark.example.com)",
     deviceKey: "Device key (copy from the Bark app home)",
     save: "Save",
     saving: "Saving…",

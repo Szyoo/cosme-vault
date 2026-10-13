@@ -29,7 +29,6 @@ runner 使用 pull 模型：只需能出站访问控制面，不开任何入站�
 | `apps/runner` | 执行器：Playwright，Node 26 直接运行 TypeScript，无构建步骤 |
 | `packages/contract` | 控制面与 runner 共用的协议（zod schema） |
 | `packages/core` | 领域逻辑：问卷关键词库、页面选择器、节奏默认值 |
-| `deploy/vps/compose.yml` | 控制面与定时触发的 Docker Compose 示例 |
 
 ## 安装
 
@@ -78,7 +77,15 @@ docker build -f apps/web/Dockerfile -t cosme-web .
 docker run -d --name cosme -p 3000:3000 -v cosme_data:/data --env-file .env cosme-web
 ```
 
-`deploy/vps/compose.yml` 是一份带定时触发 sidecar 的 Compose 示例：每 `CRON_INTERVAL` 秒（默认 12 小时）用 `CRON_TOKEN` 调一次 `POST /api/runs`。示例不发布端口，假设前面有一个接入外部网络 `ingress_ingress` 的反向代理，使用时按自己的环境调整。备份时直接复制数据卷里的 `cosme.db` 即可。
+定时触发可以用任意外部调度（cron、Compose sidecar、CI 定时任务等）：每隔一段时间（如 12 小时）带 `CRON_TOKEN` 调一次 `POST /api/runs`：
+
+```bash
+curl -X POST https://<控制面地址>/api/runs \
+  -H "Authorization: Bearer <CRON_TOKEN>" \
+  -H "Content-Type: application/json" -d '{"mode":"full"}'
+```
+
+用 Docker Compose 部署时，至少需要：把 `/data` 挂成持久卷、用 `--env-file` 注入 `.env`、由前置的反向代理（或自行发布端口）提供 HTTPS。备份时直接复制数据卷里的 `cosme.db` 即可。
 
 **runner**：
 

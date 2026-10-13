@@ -2,7 +2,7 @@
  * 管理员鉴权。
  *
  * 单用户模型：库里还没有账号时，用 ADMIN_USERNAME / ADMIN_PASSWORD 首次登录自动建号
- * （与 app-b 一致），之后在设置页改。
+ * （与同门户的另一个应用一致），之后在设置页改。
  *
  * 门户 SSO（`SZYYW_SSO=1`）：`currentUser()` / `requireUser()` 改为只认 Caddy 门禁注入的
  * `X-User`（经 `headers()`），返回门户用户名。调用方只用到用户名（或干脆不用返回值），

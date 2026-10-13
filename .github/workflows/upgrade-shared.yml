@@ -1,6 +1,6 @@
 # 共享包（@szyyw/design、@szyyw/auth）有新正式版 → 升级 → 类型检查 + next build 通过就推到部署分支
-# feat/monorepo-v6 → VPS 的 auto-deploy 在 2 分钟内上线
-# （任一步失败就不推；上线后健康检查失败由 deploy.sh 自动回滚）。
+# feat/monorepo-v6 → 自动部署随后上线
+# （任一步失败就不推；上线后健康检查失败由部署脚本自动回滚）。
 #
 # ⚠️ schedule 只认默认分支（main）上的工作流文件，所以本文件在 main 与 feat/monorepo-v6 上各放一份、保持一致；
 # 实际干活的永远是 checkout 出来的 feat/monorepo-v6（脚本、package.json、锁文件都以它为准）。

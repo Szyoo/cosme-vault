@@ -1,7 +1,7 @@
 /**
  * IP 探针实验。
  *
- * 目的：在正式决定 runner 部署位（VPS 无头 vs Mac mini 住宅 IP）之前，
+ * 目的：在正式决定 runner 部署位（VPS 无头 vs 常驻 Mac 住宅 IP）之前，
  * 用数据回答「@cosme 是否会因数据中心 IP + 无头指纹拦截我们」。
  *
  * 在候选机器上运行：
@@ -124,7 +124,7 @@ async function main(): Promise<void> {
   console.log(
     suspicious.length === 0
       ? "[probe] 结论：本机 IP 访问 @cosme 无明显拦截，可考虑 VPS 无头部署。"
-      : `[probe] 结论：${suspicious.length} 个页面异常，VPS 部署有风控风险，建议切 Mac mini。详见截图。`,
+      : `[probe] 结论：${suspicious.length} 个页面异常，VPS 部署有风控风险，建议切常驻 Mac。详见截图。`,
   );
 }
 

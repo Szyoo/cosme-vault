@@ -16,7 +16,7 @@ function inferLocation(): "vps" | "mac-mini" | "unknown" {
 }
 
 export const config = {
-  /** 控制面基址：VPS 阶段为 compose 内网地址，Mac mini 阶段为公网 https */
+  /** 控制面基址：VPS 阶段为 compose 内网地址，常驻 Mac 阶段为公网 https */
   controlPlaneUrl: (process.env.CONTROL_PLANE_URL ?? "http://web:3000").replace(/\/$/, ""),
   /** 拉取任务的鉴权令牌，与控制面 RUNNER_TOKEN 一致 */
   runnerToken: required("RUNNER_TOKEN"),
@@ -27,11 +27,11 @@ export const config = {
    *
    * ⚠️ 没设 `RUNNER_LOCATION` 时**按平台推断**而不是报 `unknown`：
    * 界面上原先会显示「🟢 在线 · unknown · 执行中」，把内部枚举默认值印给了人看。
-   * 本项目只有两种部署位，而它们的平台正好不同——Mac mini 是 darwin、VPS 是 linux，
+   * 本项目只有两种部署位，而它们的平台正好不同——常驻 Mac 是 darwin、VPS 是 linux，
    * 所以推断在实际场景里是准的（真要在 Mac 上跑 linux 容器，显式设环境变量即可）。
    */
   location: inferLocation(),
-  /** 是否无头（VPS 阶段 true；Mac mini 调试期设 false 看画面） */
+  /** 是否无头（VPS 阶段 true；常驻 Mac 调试期设 false 看画面） */
   headless: process.env.RUNNER_HEADLESS !== "false",
   /** 持久化浏览器 profile 目录（保登录态，避免反复登录这个最高风险动作） */
   profileDir: process.env.RUNNER_PROFILE_DIR ?? "./profile",

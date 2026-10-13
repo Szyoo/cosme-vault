@@ -30,7 +30,7 @@
   <dict>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
-    <!-- Mac mini 形态：住宅 IP + 真 Chrome。有头是为了必要时能人工接手登录 -->
+    <!-- 常驻 Mac 形态：住宅 IP + 真 Chrome。有头是为了必要时能人工接手登录 -->
     <key>RUNNER_LOCATION</key>
     <string>mac-mini</string>
     <key>RUNNER_HEADLESS</key>

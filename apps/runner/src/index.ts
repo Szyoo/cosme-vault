@@ -133,7 +133,7 @@ async function handleDraw(job: DrawJob): Promise<Omit<JobReport, "jobId" | "fini
 }
 
 /**
- * 登录任务：在 Mac mini 上**弹出有头浏览器窗口**，由人完成该账号的 @COSME 登录。
+ * 登录任务：在常驻 Mac 上**弹出有头浏览器窗口**，由人完成该账号的 @COSME 登录。
  *
  * - 绝不代填账号密码（reCAPTCHA Enterprise 红线）；本函数只负责开窗、领路、等待。
  * - 用该账号自己的 profile 弹窗（先关掉可能占着它的无头上下文），登录态存进去后
@@ -145,7 +145,7 @@ async function handleLogin(job: LoginJob): Promise<Omit<JobReport, "jobId" | "fi
     pushLog({ jobId: job.id, at: nowIso(), level, text });
 
   await closeAccountContext(job.accountId);
-  await say("正在 Mac mini 上打开登录窗口，请到电脑前完成登录（本程序不会代填密码）");
+  await say("正在常驻 Mac 上打开登录窗口，请到电脑前完成登录（本程序不会代填密码）");
 
   const { chromium } = await import("playwright");
   const ctx = await chromium.launchPersistentContext(profileDirFor(job.accountId), {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 把 runner 装成 Mac mini 上的 LaunchAgent（开机自启、崩溃自动重启）。
+# 把 runner 装成常驻 Mac 上的 LaunchAgent（开机自启、崩溃自动重启）。
 #
 # 前提：
 #   1. 仓库已 clone 到本机，且已在仓库根跑过 npm install

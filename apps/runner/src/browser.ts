@@ -8,7 +8,7 @@
  *
  * 新账号接入流程（缺一不可）：
  *   1. 设置页添加账号并录凭证（姓名/年龄/职业要进问卷）
- *   2. Mac mini 上 `npm run login -- --account <备注名>` 人工登录一次
+ *   2. 常驻 Mac 上 `npm run login -- --account <备注名>` 人工登录一次
  *   3. 之后该账号的任务自动用它自己的 profile
  */
 import { chromium, type BrowserContext, type Page } from "playwright";
