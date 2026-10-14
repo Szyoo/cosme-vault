@@ -80,7 +80,8 @@ export default async function RootLayout({
   const { locale } = await getI18n();
 
   return (
-    <html lang={locale} {...appearanceAttrs(appearance)}>
+    // 缺省主题「随机」时服务端只铺 data-theme-mode，当天的主题由前端抽定后补上 data-theme
+    <html lang={locale} {...appearanceAttrs(appearance)} suppressHydrationWarning>
       <body>
         {/* z-index 0：点阵背景独立合成层 */}
         <div className="bg-layer" />
