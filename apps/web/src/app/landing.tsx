@@ -16,7 +16,7 @@ export function Landing({ t }: { t: Dict }) {
     <main className="page">
       <Nav anon t={t} />
 
-      <h1 className="page-title grad-text">{t.appName}</h1>
+      <h1 className="app-title u-mb-1">{t.appName}</h1>
       <p className="page-sub">{t.appSub}</p>
 
       <section className="glass panel spot section">

@@ -55,7 +55,7 @@ function LoginForm() {
 
   return (
     <main className="page narrow">
-      <h1 className="page-title grad-text">{t.appName}</h1>
+      <h1 className="app-title u-mb-1">{t.appName}</h1>
       <form className="glass panel stack section" method="post" action="/api/auth/login" onSubmit={submit}>
         <input
           className="field"

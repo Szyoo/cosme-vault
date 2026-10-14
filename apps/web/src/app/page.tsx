@@ -137,7 +137,7 @@ export default async function Home() {
       <main className="page">
       <Nav current="/" diagnosticsCount={diagnosticsCount} t={t} />
 
-      <h1 className="page-title grad-text">{t.appName}</h1>
+      <h1 className="app-title u-mb-1">{t.appName}</h1>
       <p className="page-sub">{t.appSub}</p>
 
       <section className="glass panel spot section">
