@@ -80,7 +80,7 @@ export default async function PrizesPage({
   const pager = <Pager query={query} page={page} pages={pages} matched={matched} total={items.length} t={t} />;
 
   return (
-    <main className="page">
+    <main className="page app-main">
       <Nav current="/prizes" anon={anon} t={t} />
 
       <div className="row wrap spread">

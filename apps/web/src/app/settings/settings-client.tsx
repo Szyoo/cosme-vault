@@ -71,7 +71,7 @@ export function SettingsClient({ sso }: { sso: boolean }) {
   }
 
   return (
-    <main className="page">
+    <main className="page app-main">
       <Nav current="/settings" t={t} />
 
       <h1 className="page-title">{t.settings.title}</h1>

@@ -118,7 +118,7 @@ function ImageFixer({
 /** ⚠️ Next 16：useSearchParams() 必须在 Suspense 内，否则构建失败。 */
 export default function ChoicePage() {
   return (
-    <Suspense fallback={<main className="page">…</main>}>
+    <Suspense fallback={<main className="page app-main">…</main>}>
       <ChoiceInner />
     </Suspense>
   );
@@ -187,7 +187,7 @@ export function ChoiceInner() {
 
   if (error && !data) {
     return (
-      <main className="page narrow">
+      <main className="page narrow app-main">
       <BackRow t={t} />
         <h1 className="page-title">{t.choice.title}</h1>
         <p className="err-text">{error}</p>
@@ -196,7 +196,7 @@ export function ChoiceInner() {
   }
   if (!data) {
     return (
-      <main className="page narrow">
+      <main className="page narrow app-main">
       <BackRow t={t} />
         <p>{t.common.loading}</p>
       </main>
@@ -204,7 +204,7 @@ export function ChoiceInner() {
   }
   if (data.status !== "needsChoice") {
     return (
-      <main className="page narrow">
+      <main className="page narrow app-main">
       <BackRow t={t} />
         <h1 className="page-title">{t.choice.noNeed}</h1>
         <p>{t.choice.noNeedHint(data.status)}</p>
@@ -213,7 +213,7 @@ export function ChoiceInner() {
   }
 
   return (
-    <main className="page narrow">
+    <main className="page narrow app-main">
       <BackRow t={t} />
       <h1 className="page-title">{t.choice.title}</h1>
       {data.present && (

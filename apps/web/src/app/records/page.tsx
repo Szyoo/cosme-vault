@@ -56,7 +56,7 @@ export default async function RecordsPage() {
     // PresentList 的筛选走 context（与首页概览共享的那套），
     // 记录页没有概览，但同样必须提供 Provider，否则组件里 useContext 取不到直接抛
     <PresentFilterProvider>
-      <main className="page">
+      <main className="page app-main">
       <Nav current="/records" t={t} />
 
       <h1 className="page-title">{t.records.title}</h1>

@@ -17,7 +17,7 @@ export default async function PresentPage({ params }: { params: Promise<{ presen
   const t = await getT();
 
   return (
-    <main className="page">
+    <main className="page app-main">
       {/* 导航放在**顶部**：底部导航在手机上要滚过整页才看得到，等于退不出去 */}
       <Nav t={t} />
       <PresentDetailBody presentId={presentId} t={t} />

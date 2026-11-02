@@ -65,7 +65,7 @@ export default function DiagnosticsPage() {
 
   if (!data) {
     return (
-      <main className="page">
+      <main className="page app-main">
         <Nav current="/diagnostics" t={t} />
         <p>{t.common.loading}</p>
       </main>
@@ -75,7 +75,7 @@ export default function DiagnosticsPage() {
   const total = data.anomalies.length + data.unrecognizedSources.length;
 
   return (
-    <main className="page">
+    <main className="page app-main">
       <Nav current="/diagnostics" t={t} />
 
       <h1 className="page-title">{t.diag.title}</h1>

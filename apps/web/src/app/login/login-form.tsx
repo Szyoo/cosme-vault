@@ -13,7 +13,7 @@ import { safeNext } from "./safe-next.ts";
  */
 export function LoginClient() {
   return (
-    <Suspense fallback={<main className="page">…</main>}>
+    <Suspense fallback={<main className="page app-main">…</main>}>
       <LoginForm />
     </Suspense>
   );
@@ -54,7 +54,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="page narrow">
+    <main className="page narrow app-main">
       <h1 className="app-title u-mb-1">{t.appName}</h1>
       <form className="glass panel stack section" method="post" action="/api/auth/login" onSubmit={submit}>
         <input

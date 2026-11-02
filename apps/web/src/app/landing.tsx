@@ -13,7 +13,7 @@ import { Nav } from "./nav.tsx";
 
 export function Landing({ t }: { t: Dict }) {
   return (
-    <main className="page">
+    <main className="page app-main">
       <Nav anon t={t} />
 
       <h1 className="app-title u-mb-1">{t.appName}</h1>

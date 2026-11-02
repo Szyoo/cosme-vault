@@ -134,7 +134,7 @@ export default async function Home() {
   return (
     // 概览与列表共享同一份筛选（两者在页面上隔得远，靠 context 串起来）
     <PresentFilterProvider>
-      <main className="page">
+      <main className="page app-main">
       <Nav current="/" diagnosticsCount={diagnosticsCount} t={t} />
 
       <h1 className="app-title u-mb-1">{t.appName}</h1>

@@ -13,16 +13,16 @@
   --corner-tools-dir: column;
 }
 
-/* 页面容器。注意：包里的 .wrap 是 flex-wrap 工具类，不是页面容器，别混用。 */
+/* 页面容器：居中、定宽、左右内距与半透明底来自包的 .app-main（.app-frame > main.page.app-main），
+   这里只设宽度旋钮与上下留白。注意：包里的 .wrap 是 flex-wrap 工具类，不是页面容器，别混用。 */
 .page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 22px 18px 72px;
+  --page-max-w: 980px;
+  padding-block: 22px 72px;
 }
 
 /* 窄页（登录、手机上的选择页） */
 .page.narrow {
-  max-width: 460px;
+  --page-max-w: 460px;
   padding-top: 12vh;
 }
 
@@ -272,8 +272,12 @@
    本应用只剩一处差异：.cv-modal 内嵌整页组件（选择页带着自己的 .page.narrow）时去掉整页留白与返回条 */
 .cv-modal .page,
 .cv-modal .page.narrow {
-  max-width: 100%;
-  padding: 0;
+  --page-max-w: 100%;
+  --page-pad-x: 0px;
+  padding-block: 0;
+}
+.cv-modal .page::before {
+  display: none;
 }
 .cv-modal .back-row {
   display: none;
