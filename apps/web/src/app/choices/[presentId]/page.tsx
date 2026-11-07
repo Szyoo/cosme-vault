@@ -86,14 +86,15 @@ function ImageFixer({
       {open && (
         <div className="disclosure-body stack">
           <p className="tiny muted">{t.choice.fixImagesHint}</p>
-          <div className="cand-grid">
+          <div className="thumb-grid" role="group" aria-label={t.choice.fixImages}>
             {candidates.map((src) => {
               const picked = sel.has(src);
               return (
                 <button
                   key={src}
                   type="button"
-                  className={`cand-thumb${picked ? " picked" : ""}`}
+                  className="thumb-tile"
+                  aria-pressed={picked}
                   onClick={() =>
                     setSel((s0) => {
                       const n = new Set(s0);
@@ -257,11 +258,11 @@ export function ChoiceInner() {
             candidates={c.candidateImages ?? []}
             onSaved={() => void load()}
           />
-          <div className="stack">
+          <div className="choice-group">
             {c.options.map((o) => {
               const picked = selections[c.questionId] === o.id;
               return (
-                <label key={o.id} className={`opt${picked ? " picked" : ""}`}>
+                <label key={o.id} className="choice-card">
                   <input
                     type="radio"
                     name={c.questionId}
@@ -269,14 +270,14 @@ export function ChoiceInner() {
                     checked={picked}
                     onChange={() => setSelections((s) => ({ ...s, [c.questionId]: o.id }))}
                   />
-                  <span className="opt-body">
+                  <span className="choice-body">
+                    <span className="choice-title">{o.text}</span>
                     {/* 选项配图：只有 PR 页的 present_img 模板与选项数目对上时才有，
                         宁可没图也不挂错图（见 ChoiceOption.imageUrl） */}
                     {o.imageUrl && (
                       // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图
-                      <img className="opt-img" src={o.imageUrl} alt="" loading="lazy" />
+                      <img className="choice-img" src={o.imageUrl} alt="" loading="lazy" />
                     )}
-                    <span>{o.text}</span>
                   </span>
                 </label>
               );

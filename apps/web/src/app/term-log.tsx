@@ -134,34 +134,32 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
           </button>
         </div>
       )}
-      <div className="term-body-wrap">
-        <div className="term-body" ref={body} onScroll={onScroll}>
-          {shown.length === 0 && <div className="term-line debug">{emptyText}</div>}
-          {shown.map((l, i) => (
-            <div key={l.key}>
-              {/* 任务边界：换 jobId 就画一条双线，否则只能靠时间戳猜哪条属于哪次任务 */}
-              {i > 0 && l.jobId !== shown[i - 1]!.jobId && <div className="term-sep" aria-hidden />}
-              <div className={`term-line ${l.level}`}>
-                <span className="term-time">{l.time}</span> {l.text}
-              </div>
+      <div className="term-body" ref={body} onScroll={onScroll}>
+        {shown.length === 0 && <div className="term-line debug">{emptyText}</div>}
+        {shown.map((l, i) => (
+          <div key={l.key}>
+            {/* 任务边界：换 jobId 就画一条双线，否则只能靠时间戳猜哪条属于哪次任务 */}
+            {i > 0 && l.jobId !== shown[i - 1]!.jobId && <div className="term-sep" aria-hidden />}
+            <div className={`term-line ${l.level}`}>
+              <span className="term-time">{l.time}</span> {l.text}
             </div>
-          ))}
-        </div>
-        {!pinned && (
-          <button
-            type="button"
-            className="term-follow"
-            onClick={() => {
-              setPinned(true);
-              const el = body.current;
-              if (el) el.scrollTop = el.scrollHeight;
-            }}
-          >
-            <Icon name="arrow-down" />
-            {toBottomLabel}
-          </button>
-        )}
+          </div>
+        ))}
       </div>
+      {!pinned && (
+        <button
+          type="button"
+          className="term-follow"
+          onClick={() => {
+            setPinned(true);
+            const el = body.current;
+            if (el) el.scrollTop = el.scrollHeight;
+          }}
+        >
+          <Icon name="arrow-down" />
+          {toBottomLabel}
+        </button>
+      )}
     </section>
   );
 }

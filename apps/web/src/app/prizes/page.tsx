@@ -25,6 +25,7 @@ import { PublicRow, Row } from "../present-row.tsx";
 import { toLibraryItems } from "../present-item.ts";
 import { filterAndPage, parseQuery } from "./library.ts";
 import { LibraryFilters, LibraryOverview, Pager } from "./views.tsx";
+import { Icon } from "../lucide-icon.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -96,8 +97,8 @@ export default async function PrizesPage({
         <div className="section-name">{t.present.listTitle}</div>
         {items.length === 0 ? (
           <div className="empty">
-            <div>🎁</div>
-            <p>{t.prizes.empty}</p>
+            <Icon name="package" />
+            <p className="empty-title">{t.prizes.empty}</p>
           </div>
         ) : (
           <>

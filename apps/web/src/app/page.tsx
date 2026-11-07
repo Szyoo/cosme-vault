@@ -276,8 +276,8 @@ export default async function Home() {
         <div className="section-name">{t.present.listTitle}</div>
         {rows.length === 0 ? (
           <div className="empty">
-            <div>🎁</div>
-            <p>{t.present.emptyHint}</p>
+            <Icon name="package" />
+            <p className="empty-title">{t.present.emptyHint}</p>
           </div>
         ) : (
           <PresentList items={items} />

@@ -37,7 +37,8 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
             return (
               <Link
                 key={l.value}
-                className={`pill ${LIFE_PILL[l.value] ?? ""}${on ? " picked" : ""}`}
+                className={`pill ${LIFE_PILL[l.value] ?? ""}`}
+                aria-pressed={on}
                 href={toList(hrefFor(query, { life: on ? null : l.value as LibraryQuery["life"], page: 1 }))}
               >
                 {lifeLabel(l.value, t)}
@@ -58,7 +59,8 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
               return (
                 <Link
                   key={s.key}
-                  className={`pill${on ? " picked" : ""}`}
+                  className="pill"
+                  aria-pressed={on}
                   href={toList(hrefFor(query, on ? { type: null, page: 1 } : { type: s.key, life: "active", page: 1 }))}
                 >
                   {s.label}

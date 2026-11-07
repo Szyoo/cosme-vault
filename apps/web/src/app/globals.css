@@ -43,45 +43,6 @@
    固定在视口右上角的工具按钮，让位纯属多余；真正会重叠的只有
    窄窗口的第一屏右上角，那点重叠可以接受。保持左右对称。 */
 
-/* 选择页的选项卡：整块可点，命中区域够大（手机优先）。
-   选项是「配图在上、文字在下」的单选卡，包的 .list-row 是横排，形态不合，故自写；状态色走包的 token */
-.opt {
-  display: flex;
-  gap: var(--sp-2);
-  align-items: flex-start;
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-md);
-  background: var(--inner-bg);
-  border: 1px solid var(--glass-border);
-  cursor: pointer;
-  transition: border-color var(--dur-base) var(--ease), background var(--dur-fast) var(--ease);
-}
-.opt:hover {
-  border-color: var(--hover-border);
-}
-.opt.picked {
-  border-color: var(--selected-border);
-  background: var(--selected-bg);
-}
-.opt input {
-  margin-top: 2px;
-  flex: none;
-}
-
-/* 选择页的选项配图：图在文字上方，撑满选项卡宽度（原图 850px 宽的横幅） */
-.opt-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  min-width: 0;
-}
-.opt-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--r-md);
-  border: 1px solid var(--glass-border);
-}
-
 /* 诊断卡 / 账号卡之间的间距 */
 .diag-card {
   margin-bottom: var(--sp-3);
@@ -116,26 +77,6 @@
 
 /* ---------- 列表行（包的 .list > .list-row）的本应用补充 ----------
    奖品行刻意不用表格：8 列信息在手机上必然横向溢出。行是「缩略图 + 标题 + 可换行的参数行」。 */
-
-/* 奖品缩略图：直接作行的首个子元素（包的 .row-lead > img 是 36，商品图太小），52 / 窄屏 44；无图时同尺寸占位 */
-.prow-img {
-  flex: none;
-  width: var(--h-item);
-  height: var(--h-item);
-  border-radius: var(--r-sm);
-  object-fit: cover;
-  background: var(--inner-bg);
-  border: 1px solid var(--glass-border);
-}
-.prow-img-none {
-  display: block;
-}
-@media (max-width: 520px) {
-  .prow-img {
-    width: var(--h-lg);
-    height: var(--h-lg);
-  }
-}
 
 /* 行内参数行：放在 .row-main 里、可换行（包的 .row-sub 单行省略，状态胶囊会被截掉） */
 .item-meta {
@@ -319,32 +260,6 @@
   gap: var(--sp-1);
 }
 
-/* 「回到最新」浮钮要相对日志窗定位。终端窗刻意深色，包里没有对应的浮钮，按终端配色自写 */
-.term-body-wrap {
-  position: relative;
-}
-.term-follow {
-  position: absolute;
-  right: var(--sp-3);
-  bottom: var(--sp-2);
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  padding: var(--sp-1) var(--sp-3);
-  font-size: var(--fs-xs);
-  border-radius: var(--r-pill);
-  cursor: pointer;
-  color: var(--term-text);
-  background: var(--term-bg);
-  border: 1px solid color-mix(in srgb, var(--term-text) 35%, transparent);
-  backdrop-filter: blur(var(--blur-sm));
-}
-.term-follow:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
 /* 任务分隔：终端里换一个 job 就画一条双线。
    用 CSS 双线而不是一串「─」字符——固定长度的字符串在 375px 上会折行成两截。 */
 .term-sep {
@@ -370,40 +285,6 @@
 /* ---------- 参考图纠错器（包的 details.disclosure 里放候选池点选） ---------- */
 .img-fixer {
   margin: var(--sp-1) 0 var(--sp-3);
-}
-.cand-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--sp-2);
-  width: 100%;
-}
-/* 候选缩略图：多选的图片格，选中用包的选中着色族 */
-.cand-thumb {
-  appearance: none;
-  padding: 0;
-  border-radius: var(--r-md);
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid var(--glass-border);
-  background: var(--inner-bg);
-  line-height: 0;
-  transition: border-color var(--dur-base) var(--ease);
-}
-.cand-thumb:hover {
-  border-color: var(--hover-border);
-}
-.cand-thumb:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-.cand-thumb img {
-  width: 100%;
-  height: 90px;
-  object-fit: cover;
-}
-.cand-thumb.picked {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--selected-border);
 }
 
 /* ---------- 账号 × 状态矩阵 ----------
@@ -461,13 +342,6 @@
 /* 账号卡里的单账号触发按钮：紧凑一排，与状态 chip 分层 */
 .acct-actions {
   margin-top: 2px;
-}
-
-/* 可点胶囊（包的 button.pill / a.pill）的选中态：加一圈当前色描边而不是换配色——
-   状态 chip 本身就靠颜色表意，再改颜色会和「已下架黄 / 404 红」那套语义打架 */
-.pill.picked {
-  outline: 1.5px solid currentColor;
-  outline-offset: -1px;
 }
 
 /* 诊断页的可视证据：截图或 HTML 快照 iframe。限高避免一张长图淹没页面 */

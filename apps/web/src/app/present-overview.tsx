@@ -58,7 +58,7 @@ export function PresentOverview({ items }: { items: PresentItem[] }) {
             <button
               key={l.value}
               type="button"
-              className={`pill ${LIFE_PILL[l.value] ?? ""}${life === l.value ? " picked" : ""}`}
+              className={`pill ${LIFE_PILL[l.value] ?? ""}`}
               aria-pressed={life === l.value}
               onClick={() => pickLife(l.value)}
             >
@@ -79,7 +79,7 @@ export function PresentOverview({ items }: { items: PresentItem[] }) {
               <button
                 key={s.value}
                 type="button"
-                className={`pill${source === s.value ? " picked" : ""}`}
+                className="pill"
                 aria-pressed={source === s.value}
                 onClick={() => pickSource(s.value)}
               >

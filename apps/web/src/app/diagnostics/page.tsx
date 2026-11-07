@@ -86,8 +86,8 @@ export default function DiagnosticsPage() {
 
       {total === 0 && (
         <div className="empty">
-          <div>✅</div>
-          <p>{t.diag.none}</p>
+          <Icon name="circle-check" />
+          <p className="empty-title">{t.diag.none}</p>
         </div>
       )}
 

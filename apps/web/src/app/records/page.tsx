@@ -14,6 +14,7 @@ import { mergeStatus } from "../labels.ts";
 import { PresentList } from "../present-list.tsx";
 import { PresentFilterProvider } from "../present-filter.tsx";
 import { toItems } from "../present-item.ts";
+import { Icon } from "../lucide-icon.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -89,8 +90,8 @@ export default async function RecordsPage() {
         <div className="section-name">{t.records.detailTable}</div>
         {rows.length === 0 ? (
           <div className="empty">
-            <div>📋</div>
-            <p>{t.records.empty}</p>
+            <Icon name="file-text" />
+            <p className="empty-title">{t.records.empty}</p>
           </div>
         ) : (
           <PresentList

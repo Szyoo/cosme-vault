@@ -1,7 +1,7 @@
 /**
  * 奖品列表的单行（两行一条的排版，见 present-list.tsx 的说明）。
  * 外壳是设计包的 `.list > .list-row`（悬停、焦点、按下都由包管）；缩略图直接作行的首个子元素，
- * 用本应用的 `.prow-img` 定 52px（包的 `.row-lead > img` 是 36，商品图太小看不清）；
+ * 缩略图用包的 `.row-lead.lg`（52px，窄屏 44）；
  * 第二行参数是可换行的 `.item-meta`（包的 `.row-sub` 单行省略，状态胶囊会被截掉）。
  *
  * 单独成文件、**不用 hook**：控制台/记录页的客户端列表（present-list.tsx）与奖品库的
@@ -18,9 +18,11 @@ export function PublicRow({ item, openSource }: { item: PresentItem; openSource:
     <>
       {item.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
-        <img className="prow-img" src={item.imageUrl} alt="" loading="lazy" width={52} height={52} />
+        <span className="row-lead lg">
+          <img src={item.imageUrl} alt="" loading="lazy" width={52} height={52} />
+        </span>
       ) : (
-        <span className="prow-img prow-img-none" aria-hidden />
+        <span className="row-lead lg" aria-hidden />
       )}
       <span className="row-main">
         <span className="row-title">{item.title}</span>
@@ -59,9 +61,11 @@ export function Row({ item, statusFilter }: { item: PresentItem; statusFilter: s
       <Link className="list-row" href={`/presents/${item.presentId}`} title={item.title}>
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
-          <img className="prow-img" src={item.imageUrl} alt="" loading="lazy" width={52} height={52} />
+          <span className="row-lead lg">
+          <img src={item.imageUrl} alt="" loading="lazy" width={52} height={52} />
+        </span>
         ) : (
-          <span className="prow-img prow-img-none" aria-hidden />
+          <span className="row-lead lg" aria-hidden />
         )}
 
         <span className="row-main">
