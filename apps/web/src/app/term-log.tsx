@@ -22,6 +22,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/context.tsx";
+import { Icon } from "./lucide-icon.tsx";
 
 export interface TermLine {
   key: number;
@@ -112,7 +113,13 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
         <span className="term-title">{title}</span>
         <span className="term-tools">
           <button type="button" className={`term-lvl term-copy${copied ? " copied" : ""}`} onClick={() => void copyAll()}>
-            {copied ? copiedLabel : copyLabel}
+            {copied ? (
+              <>
+                <Icon name="check" /> {copiedLabel}
+              </>
+            ) : (
+              copyLabel
+            )}
           </button>
           <button type="button" className="term-lvl" onClick={clearView} disabled={shown.length === 0}>
             {clearLabel}
@@ -150,7 +157,8 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
               if (el) el.scrollTop = el.scrollHeight;
             }}
           >
-            ↓ {toBottomLabel}
+            <Icon name="arrow-down" />
+            {toBottomLabel}
           </button>
         )}
       </div>

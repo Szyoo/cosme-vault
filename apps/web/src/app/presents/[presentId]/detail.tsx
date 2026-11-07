@@ -15,6 +15,7 @@ import type { Dict } from "@/i18n/dict.ts";
 import { DrawOneButton } from "./draw-one.tsx";
 import { ResolveButtons } from "../../resolve-buttons.tsx";
 import { GoneFix } from "../../gone-fix.tsx";
+import { Icon } from "../../lucide-icon.tsx";
 import { sourceOf, statusOf } from "../../labels.ts";
 
 export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict }) {
@@ -100,7 +101,8 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         <div className="actions">
           {/* 能跳到 @COSME 的原页面 */}
           <a className="btn" href={present.link} target="_blank" rel="noreferrer">
-            {t.present.openOriginal} ↗
+            {t.present.openOriginal}
+            <Icon name="external-link" />
           </a>
         </div>
         <p className="tiny muted" style={{ wordBreak: "break-all", marginTop: 8 }}>

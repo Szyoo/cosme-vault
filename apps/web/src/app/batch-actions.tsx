@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
+import { Icon } from "./lucide-icon.tsx";
 
 export function BatchActions({
   batchId,
@@ -49,7 +50,8 @@ export function BatchActions({
     <span className="qactions">
       {canMoveUp && queued > 0 && (
         <button type="button" className="btn-ghost btn-small" onClick={() => void act("top")} disabled={busy}>
-          ↑ {t.runner.toTop}
+          <Icon name="arrow-up" />
+          {t.runner.toTop}
         </button>
       )}
       {queued > 0 && (

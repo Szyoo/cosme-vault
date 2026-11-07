@@ -14,13 +14,14 @@ import type { PendingChoice } from "@cosme/contract";
 import { useT } from "@/i18n/context.tsx";
 import { useInModal, useCloseModal } from "../../modal-shell.tsx";
 import type { Dict } from "@/i18n/dict.ts";
+import { Icon } from "../../lucide-icon.tsx";
 
 /** 顶部返回条。选择页有多个状态分支，各自都要有出口，故抽成组件。 */
 function BackRow({ t }: { t: Dict }) {
   return (
     <nav className="back-row">
-      <a className="chip" href="/">
-        ← {t.nav.console}
+      <a className="back-link" href="/">
+        <Icon name="arrow-left" /> {t.nav.console}
       </a>
     </nav>
   );
@@ -222,7 +223,7 @@ export function ChoiceInner() {
           {data.present.name}
           {"　"}
           <a href={data.present.link} target="_blank" rel="noreferrer">
-            {t.resolve.openSite} ↗
+            {t.resolve.openSite} <Icon name="external-link" />
           </a>
         </p>
       )}

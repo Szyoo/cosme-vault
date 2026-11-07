@@ -12,6 +12,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
+import { Icon } from "./lucide-icon.tsx";
 
 export function ResolveButtons({
   accountId,
@@ -54,7 +55,8 @@ export function ResolveButtons({
     <span className="row wrap" style={{ gap: 6 }}>
       {link && (
         <a className="btn-ghost btn-small" href={link} target="_blank" rel="noreferrer">
-          {t.resolve.openSite} ↗
+          {t.resolve.openSite}
+          <Icon name="external-link" />
         </a>
       )}
       {/* 重投是首选：runner 现在能在问卷页识别出已应募并跳过，不会重复提交 */}

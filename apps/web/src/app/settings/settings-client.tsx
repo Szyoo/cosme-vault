@@ -18,6 +18,7 @@ import { PacingSection } from "./pacing-section.tsx";
 import { PasswordSection } from "./password-section.tsx";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
+import { Icon } from "../lucide-icon.tsx";
 
 export function SettingsClient({ sso }: { sso: boolean }) {
   const t = useT();
@@ -188,7 +189,15 @@ function AccountCard({
       <div className="row wrap spread">
         <strong>{account.label}</strong>
         <span className="small" style={{ flex: 1, minWidth: 160 }}>
-          {c.configured ? `🔑 ${t.settings.credConfigured}` : `⚠️ ${t.settings.credMissing}`}
+          {c.configured ? (
+            <>
+              <Icon name="lock" /> {t.settings.credConfigured}
+            </>
+          ) : (
+            <span className="warn-text">
+              <Icon name="triangle-alert" /> {t.settings.credMissing}
+            </span>
+          )}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
         <span className="row wrap" style={{ gap: 8, flex: "0 1 auto", minWidth: 0 }}>
@@ -197,7 +206,7 @@ function AccountCard({
               证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}
           {sessionFresh ? (
             <span className="pill green" title={t.settings.sessionOkHint}>
-              {t.settings.sessionOk}
+              <Icon name="check" /> {t.settings.sessionOk}
             </span>
           ) : (
           <button

@@ -13,6 +13,7 @@ import type { InspectedElement, PatternDiagnostics } from "@cosme/contract";
 import { Nav } from "../nav.tsx";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
+import { Icon } from "../lucide-icon.tsx";
 
 interface UnknownPattern {
   presentId: string;
@@ -209,7 +210,14 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
           {open ? t.diag.collapse : t.diag.expandElements(a.elements.length)}
         </button>
         <button type="button" className="btn-ghost btn-small" onClick={() => void copyElements()}>
-          {copied ? t.diag.copied : t.diag.copyElements}
+          {copied ? (
+            <>
+              <Icon name="check" />
+              {t.diag.copied}
+            </>
+          ) : (
+            t.diag.copyElements
+          )}
         </button>
         <button type="button" className="btn btn-small" onClick={() => void resolve()} disabled={busy}>
           {busy ? "…" : t.diag.markResolved}
@@ -296,7 +304,14 @@ function Card({
               {open ? t.diag.collapse : t.diag.expandElements(diagnostics.elements.length)}
             </button>
             <button type="button" className="btn-ghost btn-small" onClick={copyElements}>
-              {copied ? t.diag.copied : t.diag.copyElements}
+              {copied ? (
+                <>
+                  <Icon name="check" />
+                  {t.diag.copied}
+                </>
+              ) : (
+                t.diag.copyElements
+              )}
             </button>
           </div>
 

@@ -64,7 +64,7 @@ export function ModalShell({ children }: { children: ReactNode }) {
 
   return (
     // 外观用设计包的 .overlay + .sheet（手机底部抽屉、桌面居中卡片，.sheet-body 内部滚动）+ .close-x；
-    // .sheet.wide（桌面 760px）与只放 ✕ 的无标题 .sheet-head 都是包的（v0.14）；.cv-modal 是本应用的修饰类
+    // .sheet.wide（桌面 760px）与只放关闭键的无标题 .sheet-head 都是包的（v0.14）；.cv-modal 是本应用的修饰类
     // （内嵌整页组件时去掉整页留白），见 globals.css。挂载点是 layout 的 @modal slot，直接在 <body> 下（规范 §3）
     <div
       className="overlay"
@@ -75,9 +75,7 @@ export function ModalShell({ children }: { children: ReactNode }) {
     >
       <div className="sheet wide cv-modal" ref={panel} role="dialog" aria-modal="true">
         <div className="sheet-head">
-          <button type="button" className="close-x" onClick={close} aria-label="close">
-            ✕
-          </button>
+          <button type="button" className="close-x" onClick={close} aria-label="close"></button>
         </div>
         <div className="sheet-body">
           <InModalCtx.Provider value={true}>{children}</InModalCtx.Provider>

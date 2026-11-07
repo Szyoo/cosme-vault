@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useT } from "@/i18n/context.tsx";
+import { Icon } from "../lucide-icon.tsx";
 
 interface BarkCfg {
   server: string;
@@ -96,7 +97,11 @@ export function BarkSection() {
         <button type="button" className="btn-ghost" onClick={() => void test()} disabled={busy !== null}>
           {busy === "test" ? t.barkSettings.testing : t.barkSettings.test}
         </button>
-        {msg && <span className="small muted">{msg}</span>}
+        {msg && (
+          <span className="small muted">
+            {msg === t.barkSettings.testSent && <Icon name="check" />} {msg}
+          </span>
+        )}
       </div>
     </section>
   );

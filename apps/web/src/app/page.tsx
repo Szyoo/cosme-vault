@@ -33,6 +33,7 @@ import { mergeStatus } from "./labels.ts";
 import { PresentFilterProvider } from "./present-filter.tsx";
 import { PresentOverview } from "./present-overview.tsx";
 import { Landing } from "./landing.tsx";
+import { Icon } from "./lucide-icon.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -243,7 +244,7 @@ export default async function Home() {
         <section className="glass panel section">
           <div className="section-name">{t.diag.banner(diagnosticsCount)}</div>
           <p className="small">
-            {t.diag.bannerHint} <a href="/diagnostics">{t.diag.title} →</a>
+            {t.diag.bannerHint} <a href="/diagnostics">{t.diag.title} <Icon name="arrow-right" /></a>
           </p>
         </section>
       )}

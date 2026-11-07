@@ -26,6 +26,7 @@ import { statusOf } from "./labels.ts";
 import { AccountActions } from "./account-actions.tsx";
 import type { PresentItem } from "./present-item.ts";
 import { GoneFix } from "./gone-fix.tsx";
+import { Icon } from "./lucide-icon.tsx";
 
 /** 状态展示顺序：先「好结果」，再「等你」，最后「有问题」 */
 // 「站点已应募」已归并进「已投递」（mergeStatus），不再单列一档
@@ -97,7 +98,12 @@ export function AccountMatrix({
                 {!r.enabled && <span className="pill">{t.matrix.disabled}</span>}
                 <span className="acct-total num">
                   {tracked} / {totalPresents}
-                  {balanced ? "" : " ⚠"}
+                  {!balanced && (
+                    <>
+                      {" "}
+                      <Icon name="triangle-alert" />
+                    </>
+                  )}
                 </span>
               </div>
 
@@ -233,9 +239,7 @@ function DrillModal({
               {t.matrix.drill(statusLabel, list.length)}
             </h2>
           </div>
-          <button type="button" className="close-x" onClick={onClose} aria-label="close">
-            ✕
-          </button>
+          <button type="button" className="close-x" onClick={onClose} aria-label="close"></button>
         </div>
         <div className="sheet-body">
           {drill.status === "missing" && <p className="tiny muted">{t.matrix.missingDrillHint}</p>}

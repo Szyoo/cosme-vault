@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
 import { statusOf } from "./labels.ts";
+import { Icon } from "./lucide-icon.tsx";
 
 /**
  * 可改判的目标（除 gone 自身外的全部已有状态）。
@@ -46,7 +47,12 @@ export function GoneFix({ accountId, presentId }: { accountId: string; presentId
     }
   }
 
-  if (done) return <span className="tiny muted">{t.matrix.fixDone}</span>;
+  if (done)
+    return (
+      <span className="tiny muted">
+        <Icon name="check" /> {t.matrix.fixDone}
+      </span>
+    );
 
   return (
     <span className="gone-fix" title={t.matrix.fixHint}>
