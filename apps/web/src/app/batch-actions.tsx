@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
 import { Icon } from "./lucide-icon.tsx";
+import { useArmConfirm } from "./use-arm-confirm.ts";
 
 export function BatchActions({
   batchId,
@@ -24,14 +25,10 @@ export function BatchActions({
   const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [armed, setArmed] = useState(false);
+  // 取消是破坏性的：设计包的按钮版二次确认，首点变红、再点执行
+  const cancelRef = useArmConfirm(() => void act("cancel"), { label: t.runner.stopConfirm });
 
   async function act(action: "cancel" | "top") {
-    if (action === "cancel" && !armed) {
-      setArmed(true);
-      setTimeout(() => setArmed(false), 5000);
-      return;
-    }
     setBusy(true);
     try {
       const res = await fetch(`/api/jobs/batch/${encodeURIComponent(batchId)}`, {
@@ -42,12 +39,11 @@ export function BatchActions({
       if (res.ok) router.refresh();
     } finally {
       setBusy(false);
-      setArmed(false);
     }
   }
 
   return (
-    <span className="qactions">
+    <span className="row u-gap-2">
       {canMoveUp && queued > 0 && (
         <button type="button" className="btn-ghost btn-small" onClick={() => void act("top")} disabled={busy}>
           <Icon name="arrow-up" />
@@ -57,12 +53,12 @@ export function BatchActions({
       {queued > 0 && (
         <button
           type="button"
-          className={armed ? "btn-ghost danger btn-small" : "btn-ghost btn-small"}
-          onClick={() => void act("cancel")}
+          ref={cancelRef}
+          className="btn-ghost btn-small"
           disabled={busy}
           title={t.runner.queueHint}
         >
-          {armed ? t.runner.stopConfirm : t.runner.cancelJob}
+          {t.runner.cancelJob}
         </button>
       )}
     </span>

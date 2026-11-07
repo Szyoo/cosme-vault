@@ -12,16 +12,18 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AccountSummary } from "@cosme/contract";
 import { JOB_OPTIONS } from "@cosme/core";
+import { confirm } from "@szyyw/design/confirm";
 import { Nav } from "../nav.tsx";
 import { BarkSection } from "./bark-section.tsx";
 import { PacingSection } from "./pacing-section.tsx";
 import { PasswordSection } from "./password-section.tsx";
-import { useT } from "@/i18n/context.tsx";
+import { useLocale, useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 import { Icon } from "../lucide-icon.tsx";
 
 export function SettingsClient({ sso }: { sso: boolean }) {
   const t = useT();
+  const locale = useLocale();
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
   const [newLabel, setNewLabel] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,7 +59,13 @@ export function SettingsClient({ sso }: { sso: boolean }) {
   }
 
   async function removeAccount(id: string, label: string) {
-    if (!confirm(t.settings.confirmDelete(label))) return;
+    const ok = await confirm({
+      title: t.settings.confirmDelete(label),
+      danger: true,
+      confirmLabel: t.settings.delete,
+      locale,
+    });
+    if (!ok) return;
     await fetch(`/api/accounts/${id}`, { method: "DELETE" });
     await reload();
   }
@@ -205,7 +213,7 @@ function AccountCard({
               藏起「激活登录」（已激活还摆着按钮是噪音）；
               证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}
           {sessionFresh ? (
-            <span className="pill green" title={t.settings.sessionOkHint}>
+            <span className="pill ok" title={t.settings.sessionOkHint}>
               <Icon name="check" /> {t.settings.sessionOk}
             </span>
           ) : (

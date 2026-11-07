@@ -57,7 +57,7 @@ export function GoneFix({ accountId, presentId }: { accountId: string; presentId
   return (
     <span className="gone-fix" title={t.matrix.fixHint}>
       <select
-        className="field gone-fix-select"
+        className="field small gone-fix-select"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         disabled={busy}

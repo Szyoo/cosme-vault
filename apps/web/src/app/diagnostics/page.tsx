@@ -142,7 +142,6 @@ export default function DiagnosticsPage() {
  * 需要写选择器时再展开。
  */
 function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: () => void }) {
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -169,7 +168,7 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
       <div className="row wrap spread">
         <strong>{a.title || a.url}</strong>
         <span className="row wrap" style={{ gap: 8 }}>
-          <span className="pill amber">{t.diag.seenTimes(a.seenCount)}</span>
+          <span className="pill warn">{t.diag.seenTimes(a.seenCount)}</span>
           {a.affected.length > 0 && <span className="pill">{t.diag.affected(a.affected.length)}</span>}
         </span>
       </div>
@@ -206,9 +205,6 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
       )}
 
       <div className="actions">
-        <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-          {open ? t.diag.collapse : t.diag.expandElements(a.elements.length)}
-        </button>
         <button type="button" className="btn-ghost btn-small" onClick={() => void copyElements()}>
           {copied ? (
             <>
@@ -224,14 +220,11 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
         </button>
       </div>
 
-      {open && <ElementTable elements={a.elements} t={t} />}
-
-      {a.bodyExcerpt && (
-        <details className="section">
-          <summary className="small">{t.diag.bodyExcerpt}</summary>
-          <p className="tiny muted" style={{ whiteSpace: "pre-wrap" }}>{a.bodyExcerpt}</p>
-        </details>
-      )}
+      {/* 元素清单与正文摘要收在设计包的 details.disclosure 里，需要写选择器时再展开 */}
+      <div className="list divided u-mt-4">
+        <ElementsDisclosure elements={a.elements} t={t} />
+        {a.bodyExcerpt && <ExcerptDisclosure text={a.bodyExcerpt} t={t} />}
+      </div>
     </div>
   );
 }
@@ -249,7 +242,6 @@ function Card({
   at: string | null;
   diagnostics: PatternDiagnostics | null;
 }) {
-  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   async function copyElements() {
@@ -300,9 +292,6 @@ function Card({
           </dl>
 
           <div className="actions">
-            <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-              {open ? t.diag.collapse : t.diag.expandElements(diagnostics.elements.length)}
-            </button>
             <button type="button" className="btn-ghost btn-small" onClick={copyElements}>
               {copied ? (
                 <>
@@ -315,17 +304,40 @@ function Card({
             </button>
           </div>
 
-          {open && <ElementTable elements={diagnostics.elements} t={t} />}
-
-          {diagnostics.bodyExcerpt && (
-            <details className="section">
-              <summary className="small">{t.diag.bodyExcerpt}</summary>
-              <p className="tiny muted" style={{ whiteSpace: "pre-wrap" }}>{diagnostics.bodyExcerpt}</p>
-            </details>
-          )}
+          <div className="list divided u-mt-4">
+            <ElementsDisclosure elements={diagnostics.elements} t={t} />
+            {diagnostics.bodyExcerpt && <ExcerptDisclosure text={diagnostics.bodyExcerpt} t={t} />}
+          </div>
         </>
       )}
     </div>
+  );
+}
+
+/** 元素清单（折叠）：表格只在展开时渲染，长清单不拖慢页面 */
+function ElementsDisclosure({ elements, t }: { elements: InspectedElement[]; t: Dict }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <details className="disclosure flush" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>
+        {t.diag.elements}
+        <span className="summary-meta">{elements.length}</span>
+      </summary>
+      {open && (
+        <div className="disclosure-body">
+          <ElementTable elements={elements} t={t} />
+        </div>
+      )}
+    </details>
+  );
+}
+
+function ExcerptDisclosure({ text, t }: { text: string; t: Dict }) {
+  return (
+    <details className="disclosure flush">
+      <summary>{t.diag.bodyExcerpt}</summary>
+      <p className="disclosure-body tiny muted pre-wrap">{text}</p>
+    </details>
   );
 }
 

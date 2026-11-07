@@ -60,24 +60,9 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         <div className="row wrap" style={{ alignItems: "flex-start", gap: 18 }}>
           {present.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
-            <img
-              src={present.imageUrl}
-              alt={present.name}
-              width={132}
-              height={132}
-              style={{
-                borderRadius: 12,
-                objectFit: "cover",
-                flex: "none",
-                border: "1px solid var(--glass-border)",
-              }}
-            />
+            <img className="detail-img" src={present.imageUrl} alt={present.name} width={132} height={132} />
           ) : (
-            <span
-              className="thumb thumb-none"
-              style={{ width: 132, height: 132, borderRadius: 12 }}
-              aria-hidden
-            />
+            <span className="detail-img" aria-hidden />
           )}
 
           <dl className="kv" style={{ flex: 1, minWidth: 220 }}>
@@ -115,17 +100,17 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
         {links.length === 0 ? (
           <p className="small muted">{t.present.noAccountRecord}</p>
         ) : (
-          <div className="stack">
+          <div className="list gap">
             {links.map((l) => {
               const st = statusOf(l.status, t);
               const account = accounts.find((a) => a.id === l.accountId);
               return (
-                <div key={l.id} className="inner pad row wrap spread">
-                  <span>
-                    <strong>{account?.label ?? l.accountId}</strong>
-                    {l.pattern && <span className="mono tiny muted"> · {l.pattern}</span>}
+                <div key={l.id} className="list-row wrap-narrow">
+                  <span className="row-main">
+                    <span className="row-title">{account?.label ?? l.accountId}</span>
+                    {l.pattern && <span className="row-sub mono">{l.pattern}</span>}
                   </span>
-                  <span className="row wrap" style={{ gap: 8 }}>
+                  <span className="row-end">
                     {l.status === "needsChoice" && (
                       <Link className="btn-ghost btn-small" href={`/choices/${present.id}?account=${l.accountId}`}>
                         {t.choice.goChoose}
@@ -210,13 +195,15 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
       {jobs.length > 0 && (
         <section className="glass panel section">
           <div className="section-name">{t.present.relatedJobs}</div>
-          <div className="stack">
+          <div className="list gap compact">
             {jobs.map((j) => (
-              <div key={j.id} className="inner pad row wrap spread">
-                <span className="tiny">
-                  {j.trigger} · {fmtDateTime(j.createdAt)}
+              <div key={j.id} className="list-row">
+                <span className="row-main">
+                  <span className="row-sub">
+                    {j.trigger} · {fmtDateTime(j.createdAt)}
+                  </span>
                 </span>
-                <span className="tiny">
+                <span className="row-end">
                   {j.status}
                   {j.error ? ` · ${j.error.slice(0, 40)}` : ""}
                 </span>

@@ -24,9 +24,9 @@ export function sourceOf(source: string, t: Dict): Badge {
     case "brandFanClubViaBrand":
       return { short: s.fanClubShort, full: s.fanClubViaBrandFull, pill: "violet" };
     case "produceMember":
-      return { short: s.produceShort, full: s.produceFull, pill: "amber" };
+      return { short: s.produceShort, full: s.produceFull, pill: "warn" };
     case "tieupCampaign":
-      return { short: s.tieupShort, full: s.tieupFull, pill: "green" };
+      return { short: s.tieupShort, full: s.tieupFull, pill: "ok" };
     default:
       return { short: source, full: source, pill: "" };
   }
@@ -51,24 +51,24 @@ export function statusOf(status: string, t: Dict): { label: string; pill: string
     case "pending":
       return { label: s.pending, pill: "" };
     case "drawn":
-      return { label: s.drawn, pill: "green" };
+      return { label: s.drawn, pill: "ok" };
     case "needsChoice":
       return { label: s.needsChoice, pill: "violet" };
     // 「已跳过」曾把「奖品过期」与「站点 404」混成一个，界面上说不清为什么跳过。
     // 配色与账号进度条同语义：已下架黄、404 红（红=值得人看一眼：
     // 要么站点异常撤了页面，要么我们存的链接就是错的）
     case "expired":
-      return { label: s.expired, pill: "amber" };
+      return { label: s.expired, pill: "warn" };
     case "gone":
-      return { label: s.gone, pill: "red" };
+      return { label: s.gone, pill: "err" };
     case "alreadyEntered":
       // 归并到「已投递」（mergeStatus）；这一支只作兜底，正常不会走到
-      return { label: s.drawn, pill: "green" };
+      return { label: s.drawn, pill: "ok" };
     case "failed":
-      return { label: s.failed, pill: "red" };
+      return { label: s.failed, pill: "err" };
     case "unknownPattern":
       // 包的中性灰蓝 slate（「未知 / 未定」），与「已下架」的 amber 分开——进度条上同色会分不出来
-      return { label: s.unknownPattern, pill: "slate" };
+      return { label: s.unknownPattern, pill: "neutral" };
     default:
       return { label: status, pill: "" };
   }

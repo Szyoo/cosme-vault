@@ -18,7 +18,7 @@ import { tallyLife, tallySource, type PresentItem } from "./present-item.ts";
 import { usePresentFilter, scrollToList } from "./present-filter.tsx";
 
 /** 奖品自身状态的文案与配色（与投递状态那套 pill 配色保持一致） */
-const LIFE_PILL: Record<string, string> = { active: "green", expired: "amber", gone: "red" };
+const LIFE_PILL: Record<string, string> = { active: "ok", expired: "warn", gone: "err" };
 
 export function PresentOverview({ items }: { items: PresentItem[] }) {
   const t = useT();
@@ -58,10 +58,12 @@ export function PresentOverview({ items }: { items: PresentItem[] }) {
             <button
               key={l.value}
               type="button"
-              className={`pill pill-btn ${LIFE_PILL[l.value] ?? ""}${life === l.value ? " active" : ""}`}
+              className={`pill ${LIFE_PILL[l.value] ?? ""}${life === l.value ? " picked" : ""}`}
+              aria-pressed={life === l.value}
               onClick={() => pickLife(l.value)}
             >
-              {lifeLabel(l.value)} <span className="num">{l.count}</span>
+              {lifeLabel(l.value)}
+              <span className="count">{l.count}</span>
             </button>
           ))}
         </div>
@@ -77,10 +79,12 @@ export function PresentOverview({ items }: { items: PresentItem[] }) {
               <button
                 key={s.value}
                 type="button"
-                className={`pill pill-btn${source === s.value ? " active" : ""}`}
+                className={`pill${source === s.value ? " picked" : ""}`}
+                aria-pressed={source === s.value}
                 onClick={() => pickSource(s.value)}
               >
-                {s.label} <span className="num">{s.count}</span>
+                {s.label}
+                <span className="count">{s.count}</span>
               </button>
             ))
           )}

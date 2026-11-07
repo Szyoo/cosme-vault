@@ -106,7 +106,7 @@ export default async function PrizesPage({
             {shown.length === 0 ? (
               <p className="small muted">{t.filter.noMatch}</p>
             ) : (
-              <ul className="plist">
+              <ul className="list">
                 {shown.map((i) =>
                   anon ? (
                     <PublicRow key={i.presentId} item={i} openSource={t.prizes.openSource} />

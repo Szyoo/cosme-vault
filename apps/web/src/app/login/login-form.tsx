@@ -1,5 +1,5 @@
 "use client";
-/** 登录表单（本地账号）。样式先走 @szyyw/design 的玻璃组件层，正式视觉与其他页面一起做。 */
+/** 登录表单（本地账号）。外壳用设计包的登录卡（`.app-main.auth-shell` > `.glass.auth-card`）。 */
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -13,7 +13,7 @@ import { safeNext } from "./safe-next.ts";
  */
 export function LoginClient() {
   return (
-    <Suspense fallback={<main className="page app-main">…</main>}>
+    <Suspense fallback={<main className="app-main auth-shell">…</main>}>
       <LoginForm />
     </Suspense>
   );
@@ -54,33 +54,35 @@ function LoginForm() {
   }
 
   return (
-    <main className="page narrow app-main">
-      <h1 className="app-title u-mb-1">{t.appName}</h1>
-      <form className="glass panel stack section" method="post" action="/api/auth/login" onSubmit={submit}>
-        <input
-          className="field"
-          name="username"
-          placeholder={t.login.username}
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          className="field"
-          name="password"
-          type="password"
-          placeholder={t.login.password}
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="err-text">{error}</p>}
-        <button type="submit" className="btn" disabled={busy}>
-          {busy ? t.login.submitting : t.login.submit}
-        </button>
-      </form>
+    <main className="app-main auth-shell">
+      <div className="glass auth-card">
+        <h1 className="app-title">{t.appName}</h1>
+        <form className="stack" method="post" action="/api/auth/login" onSubmit={submit}>
+          <input
+            className="field"
+            name="username"
+            placeholder={t.login.username}
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            className="field"
+            name="password"
+            type="password"
+            placeholder={t.login.password}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {error && <p className="field-msg err">{error}</p>}
+          <button type="submit" className="btn" disabled={busy}>
+            {busy ? t.login.submitting : t.login.submit}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

@@ -6,6 +6,8 @@
  * 且没必要。现在一轮 = 一条，带进度条；单独重跑 = 一条，标着奖品名。
  *
  * 内部的逐个奖品仍然存在（幂等与去重都依赖它），只是收进可展开的明细里，不再是默认视图。
+ *
+ * 行用设计包的 `.list > .list-row`：首段序号（执行中换成呼吸的 `.dot.warn`）、中段标题 + 进度条 + 参数、尾段操作。
  */
 import type { Dict } from "@/i18n/dict.ts";
 import { fmtDateTime } from "@/lib/when.ts";
@@ -26,9 +28,7 @@ export function QueuePanel({
       <div className="section-name">
         {t.runner.queueTitle}
         {batches.length > 0 && (
-          <span className="filter-count num" style={{ marginLeft: 8 }}>
-            {batches.length}
-          </span>
+          <span className="badge neutral qcount">{batches.length}</span>
         )}
       </div>
 
@@ -37,15 +37,17 @@ export function QueuePanel({
       ) : (
         <>
           <p className="tiny muted">{t.runner.queueHint}</p>
-          <ol className="qlist">
+          <ol className="list u-mt-3">
             {batches.map((b, i) => {
               const finished = b.done + b.failed;
               const pct = b.total > 0 ? Math.round((finished / b.total) * 100) : 0;
               return (
-                <li key={b.batchId} className={`qrow${b.running > 0 ? " qrow-running" : ""}`}>
-                  <span className="qpos num">{b.running > 0 ? "▶" : i + 1}</span>
-                  <span className="qmain">
-                    <span className="qlabel">
+                <li key={b.batchId} className={`list-row${b.running > 0 ? " qrow-running" : ""}`}>
+                  <span className="row-lead num">
+                    {b.running > 0 ? <span className="dot warn pulse" aria-label={t.runner.nowRunning} /> : i + 1}
+                  </span>
+                  <span className="row-main">
+                    <span className="row-title">
                       {b.kind === "run"
                         ? t.runner.batchRun
                         : b.kind === "scan"
@@ -65,20 +67,22 @@ export function QueuePanel({
                       </span>
                     )}
 
-                    <span className="qmeta">
-                      {b.running > 0 && <span className="pill amber">{t.runner.nowRunning}</span>}
+                    <span className="item-meta">
+                      {b.running > 0 && <span className="pill warn">{t.runner.nowRunning}</span>}
                       {b.total > 1 && (
-                        <span className="prow-tag num">{t.runner.batchProgress(finished, b.total)}</span>
+                        <span className="item-tag num">{t.runner.batchProgress(finished, b.total)}</span>
                       )}
-                      {b.failed > 0 && <span className="prow-tag err">{t.runner.batchFailed(b.failed)}</span>}
-                      <span className="prow-tag muted">{b.trigger}</span>
-                      <span className="prow-tag muted num">{fmtDateTime(b.firstAt)}</span>
+                      {b.failed > 0 && <span className="item-tag err">{t.runner.batchFailed(b.failed)}</span>}
+                      <span className="item-tag muted">{b.trigger}</span>
+                      <span className="item-tag muted num">{fmtDateTime(b.firstAt)}</span>
                       {b.currentLabel && b.kind !== "single" && (
-                        <span className="prow-tag">{b.currentLabel}</span>
+                        <span className="item-tag">{b.currentLabel}</span>
                       )}
                     </span>
                   </span>
-                  <BatchActions batchId={b.batchId} canMoveUp={i > 0} queued={b.queued} />
+                  <span className="row-end">
+                    <BatchActions batchId={b.batchId} canMoveUp={i > 0} queued={b.queued} />
+                  </span>
                 </li>
               );
             })}

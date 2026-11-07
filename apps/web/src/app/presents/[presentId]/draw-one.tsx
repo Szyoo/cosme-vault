@@ -1,14 +1,15 @@
 /**
  * 「只投这一个」按钮。
  *
- * 点一下会**真实参加这个抽奖**，所以要二次确认（设计规范第 8 节：破坏性/不可逆操作
- * 首点变红要求再点一次）。这里的不可逆性在于抽奖机会用掉就没了。
+ * 点一下会**真实参加这个抽奖**，所以要二次确认（设计包的 armConfirm：首点变红、再点执行）。
+ * 这里的不可逆性在于抽奖机会用掉就没了。
  */
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/context.tsx";
+import { useArmConfirm } from "../../use-arm-confirm.ts";
 
 export function DrawOneButton({
   accountId,
@@ -21,17 +22,12 @@ export function DrawOneButton({
 }) {
   const t = useT();
   const router = useRouter();
-  const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // 5 秒内没再点就复位，避免误触后一直处于待确认状态
+  const armRef = useArmConfirm(() => void go(), { label: t.draw.confirm });
 
   async function go() {
-    if (!armed) {
-      setArmed(true);
-      // 5 秒内没再点就复位，避免误触后一直处于待确认状态
-      setTimeout(() => setArmed(false), 5000);
-      return;
-    }
     setBusy(true);
     try {
       const res = await fetch("/api/jobs", {
@@ -43,7 +39,6 @@ export function DrawOneButton({
       if (res.ok) router.refresh();
     } finally {
       setBusy(false);
-      setArmed(false);
     }
   }
 
@@ -52,11 +47,11 @@ export function DrawOneButton({
   return (
     <button
       type="button"
-      className={armed ? "btn-ghost danger btn-small" : "btn-ghost btn-small"}
-      onClick={go}
+      ref={armRef}
+      className="btn-ghost btn-small"
       disabled={busy}
     >
-      {busy ? t.draw.queueing : armed ? t.draw.confirm : t.draw.one}
+      {busy ? t.draw.queueing : t.draw.one}
     </button>
   );
 }

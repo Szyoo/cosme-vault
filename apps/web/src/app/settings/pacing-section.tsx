@@ -55,11 +55,11 @@ export function PacingSection() {
 
   const rangeRow = (label: string, key: keyof Cfg) => (
     <div className="pace-row">
-      <span className="small" style={{ flex: 1, minWidth: 200 }}>{label}</span>
+      <span className="small pace-name">{label}</span>
       <label className="pace-field">
         <span className="tiny muted">{t.pacing.min}</span>
         <input
-          className="field"
+          className="field pace-input"
           type="number"
           min={0}
           step={100}
@@ -70,7 +70,7 @@ export function PacingSection() {
       <label className="pace-field">
         <span className="tiny muted">{t.pacing.max}</span>
         <input
-          className="field"
+          className="field pace-input"
           type="number"
           min={0}
           step={100}

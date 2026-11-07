@@ -14,6 +14,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { mountOverlay } from "@szyyw/design/overlay";
 
 /** 子组件用它判断自己是否被嵌在 modal 里（提交成功后是关弹层还是跳页，行为不同） */
 const InModalCtx = createContext(false);
@@ -45,35 +46,23 @@ export function useCloseModal(): () => void {
 }
 
 export function ModalShell({ children }: { children: ReactNode }) {
-  const panel = useRef<HTMLDivElement | null>(null);
+  const overlay = useRef<HTMLDivElement | null>(null);
   const close = useCloseModal();
 
+  // 设计包的 mountOverlay：Esc / 点遮罩本身（按下与松开都在遮罩上）关闭，
+  // 打开期间锁掉背景滚动，否则手机上滑动会带着底下的长列表一起动
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
-    // 打开期间锁掉背景滚动，否则手机上滑动会带着底下的长列表一起动
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    if (!overlay.current) return;
+    const handle = mountOverlay(overlay.current, { onClose: close });
+    return () => handle.destroy();
   }, [close]);
 
   return (
     // 外观用设计包的 .overlay + .sheet（手机底部抽屉、桌面居中卡片，.sheet-body 内部滚动）+ .close-x；
     // .sheet.wide（桌面 760px）与只放关闭键的无标题 .sheet-head 都是包的（v0.14）；.cv-modal 是本应用的修饰类
     // （内嵌整页组件时去掉整页留白），见 globals.css。挂载点是 layout 的 @modal slot，直接在 <body> 下（规范 §3）
-    <div
-      className="overlay"
-      onClick={(e) => {
-        // 只有点在遮罩本身（而不是面板内部）才关闭
-        if (e.target === e.currentTarget) close();
-      }}
-    >
-      <div className="sheet wide cv-modal" ref={panel} role="dialog" aria-modal="true">
+    <div className="overlay" ref={overlay}>
+      <div className="sheet wide cv-modal" role="dialog" aria-modal="true">
         <div className="sheet-head">
           <button type="button" className="close-x" onClick={close} aria-label="close"></button>
         </div>

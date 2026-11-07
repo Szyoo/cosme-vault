@@ -9,27 +9,39 @@
  * 含投递的两个操作要防误触（一下就是最多 30 个真实抽奖机会），但**不用
  * 「再点一次」那种隐式二次确认**——按钮文字突然变化、还有 5 秒隐形时限，
  * 用户点了第一下摸不着头脑，超时复位后第二下又变成第一下，永远点不完
- * （实测把用户卡住了）。改成明示的确认条：说清后果 + 确认/取消两个按钮，
- * 不设时限。
+ * （实测把用户卡住了）。改成明示确认：设计包的确认对话框（`confirm`）说清后果 +
+ * 确认/取消两个按钮，不设时限。
  */
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useT } from "@/i18n/context.tsx";
+import { confirm } from "@szyyw/design/confirm";
+import { useLocale, useT } from "@/i18n/context.tsx";
 
 type Mode = "scan" | "draw" | "full";
 
 export function RunButton() {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const [busy, setBusy] = useState<Mode | null>(null);
-  /** 等待确认的投递类操作（scan 无副作用，不经过这里） */
-  const [confirming, setConfirming] = useState<Exclude<Mode, "scan"> | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
+  /** 投递类操作先明示确认（scan 无副作用，不经过这里） */
+  async function ask(mode: Exclude<Mode, "scan">) {
+    const ok = await confirm({
+      title: mode === "draw" ? t.runner.drawOnly : t.runner.run,
+      message: mode === "draw" ? t.runner.confirmDraw : t.runner.confirmRun,
+      confirmLabel: t.runner.confirmGo,
+      cancelLabel: t.runner.confirmNo,
+      danger: true,
+      locale,
+    });
+    if (ok) void fire(mode);
+  }
+
   async function fire(mode: Mode) {
-    setConfirming(null);
     setBusy(mode);
     setMsg(null);
     try {
@@ -52,25 +64,6 @@ export function RunButton() {
     }
   }
 
-  // 确认态：整组按钮换成一条说明 + 确认/取消，杜绝“哪个按钮变了”的猜谜
-  if (confirming) {
-    return (
-      <div className="callout warn confirm-strip">
-        <span className="small">
-          {confirming === "draw" ? t.runner.confirmDraw : t.runner.confirmRun}
-        </span>
-        <span className="row wrap" style={{ gap: 6, flex: "none" }}>
-          <button type="button" className="btn danger btn-small" onClick={() => void fire(confirming)}>
-            {t.runner.confirmGo}
-          </button>
-          <button type="button" className="btn-ghost btn-small" onClick={() => setConfirming(null)}>
-            {t.runner.confirmNo}
-          </button>
-        </span>
-      </div>
-    );
-  }
-
   return (
     <div className="row wrap" style={{ gap: 6 }}>
       {msg && <span className="tiny muted">{msg}</span>}
@@ -85,12 +78,12 @@ export function RunButton() {
       <button
         type="button"
         className="btn-ghost btn-small"
-        onClick={() => setConfirming("draw")}
+        onClick={() => void ask("draw")}
         disabled={busy !== null}
       >
         {busy === "draw" ? t.runner.running : t.runner.drawOnly}
       </button>
-      <button type="button" className="btn" onClick={() => setConfirming("full")} disabled={busy !== null}>
+      <button type="button" className="btn" onClick={() => void ask("full")} disabled={busy !== null}>
         {busy === "full" ? t.runner.running : t.runner.run}
       </button>
     </div>

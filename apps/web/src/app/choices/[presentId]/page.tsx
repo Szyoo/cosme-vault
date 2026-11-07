@@ -38,6 +38,7 @@ interface Data {
 /**
  * 参考图纠错器：启发式选的图有时不对或缺失（实测反馈），
  * 展开候选池（PR 页全部内容图）让用户点选，保存即替换快照里的参考图。
+ * 展开收起用设计包的 `details.disclosure`（受控 open：保存成功后收起）。
  */
 function ImageFixer({
   presentId,
@@ -77,12 +78,13 @@ function ImageFixer({
   }
 
   return (
-    <div className="img-fixer">
-      <button type="button" className="btn-ghost btn-small" onClick={() => setOpen((v) => !v)}>
-        {open ? t.choice.fixImagesClose : t.choice.fixImages}
-      </button>
+    <details className="disclosure flush img-fixer" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>
+        {t.choice.fixImages}
+        <span className="summary-meta">{candidates.length}</span>
+      </summary>
       {open && (
-        <>
+        <div className="disclosure-body stack">
           <p className="tiny muted">{t.choice.fixImagesHint}</p>
           <div className="cand-grid">
             {candidates.map((src) => {
@@ -110,9 +112,9 @@ function ImageFixer({
           <button type="button" className="btn btn-small" onClick={() => void save()} disabled={busy}>
             {busy ? t.choice.fixImagesSaving : t.choice.fixImagesSave(sel.size)}
           </button>
-        </>
+        </div>
       )}
-    </div>
+    </details>
   );
 }
 

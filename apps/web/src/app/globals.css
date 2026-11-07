@@ -2,7 +2,9 @@
    cosme-vault —— 应用专属样式
    设计 token 与共享组件来自 @szyyw/design（tokens.css / components.css），
    这里只放本应用的外壳与少量局部布局。
-   规则：禁止硬编码颜色——透明度派生用 color-mix，新颜色先进包里的 tokens。
+   规则：禁止硬编码颜色——透明度派生用 color-mix，新颜色先进包里的 tokens；
+   字号 / 圆角 / 间距 / 控件高度 / 时长一律用包的刻度 token（--fs-* --r-* --sp-* --h-* --dur-*）。
+   不覆写包的公开类；需要局部差异时用本应用自己的类名（或「包类 + 本应用修饰类」）。
    ============================================================ */
 
 /* 右上角工具位纵向排列（设计包的 token 旋钮，见 components.css 的说明：
@@ -17,10 +19,10 @@
    这里只设宽度旋钮与上下留白。注意：包里的 .wrap 是 flex-wrap 工具类，不是页面容器，别混用。 */
 .page {
   --page-max-w: 980px;
-  padding-block: 22px 72px;
+  padding-block: var(--sp-5) calc(var(--sp-6) * 2);
 }
 
-/* 窄页（登录、手机上的选择页） */
+/* 窄页（手机上的选择页） */
 .page.narrow {
   --page-max-w: 460px;
   padding-top: 12vh;
@@ -33,36 +35,7 @@
 
 /* 卡内嵌套块：包的 .inner 只给底色与描边，这里补内边距（修饰类，不改 .inner 本身） */
 .inner.pad {
-  padding: 12px 14px;
-}
-
-/* 选择页的选项卡：整块可点，命中区域够大（手机优先） */
-.opt {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: var(--inner-bg);
-  border: 1px solid var(--glass-border);
-  cursor: pointer;
-  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
-}
-.opt:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-.opt.picked {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.opt input {
-  margin-top: 2px;
-  flex: none;
-}
-
-/* 诊断卡之间的间距 */
-.diag-card {
-  margin-bottom: 12px;
+  padding: var(--sp-3);
 }
 
 /* ⚠️ 这里曾给右上角工具位让过 96px 右内边距——结果是内容在居中容器里
@@ -70,75 +43,86 @@
    固定在视口右上角的工具按钮，让位纯属多余；真正会重叠的只有
    窄窗口的第一屏右上角，那点重叠可以接受。保持左右对称。 */
 
-/* 键值列表用包的 dl.kv（v0.13.0），这里只补与上文的间距 */
-.kv.spaced {
-  margin-top: 12px;
+/* 选择页的选项卡：整块可点，命中区域够大（手机优先）。
+   选项是「配图在上、文字在下」的单选卡，包的 .list-row 是横排，形态不合，故自写；状态色走包的 token */
+.opt {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--inner-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: border-color var(--dur-base) var(--ease), background var(--dur-fast) var(--ease);
+}
+.opt:hover {
+  border-color: var(--hover-border);
+}
+.opt.picked {
+  border-color: var(--selected-border);
+  background: var(--selected-bg);
+}
+.opt input {
+  margin-top: 2px;
+  flex: none;
 }
 
-/* 缩略图（现在只有奖品详情页在用；列表用的是 .prow-img）。
-   图片地址已在 runner 侧经 validateImageUrl 过滤，不会是占位图或站点图标。 */
-.thumb {
-  width: 40px;
-  height: 40px;
+/* 选择页的选项配图：图在文字上方，撑满选项卡宽度（原图 850px 宽的横幅） */
+.opt-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.opt-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+}
+
+/* 诊断卡 / 账号卡之间的间距 */
+.diag-card {
+  margin-bottom: var(--sp-3);
+}
+
+/* 键值列表用包的 dl.kv（v0.13.0），这里只补与上文的间距 */
+.kv.spaced {
+  margin-top: var(--sp-3);
+}
+
+/* 奖品详情页的大图（无图时同尺寸占位） */
+.detail-img {
+  width: 132px;
+  height: 132px;
   flex: none;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   object-fit: cover;
   background: var(--inner-bg);
   border: 1px solid var(--glass-border);
 }
-.thumb-none {
-  display: inline-block;
-  background: var(--inner-bg);
-}
 
-/* 顶部返回条。底部导航在手机上要滚过整页才看得到，
-   所以详情类页面必须在**顶部**也给一个出口。 */
+/* 顶部返回条（包的 .back-link）。底部导航在手机上要滚过整页才看得到，
+   所以详情类页面必须在**顶部**也给一个出口。这层包装只为 modal 里整体藏掉 */
 .back-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+  margin-bottom: var(--sp-3);
 }
 
-/* ---------- 奖品列表：两行一条 ----------
-   刻意不用表格。8 列信息在手机上必然横向溢出，表格只能横滚、一屏看不全。
-   布局是 2×2 网格：图片跨两行，右边第一行标题、第二行参数。
-   参数行 flex-wrap，所以窄屏是往下堆而不是往右溢出。 */
-.plist {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* 长文本保留换行（诊断页正文摘要） */
+.pre-wrap {
+  white-space: pre-wrap;
 }
 
-.prow {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  column-gap: 12px;
-  row-gap: 4px;
-  align-items: center;
-  padding: 9px 10px;
-  border-radius: 12px;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: background 0.16s var(--ease), border-color 0.16s var(--ease);
-}
-.prow:hover {
-  background: var(--inner-bg);
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-}
+/* ---------- 列表行（包的 .list > .list-row）的本应用补充 ----------
+   奖品行刻意不用表格：8 列信息在手机上必然横向溢出。行是「缩略图 + 标题 + 可换行的参数行」。 */
 
-/* 图片跨两行，行高由它撑起来（52px），无图时同尺寸占位避免行高跳动 */
+/* 奖品缩略图：直接作行的首个子元素（包的 .row-lead > img 是 36，商品图太小），52 / 窄屏 44；无图时同尺寸占位 */
 .prow-img {
-  grid-row: 1 / span 2;
-  grid-column: 1;
-  width: 52px;
-  height: 52px;
-  border-radius: 9px;
+  flex: none;
+  width: var(--h-item);
+  height: var(--h-item);
+  border-radius: var(--r-sm);
   object-fit: cover;
   background: var(--inner-bg);
   border: 1px solid var(--glass-border);
@@ -146,129 +130,109 @@
 .prow-img-none {
   display: block;
 }
-
-/* 标题单行省略。minmax(0,1fr) 提供的 min-width:0 是省略号生效的前提 */
-.prow-name {
-  grid-column: 2;
-  grid-row: 1;
-  font-size: 13.5px;
-  line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.prow:hover .prow-name {
-  text-decoration: underline;
+@media (max-width: 520px) {
+  .prow-img {
+    width: var(--h-lg);
+    height: var(--h-lg);
+  }
 }
 
-.prow-meta {
-  grid-column: 2;
-  grid-row: 2;
+/* 行内参数行：放在 .row-main 里、可换行（包的 .row-sub 单行省略，状态胶囊会被截掉） */
+.item-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-1) var(--sp-2);
   flex-wrap: wrap;
   min-width: 0;
 }
-.prow-meta .pill {
+.item-meta > .pill {
   flex: none;
 }
-
-.prow-brand {
-  font-size: 12px;
+.item-brand {
+  font-size: var(--fs-sm);
   font-weight: 600;
   max-width: 12em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.prow-tag {
-  font-size: 11.5px;
+.item-tag {
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   white-space: nowrap;
 }
-.prow-tag.err {
+.item-tag.err {
   color: var(--err);
 }
-
-/* 窄屏：图小一点，参数行字更紧 */
 @media (max-width: 520px) {
-  .prow {
-    grid-template-columns: 44px minmax(0, 1fr);
-    column-gap: 10px;
-    padding: 8px 6px;
-  }
-  .prow-img {
-    width: 44px;
-    height: 44px;
-  }
-  .prow-brand {
+  .item-brand {
     max-width: 8em;
+  }
+}
+
+/* 状态 pill 里的账号短名：比状态本身弱一档，扫读时先看状态再看是谁 */
+.pill-who {
+  opacity: 0.65;
+  font-weight: 600;
+}
+
+/* 行尾操作较多的行（结果未知的裁决按钮、详情页账号状态）：窄屏把行尾挪到下一行，不挤压标题 */
+@media (max-width: 480px) {
+  .list-row.wrap-narrow {
+    flex-wrap: wrap;
+    padding-block: var(--sp-2);
+  }
+  .list-row.wrap-narrow > .row-end {
+    max-width: 100%;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+/* 列表行下方的 404 改判条（筛选 404 时出现），与行内容对齐、不挤进 Link */
+.prow-fix {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-1) var(--sp-3) var(--sp-2) calc(var(--h-item) + var(--sp-3) * 2); /* 对齐图片右侧的内容区 */
+}
+@media (max-width: 480px) {
+  .prow-fix {
+    padding-inline-start: var(--sp-3);
   }
 }
 
 /* ---------- 顶部导航（tab） ----------
    原先在页面底部：奖品列表有一百多条，等于要滚完整页才能换页。 */
 .nav-top {
-  margin: 0 0 16px;
+  margin: 0 0 var(--sp-4);
 }
 
-/* ---------- 奖品筛选条 ----------
+/* ---------- 奖品筛选区 ----------
+   搜索框（包的 .field-wrap.search）+ 两组「标签 + 胶囊」（包的 .chip-group / .chip > .count）+ 计数行。
    客户端筛选（数据已在页面里），所以点一下即时生效、不走服务端。 */
 .filters {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 12px 0 4px;
-  padding-bottom: 10px;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0 var(--sp-1);
+  padding-bottom: var(--sp-3);
   border-bottom: 1px solid var(--glass-border);
 }
-.filter-search {
-  width: 100%;
-}
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.filter-label {
-  font-size: 11px;
-  color: var(--text-dim);
-  min-width: 2.6em;
-  flex: none;
-}
 
-/* 筛选按钮沿用包里的 .chip，只把计数做成角标 */
-.filter-chip {
+/* 奖品库分页条：包的 .pager 类，页码是链接（不挂 pager.js），<a> 需要居中与去下划线 */
+.pager-link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.filter-count {
-  font-size: 10.5px;
-  opacity: 0.6;
-  padding: 0 4px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--text) 8%, transparent);
-}
-.filter-chip.active .filter-count {
-  opacity: 0.85;
-}
-
-.filter-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  text-decoration: none;
 }
 
 /* ---------- 详情 / 下钻弹层 ----------
-   用包的 .overlay + .sheet（.sheet-head / .sheet-body 内部滚动）+ .close-x。
+   用包的 .overlay + .sheet（.sheet-head / .sheet-body 内部滚动）+ .close-x，关闭行为用包的 mountOverlay。
    奖品详情从列表点进来是弹层（拦截路由），底下的列表保持挂载，筛选状态不会丢。
-   宽版用包的 .sheet.wide（v0.14），只有 ✕ 的头用包的无标题 .sheet-head。
+   宽版用包的 .sheet.wide（v0.14），只有关闭键的头用包的无标题 .sheet-head。
    本应用只剩一处差异：.cv-modal 内嵌整页组件（选择页带着自己的 .page.narrow）时去掉整页留白与返回条 */
 .cv-modal .page,
 .cv-modal .page.narrow {
@@ -282,9 +246,6 @@
 .cv-modal .back-row {
   display: none;
 }
-.cv-modal .page-title {
-  margin-top: 0;
-}
 /* 弹层里的参考图：铺满宽度，但单张限高，绝不高过面板 */
 .cv-modal .ref-img {
   max-height: 52vh;
@@ -293,103 +254,37 @@
   margin: 0 auto;
 }
 
-/* ---------- 任务队列 ----------
-   顺序即执行顺序（与 queue.ts 的 order by createdAt 一致）。 */
-.qlist {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.qrow {
-  display: grid;
-  grid-template-columns: 1.8rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 8px;
-  border-radius: 10px;
-}
-.qrow:hover {
-  background: var(--inner-bg);
-}
+/* ---------- 任务队列（包的 .list > .list-row） ----------
+   顺序即执行顺序（与 queue.ts 的 order by createdAt 一致）。批次进度条用包的 .bar / .bar-fill。 */
 .qrow-running {
   background: color-mix(in srgb, var(--warn) 8%, transparent);
 }
-.qpos {
-  font-size: 11px;
-  color: var(--text-dim);
-  text-align: right;
+.qcount {
+  margin-inline-start: var(--sp-2);
 }
-.qmain {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.qlabel {
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.qmeta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.qactions {
-  display: flex;
-  gap: 4px;
-  flex: none;
-}
-
-/* 批次进度条用包的 .bar / .bar-fill（只在「一轮」上出现——单个任务画进度条没有信息量） */
 .qsub {
   color: var(--text-dim);
   font-weight: 400;
-}
-
-/* 投递类操作的确认条：把整组按钮换成说明 + 确认/取消。
-   不用「再点一次」的隐式确认——文字突变 + 隐形时限，实测把用户卡住了。 */
-/* 外观用包的 .callout.warn，这里只管一行排版 */
-.callout.confirm-strip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 
 /* 节奏设置：一行 = 名称 + min/max 两个窄输入框 */
 .pace-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-2) var(--sp-3);
   flex-wrap: wrap;
+}
+.pace-name {
+  flex: 1;
+  min-width: 200px;
 }
 .pace-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
 }
-.pace-field .field {
+.pace-input {
   width: 7em;
-}
-
-/* 选择页的选项配图：图在文字上方，撑满选项卡宽度（原图 850px 宽的横幅） */
-.opt-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.opt-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
 }
 
 /* 选择页的奖品参考图组：整组原样展示（多为带「or」的合成横幅），
@@ -397,13 +292,13 @@
 .ref-imgs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 10px 0 14px;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
 }
 .ref-img {
   max-width: 100%;
   height: auto;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   border: 1px solid var(--glass-border);
 }
 
@@ -420,51 +315,85 @@
 .term-tools {
   margin-left: auto;
   display: flex;
-  gap: 4px;
+  gap: var(--sp-1);
 }
 
-/* 「回到最新」浮钮要相对日志窗定位 */
+/* 「回到最新」浮钮要相对日志窗定位。终端窗刻意深色，包里没有对应的浮钮，按终端配色自写 */
 .term-body-wrap {
   position: relative;
 }
 .term-follow {
   position: absolute;
-  right: 14px;
-  bottom: 10px;
+  right: var(--sp-3);
+  bottom: var(--sp-2);
   appearance: none;
-  padding: 4px 12px;
-  font-size: 11px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+  border-radius: var(--r-pill);
   cursor: pointer;
   color: var(--term-text);
   background: var(--term-bg);
   border: 1px solid color-mix(in srgb, var(--term-text) 35%, transparent);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(var(--blur-sm));
+}
+.term-follow:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
-/* ---------- 参考图纠错器（候选池点选） ---------- */
-.img-fixer {
-  margin: 6px 0 12px;
+/* 任务分隔：终端里换一个 job 就画一条双线。
+   用 CSS 双线而不是一串「─」字符——固定长度的字符串在 375px 上会折行成两截。 */
+.term-sep {
+  border-top: 3px double color-mix(in srgb, var(--term-text) 38%, transparent);
+  margin: var(--sp-2) 0;
+}
+
+/* 清空后的提示条：明确「数据还在」并给回退入口——
+   否则用户不敢按，按了也不知道日志是不是被删了 */
+.term-hidden {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+  color: color-mix(in srgb, var(--term-text) 75%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--term-text) 18%, transparent);
+}
+.term-hidden-action {
+  margin-left: auto;
+}
+
+/* ---------- 参考图纠错器（包的 details.disclosure 里放候选池点选） ---------- */
+.img-fixer {
+  margin: var(--sp-1) 0 var(--sp-3);
 }
 .cand-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
+  gap: var(--sp-2);
   width: 100%;
 }
+/* 候选缩略图：多选的图片格，选中用包的选中着色族 */
 .cand-thumb {
   appearance: none;
   padding: 0;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   overflow: hidden;
   cursor: pointer;
   border: 2px solid var(--glass-border);
   background: var(--inner-bg);
   line-height: 0;
+  transition: border-color var(--dur-base) var(--ease);
+}
+.cand-thumb:hover {
+  border-color: var(--hover-border);
+}
+.cand-thumb:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 .cand-thumb img {
   width: 100%;
@@ -473,28 +402,24 @@
 }
 .cand-thumb.picked {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 0 0 2px var(--selected-border);
 }
 
-/* 禁用态按钮的「熄灭」实底样式已并入 @szyyw/design v0.11.0（inset 描边，不改尺寸），这里不再覆写。 */
-
-/* ---------- 账号 × 状态矩阵 ---------- */
+/* ---------- 账号 × 状态矩阵 ----------
+   每个账号一块（包的 .inner + .pad），堆叠条是包的 .bar.stacked > .bar-seg，状态 chip 是可点的 .pill > .count */
 .acct {
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--inner-bg);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 .acct-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   flex-wrap: wrap;
 }
 .acct-name {
-  font-size: 13.5px;
+  font-size: var(--fs-base);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -502,36 +427,34 @@
 }
 .acct-total {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
   flex: none;
 }
-/* 堆叠条：缺口（未建记录）自然留白，一眼看出没扫全 */
+/* 堆叠条在卡内用 gap 排距，去掉包的上下外边距；缺口（未建记录）自然留白，一眼看出没扫全 */
 .acct-bar {
-  display: flex;
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--text) 7%, transparent);
+  margin: 0;
 }
+/* 段是可点的 button（下钻）：抹掉浏览器默认外观；右边框留给包画段间细缝 */
 .acct-seg {
-  display: block;
-  height: 100%;
-  /* 段现在是可点的 button（下钻），抹掉浏览器默认外观 */
-  border: 0;
+  appearance: none;
   padding: 0;
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
   cursor: pointer;
 }
 .acct-bar:hover .acct-seg {
   filter: brightness(1.08);
 }
+.acct-seg:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
 .acct-chips {
   display: flex;
-  gap: 6px;
+  gap: var(--sp-1) var(--sp-2);
   flex-wrap: wrap;
-}
-.acct-chips .num {
-  opacity: 0.75;
 }
 
 /* 账号卡里的单账号触发按钮：紧凑一排，与状态 chip 分层 */
@@ -539,13 +462,20 @@
   margin-top: 2px;
 }
 
+/* 可点胶囊（包的 button.pill / a.pill）的选中态：加一圈当前色描边而不是换配色——
+   状态 chip 本身就靠颜色表意，再改颜色会和「已下架黄 / 404 红」那套语义打架 */
+.pill.picked {
+  outline: 1.5px solid currentColor;
+  outline-offset: -1px;
+}
+
 /* 诊断页的可视证据：截图或 HTML 快照 iframe。限高避免一张长图淹没页面 */
 .diag-shot {
   display: block;
   width: 100%;
   max-height: 46vh;
-  margin: 10px 0;
-  border-radius: 10px;
+  margin: var(--sp-2) 0;
+  border-radius: var(--r-md);
   border: 1px solid var(--glass-border);
   /* 抓下来的网页快照按浅色页面渲染：钉 light 后 Canvas 就是纸面白，不写死颜色 */
   color-scheme: light;
@@ -557,69 +487,30 @@ iframe.diag-shot {
   height: 46vh;
 }
 
-/* 状态 pill 里的账号短名：比状态本身弱一档，扫读时先看状态再看是谁 */
-.pill-who {
-  opacity: 0.65;
-  font-weight: 600;
-}
-
 /* ─────────────────────────────────────────────────────────
  * 账号进度下钻 modal（状态 chip / 色条段点开）
- * 外观用包的 .overlay/.sheet（所有弹层同款）；
- * 这里只补列表行与操作区。
+ * 外观用包的 .overlay/.sheet（所有弹层同款），列表是包的 .list.gap > .list-row；
+ * 这里只补缩略图、两行省略的名字与纵排的行尾操作。
  * ───────────────────────────────────────────────────────── */
-
-/* 状态 pill 变按钮：保持 pill 外观，只加可点感。
-   ⚠️ 不能写 `font: inherit`——那会把设计包 `.pill` 的 11px 覆盖成正文字号，
-   chip 立刻比上面的 btn-small(13px) 还大（踩过）。只继承字体族，字号显式钉住。 */
-.pill-btn {
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.pill-btn:hover {
-  filter: brightness(1.12);
-}
-
 .mm-toolbar {
-  margin: 0 0 8px;
-  gap: 8px;
-}
-.mm-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin: 0 0 var(--sp-2);
+  gap: var(--sp-2);
 }
 .mm-row {
-  display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--text) 4%, transparent);
+  padding-block: var(--sp-2);
 }
 .mm-img {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: var(--h-lg);
+  height: var(--h-lg);
+  border-radius: var(--r-sm);
   object-fit: cover;
   flex: none;
   background: color-mix(in srgb, var(--text) 8%, transparent);
 }
-.mm-main {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
 .mm-name {
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
   /* 名字最多两行省略，行高稳定，列表不会忽高忽低 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -633,7 +524,7 @@ iframe.diag-shot {
 }
 .mm-meta {
   display: flex;
-  gap: 8px;
+  gap: var(--sp-2);
   flex-wrap: wrap;
 }
 /* 结论依据（error/reason）：一行省略，悬停看全文 */
@@ -644,10 +535,7 @@ iframe.diag-shot {
   white-space: nowrap;
 }
 .mm-acts {
-  display: flex;
   flex-direction: column;
-  gap: 6px;
-  flex: none;
   align-items: stretch;
 }
 
@@ -659,56 +547,20 @@ iframe.diag-shot {
   .mm-acts {
     flex-direction: row;
     width: 100%;
+    max-width: 100%;
     justify-content: flex-end;
   }
 }
 
-/* 404 人工改判控件（gone-fix.tsx）：下拉 + 应用，哪里显示 404 哪里就有 */
+/* 404 人工改判控件（gone-fix.tsx）：包的 .field.small 下拉 + 应用，哪里显示 404 哪里就有 */
 .gone-fix {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 .gone-fix-select {
-  font-size: 12px;
-  padding: 3px 6px;
   width: auto;
   min-width: 7em;
-}
-/* 列表行下方的改判条（筛选 404 时出现），与行内容对齐、不挤进 Link */
-.prow-fix {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 4px 8px 8px 68px; /* 对齐图片右侧的内容区 */
-}
-@media (max-width: 480px) {
-  .prow-fix {
-    padding-inline-start: 8px;
-  }
-}
-
-/* 任务分隔：终端里换一个 job 就画一条双线。
-   用 CSS 双线而不是一串「─」字符——固定长度的字符串在 375px 上会折行成两截。 */
-.term-sep {
-  border-top: 3px double color-mix(in srgb, var(--term-text) 38%, transparent);
-  margin: 7px 0 6px;
-}
-
-
-/* 清空后的提示条：明确「数据还在」并给回退入口——
-   否则用户不敢按，按了也不知道日志是不是被删了 */
-.term-hidden {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  font-size: 11px;
-  color: color-mix(in srgb, var(--term-text) 75%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--term-text) 18%, transparent);
-}
-.term-hidden .term-lvl {
-  margin-left: auto;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -717,53 +569,23 @@ iframe.diag-shot {
 .ov-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
 }
 .ov-label {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   flex: none;
-  /* 与 chip 首行基线对齐；chip 是 11px/1.5 加 2px 内边距 */
+  /* 与 pill 首行基线对齐（pill 是 11px 字 + 上下内边距） */
   padding-top: 3px;
   min-width: 2.6em;
 }
 .ov-chips {
   display: flex;
-  gap: 6px;
+  gap: var(--sp-1) var(--sp-2);
   flex-wrap: wrap;
   min-width: 0;
 }
-/* 选中态：加粗边框而不是换配色——状态 chip 本身就靠颜色表意，
-   再改颜色会和「已下架黄 / 404 红」那套语义打架 */
-.pill-btn.active {
-  outline: 1.5px solid currentColor;
-  outline-offset: -1px;
-}
 .ov-foot {
-  margin-top: 8px;
-}
-
-/* 奖品库分页条（/prizes，列表上下各一份） */
-.pager {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 12px;
-  margin: 10px 0;
-}
-.pager-links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-.pager-links .chip {
-  font-size: 12px;
-  text-decoration: none;
-}
-.pager-off {
-  opacity: 0.4;
-  pointer-events: none;
+  margin-top: var(--sp-2);
 }

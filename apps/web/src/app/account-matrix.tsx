@@ -16,10 +16,11 @@
  */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { mountOverlay } from "@szyyw/design/overlay";
 import { useT } from "@/i18n/context.tsx";
 import type { Dict } from "@/i18n/dict.ts";
 import { statusOf } from "./labels.ts";
@@ -32,12 +33,12 @@ import { Icon } from "./lucide-icon.tsx";
 // 「站点已应募」已归并进「已投递」（mergeStatus），不再单列一档
 const ORDER = ["drawn", "needsChoice", "pending", "unknownPattern", "failed", "expired", "gone"] as const;
 
-/** 各状态在堆叠条里的配色（与 pill 同一套语义） */
+/** 各状态在堆叠条（包的 `.bar.stacked > .bar-seg`，`--c` 定色）里的配色（与 pill 同一套语义） */
 const SEG: Record<string, string> = {
   drawn: "var(--ok)",
   needsChoice: "var(--accent2)",
   pending: "color-mix(in srgb, var(--text) 22%, transparent)",
-  // 与「已下架」的黄（--warn）分开——同色段挨着就分不出来了；包的 --slate，与 .pill.slate 同色
+  // 与「已下架」的黄（--warn）分开——同色段挨着就分不出来了；包的 --slate，与 .pill.neutral 同色
   unknownPattern: "var(--slate)",
   failed: "var(--err)",
   // 已下架给黄——之前用淡灰，进度条上和「待投递」的灰分不出区别；
@@ -92,7 +93,7 @@ export function AccountMatrix({
           const balanced = tracked + missing === totalPresents;
           const open = (status: string) => setDrill({ accountId: r.accountId, accountLabel: r.label, status });
           return (
-            <div key={r.accountId} className="acct">
+            <div key={r.accountId} className="inner pad acct">
               <div className="acct-head">
                 <strong className="acct-name">{r.label}</strong>
                 {!r.enabled && <span className="pill">{t.matrix.disabled}</span>}
@@ -108,7 +109,7 @@ export function AccountMatrix({
               </div>
 
               {/* 堆叠条：一眼看出这个账号的构成，缺口就是「未建记录」；段可点下钻 */}
-              <div className="acct-bar" role="img" aria-label={`${tracked}/${totalPresents}`}>
+              <div className="bar stacked acct-bar" role="img" aria-label={`${tracked}/${totalPresents}`}>
                 {ORDER.map((k) => {
                   const n = r.counts[k] ?? 0;
                   if (n === 0) return null;
@@ -116,8 +117,8 @@ export function AccountMatrix({
                     <button
                       key={k}
                       type="button"
-                      className="acct-seg"
-                      style={{ width: `${(n / totalPresents) * 100}%`, background: SEG[k] }}
+                      className="bar-seg acct-seg"
+                      style={{ "--w": `${(n / totalPresents) * 100}%`, "--c": SEG[k] } as CSSProperties}
                       title={`${statusOf(k, t).label} ${n}`}
                       onClick={() => open(k)}
                     />
@@ -134,14 +135,16 @@ export function AccountMatrix({
                   if (n === 0) return null;
                   const st = statusOf(k, t);
                   return (
-                    <button key={k} type="button" className={`pill pill-btn ${st.pill}`} onClick={() => open(k)}>
-                      {st.label} <span className="num">{n}</span>
+                    <button key={k} type="button" className={`pill ${st.pill}`} onClick={() => open(k)}>
+                      {st.label}
+                      <span className="count">{n}</span>
                     </button>
                   );
                 })}
                 {missing > 0 && (
-                  <button type="button" className="pill pill-btn" title={t.matrix.missingHint} onClick={() => open("missing")}>
-                    {t.matrix.missing} <span className="num">{missing}</span>
+                  <button type="button" className="pill" title={t.matrix.missingHint} onClick={() => open("missing")}>
+                    {t.matrix.missing}
+                    <span className="count">{missing}</span>
                   </button>
                 )}
               </div>
@@ -176,20 +179,16 @@ function DrillModal({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const overlay = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
-  // 与 ModalShell 同款行为：Esc 关闭 + 打开期间锁背景滚动（手机上尤其重要）
+  // 与 ModalShell 同款行为：设计包的 mountOverlay 管 Esc / 点遮罩关闭 + 打开期间锁背景滚动（手机上尤其重要）
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
+    if (!overlay.current) return;
+    const handle = mountOverlay(overlay.current, { onClose: () => closeRef.current() });
+    return () => handle.destroy();
+  }, []);
 
   const list = useMemo(() => {
     if (drill.status === "missing") {
@@ -225,12 +224,7 @@ function DrillModal({
   // ⚠️ 必须 Portal 到 body 下（设计规范 §3）：本组件渲染在 .glass 卡片里，那里有 backdrop-filter，
   // 会成为 fixed 遮罩的包含块并让遮罩的毛玻璃失效（手机上弹层「透字」就是这个原因）
   return createPortal(
-    <div
-      className="overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <div className="overlay" ref={overlay}>
       <div className="sheet wide" role="dialog" aria-modal="true" aria-labelledby="drill-title">
         <div className="sheet-head">
           <div>
@@ -255,18 +249,18 @@ function DrillModal({
           {list.length === 0 ? (
             <p className="small muted">{t.matrix.drillEmpty}</p>
           ) : (
-            <ul className="mm-list">
+            <ul className="list gap">
               {list.map((i) => {
                 const st = i.accounts.find((a) => a.accountId === drill.accountId);
                 return (
-                  <li key={i.presentId} className="mm-row">
+                  <li key={i.presentId} className="list-row mm-row">
                     {i.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图
                       <img className="mm-img" src={i.imageUrl} alt="" loading="lazy" width={44} height={44} />
                     ) : (
                       <span className="mm-img mm-img-none" aria-hidden />
                     )}
-                    <div className="mm-main">
+                    <div className="row-main">
                       {/* 点名字进奖品详情（拦截路由 modal 会盖在上面；先关本 modal 避免叠两层遮罩） */}
                       <Link className="mm-name" href={`/presents/${i.presentId}`} onClick={onClose} title={i.title}>
                         {i.title}
@@ -279,7 +273,7 @@ function DrillModal({
                       {/* 该账号在这条上的结论依据（reason 落在 error 里） */}
                       {st?.error && <div className="mm-err tiny" title={st.error}>{st.error}</div>}
                     </div>
-                    <div className="mm-acts">
+                    <div className="row-end mm-acts">
                       {drill.status === "needsChoice" && (
                         <Link
                           className="btn btn-small"

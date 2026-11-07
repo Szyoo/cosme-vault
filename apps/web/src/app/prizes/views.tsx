@@ -7,8 +7,9 @@ import type { Dict } from "@/i18n/dict.ts";
 import { sourceOf } from "../labels.ts";
 import { tallyLife, tallyStatus, type PresentItem } from "../present-item.ts";
 import { hrefFor, pageWindow, tallyTypes, type LibraryQuery } from "./library.ts";
+import { Icon } from "../lucide-icon.tsx";
 
-const LIFE_PILL: Record<string, string> = { active: "green", expired: "amber", gone: "red" };
+const LIFE_PILL: Record<string, string> = { active: "ok", expired: "warn", gone: "err" };
 /** 筛选/翻页后把视线带回列表 */
 const toList = (href: string) => `${href}#presents`;
 
@@ -36,10 +37,11 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
             return (
               <Link
                 key={l.value}
-                className={`pill pill-btn ${LIFE_PILL[l.value] ?? ""}${on ? " active" : ""}`}
+                className={`pill ${LIFE_PILL[l.value] ?? ""}${on ? " picked" : ""}`}
                 href={toList(hrefFor(query, { life: on ? null : l.value as LibraryQuery["life"], page: 1 }))}
               >
-                {lifeLabel(l.value, t)} <span className="num">{l.count}</span>
+                {lifeLabel(l.value, t)}
+                <span className="count">{l.count}</span>
               </Link>
             );
           })}
@@ -56,10 +58,11 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
               return (
                 <Link
                   key={s.key}
-                  className={`pill pill-btn${on ? " active" : ""}`}
+                  className={`pill${on ? " picked" : ""}`}
                   href={toList(hrefFor(query, on ? { type: null, page: 1 } : { type: s.key, life: "active", page: 1 }))}
                 >
-                  {s.label} <span className="num">{s.count}</span>
+                  {s.label}
+                  <span className="count">{s.count}</span>
                 </Link>
               );
             })
@@ -73,9 +76,9 @@ export function LibraryOverview({ items, query, t }: { items: PresentItem[]; que
 
 function Chip({ href, active, label, count }: { href: string; active: boolean; label: string; count: number }) {
   return (
-    <Link className={`chip filter-chip${active ? " active" : ""}`} href={toList(href)}>
+    <Link className={`chip${active ? " active" : ""}`} href={toList(href)} aria-current={active ? "true" : undefined}>
       {label}
-      <span className="filter-count num">{count}</span>
+      <span className="count">{count}</span>
     </Link>
   );
 }
@@ -100,45 +103,51 @@ export function LibraryFilters({
   const filtering = query.type !== null || query.status !== null || query.life !== null || query.q !== "";
   return (
     <div className="filters">
-      <form className="row wrap" style={{ gap: 8 }} method="get" action="/prizes">
-        <input className="field filter-search" style={{ flex: 1 }} name="q" defaultValue={query.q} placeholder={t.filter.search} />
+      <form className="row" method="get" action="/prizes">
+        <div className="field-wrap search u-flex-1">
+          <input type="search" className="field" name="q" defaultValue={query.q} placeholder={t.filter.search} />
+        </div>
         {query.type && <input type="hidden" name="type" value={query.type} />}
         {query.life && <input type="hidden" name="life" value={query.life} />}
         {query.status && <input type="hidden" name="status" value={query.status} />}
         <button type="submit" className="btn-ghost btn-small">{t.prizes.searchGo}</button>
       </form>
 
-      <div className="filter-row">
-        <span className="filter-label">{t.filter.byType}</span>
-        <Chip href={hrefFor(query, { type: null, page: 1 })} active={query.type === null} label={t.filter.all} count={items.length} />
-        {types.map((s) => (
-          <Chip
-            key={s.key}
-            href={hrefFor(query, { type: typeLabel === s.label ? null : s.key, page: 1 })}
-            active={typeLabel === s.label}
-            label={s.label}
-            count={s.count}
-          />
-        ))}
-      </div>
-
-      {showStatus && (
-        <div className="filter-row">
-          <span className="filter-label">{t.filter.byStatus}</span>
-          <Chip href={hrefFor(query, { status: null, page: 1 })} active={query.status === null} label={t.filter.all} count={items.length} />
-          {statuses.map((s) => (
+      <div className="chip-group">
+        <span className="chip-group-label">{t.filter.byType}</span>
+        <div className="chip-row">
+          <Chip href={hrefFor(query, { type: null, page: 1 })} active={query.type === null} label={t.filter.all} count={items.length} />
+          {types.map((s) => (
             <Chip
-              key={s.value}
-              href={hrefFor(query, { status: query.status === s.value ? null : s.value, page: 1 })}
-              active={query.status === s.value}
+              key={s.key}
+              href={hrefFor(query, { type: typeLabel === s.label ? null : s.key, page: 1 })}
+              active={typeLabel === s.label}
               label={s.label}
               count={s.count}
             />
           ))}
         </div>
+      </div>
+
+      {showStatus && (
+        <div className="chip-group">
+          <span className="chip-group-label">{t.filter.byStatus}</span>
+          <div className="chip-row">
+            <Chip href={hrefFor(query, { status: null, page: 1 })} active={query.status === null} label={t.filter.all} count={items.length} />
+            {statuses.map((s) => (
+              <Chip
+                key={s.value}
+                href={hrefFor(query, { status: query.status === s.value ? null : s.value, page: 1 })}
+                active={query.status === s.value}
+                label={s.label}
+                count={s.count}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
-      <div className="filter-foot">
+      <div className="row spread">
         <span className="tiny muted">{t.prizes.total(matched, items.length)}</span>
         {filtering && (
           <Link className="btn-ghost btn-small" href="/prizes#presents">
@@ -150,7 +159,12 @@ export function LibraryFilters({
   );
 }
 
-/** 分页条（列表上下各一份）：上一页 / 页码（当前页高亮）/ 下一页 + 总数 */
+/**
+ * 分页条（列表上下各一份）。外观用设计包的 `.pager` 公开类（与 pager.js 生成的结构同名同层级），
+ * 但不挂 pager.js：筛选与分页都在 URL 里，页码就是普通链接，没有 JS 也能用。
+ * 链接版的页码键补一个本应用的 `.pager-link`（`<a>` 需要居中与去下划线）；到头的上/下一页是禁用的 button。
+ * ≤520px 包会藏起页码、显示 `.pager-cur`（3 / 20）。
+ */
 export function Pager({
   query,
   page,
@@ -168,34 +182,55 @@ export function Pager({
 }) {
   return (
     <nav className="pager" aria-label={t.prizes.pager} data-pager>
-      <span className="tiny muted num">
+      <span className="pager-info">
         {t.prizes.total(matched, total)} · {t.prizes.pageOf(page, pages)}
       </span>
-      <span className="pager-links">
+      <span className="pager-nav">
         {page > 1 ? (
-          <Link className="chip" href={toList(hrefFor(query, { page: page - 1 }))} rel="prev">
-            {t.prizes.prev}
+          <Link
+            className="pager-btn pager-step pager-link"
+            href={toList(hrefFor(query, { page: page - 1 }))}
+            rel="prev"
+            aria-label={t.prizes.prev}
+          >
+            <Icon name="chevron-left" />
           </Link>
         ) : (
-          <span className="chip pager-off" aria-disabled>{t.prizes.prev}</span>
+          <button type="button" className="pager-btn pager-step" disabled aria-label={t.prizes.prev}>
+            <Icon name="chevron-left" />
+          </button>
         )}
         {pageWindow(page, pages).map((p, i) =>
           p === null ? (
-            <span key={`gap${i}`} className="tiny muted">…</span>
+            <span key={`gap${i}`} className="pager-gap">
+              …
+            </span>
           ) : p === page ? (
-            <span key={p} className="chip active num" aria-current="page">{p}</span>
+            <span key={p} className="pager-btn pager-num pager-link active" aria-current="page">
+              {p}
+            </span>
           ) : (
-            <Link key={p} className="chip num" href={toList(hrefFor(query, { page: p }))}>
+            <Link key={p} className="pager-btn pager-num pager-link" href={toList(hrefFor(query, { page: p }))}>
               {p}
             </Link>
           ),
         )}
+        <span className="pager-cur">
+          {page} / {pages}
+        </span>
         {page < pages ? (
-          <Link className="chip" href={toList(hrefFor(query, { page: page + 1 }))} rel="next">
-            {t.prizes.next}
+          <Link
+            className="pager-btn pager-step pager-link"
+            href={toList(hrefFor(query, { page: page + 1 }))}
+            rel="next"
+            aria-label={t.prizes.next}
+          >
+            <Icon name="chevron-right" />
           </Link>
         ) : (
-          <span className="chip pager-off" aria-disabled>{t.prizes.next}</span>
+          <button type="button" className="pager-btn pager-step" disabled aria-label={t.prizes.next}>
+            <Icon name="chevron-right" />
+          </button>
         )}
       </span>
     </nav>

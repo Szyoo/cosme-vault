@@ -53,42 +53,50 @@ export function PresentList({ items }: { items: PresentItem[] }) {
   return (
     <>
       <div className="filters">
-        <input
-          className="field filter-search"
-          placeholder={t.filter.search}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-
-        <div className="filter-row">
-          <span className="filter-label">{t.filter.byType}</span>
-          <FilterChip active={source === null} onClick={() => setSource(null)} label={t.filter.all} count={items.length} />
-          {sources.map((s) => (
-            <FilterChip
-              key={s.value}
-              active={source === s.value}
-              onClick={() => setSource(source === s.value ? null : s.value)}
-              label={s.label}
-              count={s.count}
-            />
-          ))}
+        {/* 搜索框与筛选胶囊用设计包的 .field-wrap.search / .chip-group / .chip > .count */}
+        <div className="field-wrap search">
+          <input
+            type="search"
+            className="field"
+            placeholder={t.filter.search}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
 
-        <div className="filter-row">
-          <span className="filter-label">{t.filter.byStatus}</span>
-          <FilterChip active={status === null} onClick={() => setStatus(null)} label={t.filter.all} count={items.length} />
-          {statuses.map((s) => (
-            <FilterChip
-              key={s.value}
-              active={status === s.value}
-              onClick={() => setStatus(status === s.value ? null : s.value)}
-              label={s.label}
-              count={s.count}
-            />
-          ))}
+        <div className="chip-group">
+          <span className="chip-group-label">{t.filter.byType}</span>
+          <div className="chip-row">
+            <FilterChip active={source === null} onClick={() => setSource(null)} label={t.filter.all} count={items.length} />
+            {sources.map((s) => (
+              <FilterChip
+                key={s.value}
+                active={source === s.value}
+                onClick={() => setSource(source === s.value ? null : s.value)}
+                label={s.label}
+                count={s.count}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="filter-foot">
+        <div className="chip-group">
+          <span className="chip-group-label">{t.filter.byStatus}</span>
+          <div className="chip-row">
+            <FilterChip active={status === null} onClick={() => setStatus(null)} label={t.filter.all} count={items.length} />
+            {statuses.map((s) => (
+              <FilterChip
+                key={s.value}
+                active={status === s.value}
+                onClick={() => setStatus(status === s.value ? null : s.value)}
+                label={s.label}
+                count={s.count}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="row spread">
           <span className="tiny muted">{t.filter.shown(shown.length, items.length)}</span>
           {filtering && (
             <button
@@ -105,7 +113,7 @@ export function PresentList({ items }: { items: PresentItem[] }) {
       {shown.length === 0 ? (
         <p className="small muted">{t.filter.noMatch}</p>
       ) : (
-        <ul className="plist">
+        <ul className="list">
           {shown.map((i) => (
             <Row key={i.presentId} item={i} statusFilter={status} />
           ))}
@@ -127,9 +135,9 @@ function FilterChip({
   count: number;
 }) {
   return (
-    <button type="button" className={`chip filter-chip${active ? " active" : ""}`} onClick={onClick}>
+    <button type="button" className="chip" aria-pressed={active} onClick={onClick}>
       {label}
-      <span className="filter-count num">{count}</span>
+      <span className="count">{count}</span>
     </button>
   );
 }

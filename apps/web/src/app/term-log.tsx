@@ -129,7 +129,7 @@ export function TermLog({ lines, live }: { lines: TermLine[]; live: boolean }) {
       {cleared && (
         <div className="term-hidden">
           {hiddenLabel}
-          <button type="button" className="term-lvl" onClick={showAll}>
+          <button type="button" className="term-lvl term-hidden-action" onClick={showAll}>
             {showAllLabel}
           </button>
         </div>

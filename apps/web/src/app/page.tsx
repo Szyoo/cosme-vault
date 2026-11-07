@@ -147,18 +147,24 @@ export default async function Home() {
             <div className="section-name">{t.runner.title}</div>
             {/* ⚠️ 「执行中」只在**在线**时才成立。心跳行里的 busyJobId 是上次心跳那一刻的
                 快照，离线时照抄它就会渲染出「离线 · 执行中」这种自相矛盾的一行（踩过）。 */}
+            {/* 状态点用设计包的 .dot-label > .dot（在线 ok、离线 idle） */}
             <p className="small">
               {runner.kind === "online" ? (
-                <>
-                  {`🟢 ${t.runner.online}${where(runner.location)} · `}
+                <span className="dot-label">
+                  <span className="dot ok" />
+                  {`${t.runner.online}${where(runner.location)} · `}
                   {runner.busy ? t.runner.busy : t.runner.idle}
-                </>
+                </span>
               ) : runner.kind === "offline" ? (
-                `⚪️ ${t.runner.offline}${where(runner.location)} · ${t.runner.lastSeen(
-                  formatAgo(runner.agoMs, t),
-                )}`
+                <span className="dot-label">
+                  <span className="dot idle" />
+                  {`${t.runner.offline}${where(runner.location)} · ${t.runner.lastSeen(formatAgo(runner.agoMs, t))}`}
+                </span>
               ) : (
-                `⚪️ ${t.runner.offline} · ${t.runner.noHeartbeat}`
+                <span className="dot-label">
+                  <span className="dot idle" />
+                  {`${t.runner.offline} · ${t.runner.noHeartbeat}`}
+                </span>
               )}
             </p>
           </div>
@@ -196,22 +202,20 @@ export default async function Home() {
       {needsChoice.length > 0 && (
         <section className="glass panel section">
           <div className="section-name">{t.choice.needsChoiceTitle}</div>
-          <div className="stack">
+          <div className="list gap">
             {needsChoice.map((r) => (
-              <Link
-                key={r.presentId}
-                className="inner pad row wrap spread"
-                href={`/choices/${r.presentId}?account=${r.accountId}`}
-              >
-                <span>
-                  {r.brand && <strong>{r.brand} · </strong>}
-                  {r.name ?? r.presentId}
+              <Link key={r.presentId} className="list-row" href={`/choices/${r.presentId}?account=${r.accountId}`}>
+                <span className="row-main">
+                  <span className="row-title">
+                    {r.brand && <strong>{r.brand} · </strong>}
+                    {r.name ?? r.presentId}
+                  </span>
                   {/* 多个账号都挂在这个奖品上时说明一句，免得以为漏了另一个号 */}
-                  {r.accounts > 1 && (
-                    <span className="tiny muted"> · {t.choice.coversAccounts(r.accounts)}</span>
-                  )}
+                  {r.accounts > 1 && <span className="row-sub">{t.choice.coversAccounts(r.accounts)}</span>}
                 </span>
-                <span className="pill violet">{t.choice.goChoose}</span>
+                <span className="row-end">
+                  <span className="pill violet">{t.choice.goChoose}</span>
+                </span>
               </Link>
             ))}
           </div>
@@ -222,18 +226,24 @@ export default async function Home() {
         <section className="glass panel section">
           <div className="section-name">{t.attention.needsConfirm}</div>
           <p className="tiny muted">{t.attention.needsConfirmHint}</p>
-          <div className="stack" style={{ marginTop: 10 }}>
+          <div className="list gap u-mt-4">
             {needsConfirm.map((r) => (
               // 整块不能是 <a>：里面有按钮，嵌套交互元素点不准（奖品名单独给链接）
-              <div key={`${r.accountId}-${r.presentId}`} className="inner pad row wrap spread">
-                <span style={{ minWidth: 0 }}>
-                  <Link href={`/presents/${r.presentId}`}>
+              <div key={`${r.accountId}-${r.presentId}`} className="list-row wrap-narrow">
+                <span className="row-main">
+                  <Link className="row-title" href={`/presents/${r.presentId}`}>
                     {r.brand && <strong>{r.brand} · </strong>}
                     {r.name ?? r.presentId}
                   </Link>
-                  {r.error && <span className="tiny muted"> — {r.error}</span>}
+                  {r.error && (
+                    <span className="row-sub" title={r.error}>
+                      {r.error}
+                    </span>
+                  )}
                 </span>
-                <ResolveButtons accountId={r.accountId} presentId={r.presentId} link={r.link} />
+                <span className="row-end">
+                  <ResolveButtons accountId={r.accountId} presentId={r.presentId} link={r.link} />
+                </span>
               </div>
             ))}
           </div>
