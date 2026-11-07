@@ -167,12 +167,12 @@ function AnomalyCard({ a, t, onResolved }: { a: Anomaly; t: Dict; onResolved: ()
     <div className="glass panel spot diag-card">
       <div className="row wrap spread">
         <strong>{a.title || a.url}</strong>
-        <span className="row wrap" style={{ gap: 8 }}>
+        <span className="row wrap u-gap-4">
           <span className="pill warn">{t.diag.seenTimes(a.seenCount)}</span>
           {a.affected.length > 0 && <span className="pill">{t.diag.affected(a.affected.length)}</span>}
         </span>
       </div>
-      <p className="tiny muted" style={{ wordBreak: "break-all" }}>
+      <p className="tiny muted break-all">
         <code>{a.url}</code>
       </p>
 

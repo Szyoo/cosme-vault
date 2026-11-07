@@ -33,7 +33,7 @@ export function Landing({ t }: { t: Dict }) {
       <section className="glass panel section">
         <div className="row wrap spread">
           <span className="small muted">{t.landing.loginPrompt}</span>
-          <span className="row wrap" style={{ gap: 8 }}>
+          <span className="row wrap u-gap-4">
             <a className="btn" href="/prizes" data-landing-prizes>
               {t.landing.prizesButton}
             </a>

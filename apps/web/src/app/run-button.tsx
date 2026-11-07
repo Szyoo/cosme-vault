@@ -65,7 +65,7 @@ export function RunButton() {
   }
 
   return (
-    <div className="row wrap" style={{ gap: 6 }}>
+    <div className="row wrap u-gap-3">
       {msg && <span className="tiny muted">{msg}</span>}
       <button
         type="button"

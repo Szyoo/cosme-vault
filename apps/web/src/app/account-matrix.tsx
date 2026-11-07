@@ -85,7 +85,7 @@ export function AccountMatrix({
       </div>
       <p className="tiny muted">{t.matrix.hint}</p>
 
-      <div className="stack" style={{ marginTop: 10 }}>
+      <div className="stack u-mt-4">
         {rows.map((r) => {
           const tracked = ORDER.reduce((n, k) => n + (r.counts[k] ?? 0), 0);
           const missing = Math.max(0, totalPresents - tracked);

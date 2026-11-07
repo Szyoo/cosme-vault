@@ -54,7 +54,7 @@ export function PasswordSection() {
       <div className="section-name">{t.settings.pwTitle}</div>
       <p className="tiny muted">{t.settings.pwHint}</p>
       {/* autoComplete 让浏览器 / 密码管理器认出这是「改密码」表单并提示保存新密码 */}
-      <form className="stack" style={{ marginTop: 10 }} onSubmit={(e) => void submit(e)}>
+      <form className="stack u-mt-4" onSubmit={(e) => void submit(e)}>
         <input
           className="field"
           type="password"

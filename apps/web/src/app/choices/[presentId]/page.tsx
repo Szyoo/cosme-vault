@@ -291,8 +291,7 @@ export function ChoiceInner() {
         type="button"
         onClick={submit}
         disabled={busy}
-        className="btn"
-        style={{ width: "100%", marginTop: 18 }}
+        className="btn submit-full"
       >
         {busy ? t.choice.submitting : t.choice.submit}
       </button>

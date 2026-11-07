@@ -85,7 +85,7 @@ export function PacingSection() {
     <section className="glass panel section">
       <div className="section-name">{t.pacing.title}</div>
       <p className="tiny muted">{t.pacing.hint}</p>
-      <div className="stack" style={{ marginTop: 10 }}>
+      <div className="stack u-mt-4">
         {rangeRow(t.pacing.between, "betweenPresentsMs")}
         {rangeRow(t.pacing.step, "stepDelayMs")}
       </div>

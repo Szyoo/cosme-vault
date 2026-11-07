@@ -59,7 +59,7 @@ export function AccountActions({ accountId, label }: { accountId: string; label:
   if (msg) return <span className="tiny muted">{msg}</span>;
 
   return (
-    <span className="row wrap acct-actions" style={{ gap: 6 }}>
+    <span className="row wrap u-gap-3 acct-actions">
       <button
         type="button"
         className="btn-ghost btn-small"

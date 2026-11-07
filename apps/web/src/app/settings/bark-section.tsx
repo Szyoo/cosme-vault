@@ -74,7 +74,7 @@ export function BarkSection() {
       {cfg?.source === "env" && <p className="tiny muted">{t.barkSettings.fromEnv}</p>}
       {cfg?.source === "none" && <p className="small warn-text">{t.barkSettings.notConfigured}</p>}
 
-      <div className="stack" style={{ marginTop: 10 }}>
+      <div className="stack u-mt-4">
         <input
           className="field"
           placeholder={t.barkSettings.server}

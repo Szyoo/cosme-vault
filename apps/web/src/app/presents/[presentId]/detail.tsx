@@ -57,7 +57,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
       </p>
 
       <section className="glass panel section">
-        <div className="row wrap" style={{ alignItems: "flex-start", gap: 18 }}>
+        <div className="row wrap u-ai-start detail-head">
           {present.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- 外站 CDN 图，不走 next/image
             <img className="detail-img" src={present.imageUrl} alt={present.name} width={132} height={132} />
@@ -65,7 +65,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
             <span className="detail-img" aria-hidden />
           )}
 
-          <dl className="kv" style={{ flex: 1, minWidth: 220 }}>
+          <dl className="kv detail-kv">
             <dt>{t.present.type}</dt>
             <dd>
               <span className={`pill ${src.pill}`}>{src.short}</span>
@@ -90,7 +90,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
             <Icon name="external-link" />
           </a>
         </div>
-        <p className="tiny muted" style={{ wordBreak: "break-all", marginTop: 8 }}>
+        <p className="tiny muted u-mt-3 break-all">
           <code>{present.link}</code>
         </p>
       </section>
@@ -164,13 +164,13 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
           if (picked.length === 0) return null;
           const account = accounts.find((a) => a.id === l.accountId);
           return (
-            <div key={`choice-${l.id}`} className="inner pad" style={{ marginTop: 10 }}>
+            <div key={`choice-${l.id}`} className="inner pad u-mt-4">
               <div className="tiny muted">
                 {t.choice.yourChoice}
                 {accounts.length > 1 && account ? `（${account.label}）` : ""}
               </div>
               {picked.map((c, i) => (
-                <p key={i} className="small" style={{ margin: "6px 0 0" }}>
+                <p key={i} className="small u-m0 u-mt-2">
                   {c.text}
                 </p>
               ))}
@@ -186,7 +186,7 @@ export function PresentDetailBody({ presentId, t }: { presentId: string; t: Dict
           );
         })}
         {links.some((l) => l.error) && (
-          <p className="small" style={{ marginTop: 10 }}>
+          <p className="small u-mt-4">
             {links.find((l) => l.error)?.error}
           </p>
         )}

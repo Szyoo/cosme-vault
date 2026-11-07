@@ -196,7 +196,7 @@ function AccountCard({
           原先 5 个子元素直接被 space-between 均摊，间距忽大忽小显得散乱粘连 */}
       <div className="row wrap spread">
         <strong>{account.label}</strong>
-        <span className="small" style={{ flex: 1, minWidth: 160 }}>
+        <span className="small acct-cred">
           {c.configured ? (
             <>
               <Icon name="lock" /> {t.settings.credConfigured}
@@ -208,7 +208,7 @@ function AccountCard({
           )}
           {c.filledFields.length > 0 && `（${c.filledFields.join(", ")}）`}
         </span>
-        <span className="row wrap" style={{ gap: 8, flex: "0 1 auto", minWidth: 0 }}>
+        <span className="row wrap u-gap-4 acct-ops">
           {/* 会话状态：任何成功任务都是证明。72 小时内有证明就认为已登录、
               藏起「激活登录」（已激活还摆着按钮是噪音）；
               证明过期或从未证明才显示。cron 每 12h 跑一轮，正常时证明常新。 */}
@@ -251,7 +251,7 @@ function AccountCard({
         </span>
       </div>
 
-      {activateMsg && <p className="small muted" style={{ marginTop: 8 }}>{activateMsg}</p>}
+      {activateMsg && <p className="small muted u-mt-3">{activateMsg}</p>}
 
       {open && (
         <form className="stack section" onSubmit={save}>

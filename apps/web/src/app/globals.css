@@ -221,8 +221,9 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
-/* 奖品库分页条：包的 .pager 类，页码是链接（不挂 pager.js），<a> 需要居中与去下划线 */
-.pager-link {
+/* 奖品库分页条：包的 .pager 类，页码是链接（不挂 pager.js），<a> 需要居中与去下划线。
+   用 :where 把特异性降到 0，让包在窄屏藏页码（.pager-num { display: none }）的规则照样生效 */
+:where(.pager-link) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -544,6 +545,13 @@ iframe.diag-shot {
   .mm-row {
     flex-wrap: wrap;
   }
+  /* 名字留在缩略图右侧（基准 0，不因长名字被挤到下一行），只有操作区换行 */
+  .mm-row > .row-main {
+    flex-basis: 0;
+  }
+  .mm-acts:empty {
+    display: none;
+  }
   .mm-acts {
     flex-direction: row;
     width: 100%;
@@ -588,4 +596,36 @@ iframe.diag-shot {
 }
 .ov-foot {
   margin-top: var(--sp-2);
+}
+
+/* ---------- 由内联样式收拢来的局部布局 ---------- */
+
+/* 奖品详情页头部：大图 + 键值列表，窄屏换行 */
+.detail-head {
+  gap: var(--sp-4);
+}
+.detail-kv {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* 长链接 / URL 允许任意处折行，不撑破卡片 */
+.break-all {
+  word-break: break-all;
+}
+
+/* 选择页的提交键：手机上整宽，与上方卡片拉开距离 */
+.submit-full {
+  width: 100%;
+  margin-top: var(--sp-4);
+}
+
+/* 设置页账号卡：名称 | 凭据状态（占满余宽）| 操作簇 */
+.acct-cred {
+  flex: 1;
+  min-width: 160px;
+}
+.acct-ops {
+  flex: 0 1 auto;
+  min-width: 0;
 }
