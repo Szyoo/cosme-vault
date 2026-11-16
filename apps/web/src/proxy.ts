@@ -30,11 +30,22 @@ import { SESSION_COOKIE, verifySession } from "@/lib/crypto.ts";
 import { PORTAL_ORIGIN, externalUrl, siteUrl } from "@/lib/sso.ts";
 import { safeNext } from "@/app/login/safe-next.ts";
 
-/** 站点图标（public/）：浏览器取图标不带身份，必须公开 */
-const ICON_PATHS = ["/favicon.ico", "/favicon.svg", "/apple-touch-icon.png"];
-const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", ...ICON_PATHS];
+/**
+ * 站点图标与 Web App 清单（public/）：浏览器取图标、iOS「添加到主屏幕」读清单都不带身份，
+ * 必须公开（被拦下就会拿到登录页）。`/api/version` 只有构建号，给自动更新比对，匿名页面也要用。
+ */
+const PUBLIC_ASSETS = [
+  "/favicon.ico",
+  "/favicon.svg",
+  "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/manifest.webmanifest",
+  "/api/version",
+];
+const PUBLIC_PREFIXES = ["/api/runner/", "/api/auth/", "/login", "/_next/", ...PUBLIC_ASSETS];
 /** SSO 下的放行清单：去掉 `/api/auth/`（见文件头），`/login` 已在上面单独跳门户 */
-const SSO_PUBLIC_PREFIXES = ["/api/runner/", "/_next/", ...ICON_PATHS];
+const SSO_PUBLIC_PREFIXES = ["/api/runner/", "/_next/", ...PUBLIC_ASSETS];
 /**
  * SSO 下匿名访客可进的页面（精确匹配，不含子路径）。2026-10-02 起：匿名只看
  * 奖品库，别的一概不开放——`/presents/<id>` 详情含账号状态与应募按钮，**不在**这里。

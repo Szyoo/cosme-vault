@@ -20,6 +20,25 @@ const nextConfig = {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+  /**
+   * public/ 里不带内容哈希的文件（图标、Web App 清单）每次都回源校验：换了图标或清单，
+   * 主屏 App 下次打开就能拿到。页面本身是动态渲染，Next 已发 no-store；/_next/static 带哈希，照旧长缓存。
+   */
+  async headers() {
+    return [
+      {
+        source: "/:file(favicon\\.ico|favicon\\.svg|apple-touch-icon\\.png|icon-192\\.png|icon-512\\.png)",
+        headers: [{ key: "Cache-Control", value: "no-cache" }],
+      },
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          { key: "Cache-Control", value: "no-cache" },
+          { key: "Content-Type", value: "application/manifest+json" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -217,7 +217,8 @@ export function ChoiceInner() {
   }
 
   return (
-    <main className="page narrow app-main">
+    // data-draft：选了还没提交时不让自动更新重载页面（web-app.tsx）
+    <main className="page narrow app-main" data-draft>
       <BackRow t={t} />
       <h1 className="page-title">{t.choice.title}</h1>
       {data.present && (

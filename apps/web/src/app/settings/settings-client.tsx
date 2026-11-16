@@ -80,7 +80,8 @@ export function SettingsClient({ sso }: { sso: boolean }) {
   }
 
   return (
-    <main className="page app-main">
+    // data-draft：改了还没保存时不让自动更新重载页面（web-app.tsx）
+    <main className="page app-main" data-draft>
       <Nav current="/settings" t={t} />
 
       <h1 className="page-title">{t.settings.title}</h1>
